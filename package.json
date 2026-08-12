@@ -1,0 +1,49 @@
+{
+  "name": "academic-management-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema de Gestión Académica con Sincronización SIE",
+  "author": "Proyecto de Grado",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev:api": "pnpm --filter @academic/api start:dev",
+    "dev:web": "pnpm --filter @academic/web dev",
+    "dev:worker": "pnpm --filter @academic/sie-worker dev",
+    "build": "pnpm --filter @academic/shared-types build && pnpm --filter @academic/api build && pnpm --filter @academic/web build && pnpm --filter @academic/sie-worker build",
+    "typecheck": "pnpm --recursive exec tsc --noEmit",
+    "lint": "pnpm --recursive exec eslint . --ext .ts,.tsx",
+    "lint:fix": "pnpm --recursive exec eslint . --ext .ts,.tsx --fix",
+    "test": "pnpm --filter @academic/api test && pnpm --filter @academic/sie-worker test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css,scss,prisma}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,css,scss,prisma}\"",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:down:clean": "docker compose down -v",
+    "db:generate": "prisma generate --schema=./prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema=./prisma/schema.prisma",
+    "db:deploy": "prisma migrate deploy --schema=./prisma/schema.prisma",
+    "db:seed": "tsx ./prisma/seed.ts",
+    "db:reset": "prisma migrate reset --schema=./prisma/schema.prisma --force",
+    "db:setup": "tsx ./scripts/db-setup.ts",
+    "db:studio": "prisma studio --schema=./prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "@typescript-eslint/eslint-plugin": "^8.26.0",
+    "@typescript-eslint/parser": "^8.26.0",
+    "dotenv": "^16.4.7",
+    "eslint": "^9.21.0",
+    "eslint-config-prettier": "^10.0.2",
+    "eslint-plugin-prettier": "^5.2.3",
+    "pg": "^8.13.3",
+    "@types/pg": "^8.11.11",
+    "prettier": "^3.5.3",
+    "prisma": "^6.4.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.4.1"
+  },
+  "packageManager": "pnpm@10.27.0"
+}
