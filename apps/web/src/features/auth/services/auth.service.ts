@@ -11,6 +11,23 @@ export const authService = {
     return parsed.data;
   },
 
+  isAuthenticated() {
+    return Boolean(localStorage.getItem('access_token'));
+  },
+
+  getCurrentUser(): AuthResponse['data']['user'] | null {
+    const storedUser = localStorage.getItem('auth_user');
+    if (!storedUser) return null;
+
+    try {
+      const parsedUser: unknown = JSON.parse(storedUser);
+      const result = authResponseSchema.shape.data.shape.user.safeParse(parsedUser);
+      return result.success ? result.data : null;
+    } catch {
+      return null;
+    }
+  },
+
   logout() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');

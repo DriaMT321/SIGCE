@@ -75,7 +75,6 @@ export class RoleLoginUseCase {
         const teacher = await this.prisma.teacher.findFirst({
           where: {
             deletedAt: null,
-            userId: { not: null },
             OR: [{ itemNumber: identifier }, { ci: identifier }],
           },
           include: { user: true },
