@@ -54,7 +54,10 @@ export class PuppeteerSieAdapter implements ISieAutomationPort {
 
       // Extraer datos simulados
       const readRude = await page.$eval('#student-rude', (el) => el.textContent?.trim());
-      const readGradeStr = await page.$eval('#grade-input', (el: any) => el.value);
+      const readGradeStr = await page.$eval(
+        '#grade-input',
+        (el) => (el as unknown as { value: string }).value,
+      );
       const readGrade = parseFloat(readGradeStr || '0');
 
       console.log(`  -> Datos verificados en página: RUDE=${readRude}, Nota=${readGrade}`);
@@ -71,7 +74,7 @@ export class PuppeteerSieAdapter implements ISieAutomationPort {
         isMatched,
         verifiedAt: new Date().toISOString(),
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`❌ Error en RPA Puppeteer:`, error);
       return {
         synchronizationId: jobData.synchronizationId,
@@ -81,7 +84,7 @@ export class PuppeteerSieAdapter implements ISieAutomationPort {
         sieValue: 0,
         status: SieSyncStatus.FAILED,
         isMatched: false,
-        errorMessage: error.message || 'Error desconocido en Puppeteer',
+        errorMessage: error instanceof Error ? error.message : 'Error desconocido en Puppeteer',
         verifiedAt: new Date().toISOString(),
       };
     } finally {

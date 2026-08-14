@@ -34,11 +34,11 @@
 }
 
 .glow-indigo {
-  box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 25px -5px rgba(248, 195, 17, 0.3);
 }
 
 .glow-emerald {
-  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 25px -5px rgba(243, 112, 34, 0.3);
 }
 
 /* Custom Scrollbar */

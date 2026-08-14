@@ -4,14 +4,17 @@ import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../../common/guards/roles.guard';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 import { UserRole } from '@academic/shared-types';
+import { Permissions } from '../../../../common/decorators/permissions.decorator';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
 
 @Controller('audit')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class AuditController {
   constructor(private readonly getAuditLogsUseCase: GetAuditLogsUseCase) {}
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
+  @Permissions('audit:read')
   async getAuditLogs(
     @Query('entity') entity?: string,
     @Query('userId') userId?: string,

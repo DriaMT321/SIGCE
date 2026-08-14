@@ -139,8 +139,8 @@ flutter run
 
 El seed genera automáticamente las siguientes credenciales para pruebas locales:
 
-- **Usuario**: `admin@academic.edu.bo`
-- **Contraseña**: `AdminSecurePass2026!`
+- **Usuario**: el valor configurado en `SEED_ADMIN_EMAIL`.
+- **Contraseña**: el valor configurado en `SEED_ADMIN_PASSWORD`.
 - **Rol**: `ADMIN`
 
 ---
@@ -178,3 +178,11 @@ pnpm --filter @academic/sie-worker test:puppeteer
 - **Autenticación**: JWT Access Token (15m) + Refresh Token rotativo (7d) persistido en BD.
 - **Autorización**: RolesGuard + decorador `@Roles()` para control de acceso basado en roles (RBAC).
 - **Bitácora de Auditoría**: Toda operación sensible (cambios en calificaciones, asistencias, solicitudes de sincronización y respuestas del SIE) se registra en la entidad `AuditLog` con valores previos, valores nuevos, usuario, fecha e IP de origen.
+
+## Notas de seguridad y arquitectura
+
+- Las credenciales del usuario bootstrap se leen exclusivamente desde `SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD` en `.env`; no se documentan valores reales en el repositorio.
+- `POST /api/v1/auth/refresh` rota refresh tokens almacenados como hashes y `POST /api/v1/auth/revoke` los revoca.
+- Los endpoints protegidos combinan `RolesGuard` y `PermissionsGuard`, usando los permisos sembrados en `RolePermission`.
+- El Worker publica `sie.sync.started`, `sie.sync.verified` y `sie.sync.failed` mediante Redis; el Gateway NestJS los retransmite por Socket.IO.
+- El proyecto Flutter incluye las plataformas Android, iOS, Web, Linux, macOS y Windows. La verificación local requiere una instalación funcional del SDK Flutter.

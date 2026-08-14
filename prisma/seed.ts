@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, Shift, Gender } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import * as dotenv from 'dotenv';
 
@@ -52,28 +52,48 @@ async function main() {
 
   // 2. Asignar permisos a roles
   const allPermissions = await prisma.permission.findMany();
-  const adminPermissions = allPermissions;
+  const permissionNamesByRole: Record<UserRole, string[]> = {
+    [UserRole.ADMIN]: allPermissions.map((permission) => permission.name),
+    [UserRole.DIRECTOR]: [
+      'users:read', 'students:read', 'students:update', 'grades:read',
+      'attendance:read', 'audit:read', 'sie:read', 'sie:execute',
+    ],
+    [UserRole.SECRETARY]: [
+      'users:read', 'students:read', 'students:create', 'students:update',
+      'sie:read', 'sie:execute',
+    ],
+    [UserRole.TEACHER]: [
+      'students:read', 'grades:read', 'grades:create', 'grades:update',
+      'attendance:read', 'attendance:create', 'attendance:update', 'sie:read',
+    ],
+    [UserRole.PARENT]: ['students:read', 'grades:read', 'attendance:read'],
+  };
 
   console.log('  -> Asignando permisos a roles...');
-  for (const perm of adminPermissions) {
-    await prisma.rolePermission.upsert({
-      where: {
-        role_permissionId: {
-          role: UserRole.ADMIN,
-          permissionId: perm.id,
+  for (const [role, permissionNames] of Object.entries(permissionNamesByRole) as [UserRole, string[]][]) {
+    for (const permission of allPermissions.filter((item) => permissionNames.includes(item.name))) {
+      await prisma.rolePermission.upsert({
+        where: {
+          role_permissionId: {
+            role,
+            permissionId: permission.id,
+          },
         },
-      },
-      update: {},
-      create: {
-        role: UserRole.ADMIN,
-        permissionId: perm.id,
-      },
-    });
+        update: {},
+        create: {
+          role,
+          permissionId: permission.id,
+        },
+      });
+    }
   }
 
   // 3. Crear usuario administrador inicial
-  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@academic.edu.bo';
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'AdminSecurePass2026!';
+  const adminEmail = process.env.SEED_ADMIN_EMAIL?.trim();
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+  if (!adminEmail || !adminPassword) {
+    throw new Error('SEED_ADMIN_EMAIL y SEED_ADMIN_PASSWORD son obligatorias para ejecutar el seed');
+  }
   const adminFirstName = process.env.SEED_ADMIN_FIRST_NAME || 'Administrador';
   const adminLastName = process.env.SEED_ADMIN_LAST_NAME || 'General';
 
@@ -169,7 +189,16 @@ async function main() {
   }
 
   // 6. Registro de auditoría inicial del seed
-  await prisma.auditLog.create({
+  const bootstrapAudit = await prisma.auditLog.findFirst({
+    where: {
+      userId: adminUser.id,
+      action: 'CREATE',
+      entity: 'SystemBootstrap',
+      entityId: adminUser.id,
+    },
+  });
+  if (!bootstrapAudit) {
+    await prisma.auditLog.create({
     data: {
       userId: adminUser.id,
       action: 'CREATE',
@@ -180,9 +209,10 @@ async function main() {
         timestamp: new Date().toISOString(),
       },
       ipAddress: '127.0.0.1',
-      userAgent: 'PrismaSeed/1.0',
-    },
-  });
+        userAgent: 'PrismaSeed/1.0',
+      },
+    });
+  }
 
   console.log('✅ Seed completado exitosamente.');
 }

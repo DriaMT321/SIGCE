@@ -9,9 +9,9 @@ export const workerConfig = {
     password: process.env.REDIS_PASSWORD || undefined,
   },
   sie: {
-    baseUrl: process.env.SIE_BASE_URL || 'https://sie.minedu.gob.bo',
-    username: process.env.SIE_USERNAME || 'sie_demo_user',
-    password: process.env.SIE_PASSWORD || 'sie_demo_password',
+    baseUrl: process.env.SIE_BASE_URL || '',
+    username: process.env.SIE_USERNAME || '',
+    password: process.env.SIE_PASSWORD || '',
     headless: process.env.SIE_HEADLESS !== 'false',
     timeoutMs: parseInt(process.env.SIE_SYNC_TIMEOUT_MS || '30000', 10),
   },

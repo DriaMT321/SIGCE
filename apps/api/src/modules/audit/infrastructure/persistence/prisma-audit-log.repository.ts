@@ -25,7 +25,7 @@ export class PrismaAuditLogRepository implements IAuditLogRepository {
     return new AuditLogEntity(
       created.id,
       created.userId,
-      created.action as any,
+      created.action as unknown as AuditLogEntity['action'],
       created.entity,
       created.entityId,
       created.previousValue as Record<string, unknown> | null,
@@ -57,11 +57,11 @@ export class PrismaAuditLogRepository implements IAuditLogRepository {
     ]);
 
     const items = rawItems.map(
-      (item: any) =>
+      (item) =>
         new AuditLogEntity(
           item.id,
           item.userId,
-          item.action as any,
+          item.action as unknown as AuditLogEntity['action'],
           item.entity,
           item.entityId,
           item.previousValue as Record<string, unknown> | null,
@@ -85,7 +85,7 @@ export class PrismaAuditLogRepository implements IAuditLogRepository {
     return new AuditLogEntity(
       item.id,
       item.userId,
-      item.action as any,
+      item.action as unknown as AuditLogEntity['action'],
       item.entity,
       item.entityId,
       item.previousValue as Record<string, unknown> | null,

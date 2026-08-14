@@ -6,18 +6,21 @@ import { RolesGuard } from '../../../../common/guards/roles.guard';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 import { UserRole, AuthenticatedUser } from '@academic/shared-types';
-import { PrismaService } from '../../../../common/database/prisma.service';
+import { Permissions } from '../../../../common/decorators/permissions.decorator';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
+import { GetSieSyncStatusUseCase } from '../../application/use-cases/get-sie-sync-status.use-case';
 
 @Controller('sie-sync')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class SieSyncController {
   constructor(
     private readonly triggerSyncUseCase: TriggerSieSyncUseCase,
-    private readonly prisma: PrismaService,
+    private readonly getSieSyncStatusUseCase: GetSieSyncStatusUseCase,
   ) {}
 
   @Post('trigger')
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY)
+  @Permissions('sie:execute')
   async triggerSync(
     @Body() dto: TriggerSieSyncDto,
     @CurrentUser() user: AuthenticatedUser,
@@ -32,13 +35,9 @@ export class SieSyncController {
 
   @Get('status/:id')
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
+  @Permissions('sie:read')
   async getSyncStatus(@Param('id') id: string) {
-    const sync = await this.prisma.sieSynchronization.findUnique({
-      where: { id },
-      include: {
-        items: true,
-      },
-    });
+    const sync = await this.getSieSyncStatusUseCase.execute(id);
 
     return {
       statusCode: 200,

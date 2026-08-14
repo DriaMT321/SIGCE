@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_theme.dart';
+
 class AlertsScreen extends StatelessWidget {
   const AlertsScreen({super.key});
 
@@ -24,7 +26,7 @@ class AlertsScreen extends StatelessWidget {
             message: 'Se convoca a reunión informativa este viernes a las 18:00.',
             time: 'Ayer',
             icon: Icons.campaign_rounded,
-            color: Colors.indigoAccent,
+            color: AppTheme.secondaryColor,
           ),
         ],
       ),

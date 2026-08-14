@@ -1,11 +1,16 @@
 import { ProcessSieSyncUseCase } from './process-sie-sync.use-case';
 import { ISieAutomationPort } from '../../domain/ports/sie-automation.port';
 import { SieSyncStatus } from '@academic/shared-types';
+import { PrismaClient } from '@prisma/client';
 
 describe('ProcessSieSyncUseCase', () => {
   let useCase: ProcessSieSyncUseCase;
   let mockPort: jest.Mocked<ISieAutomationPort>;
-  let mockPrisma: any;
+  let mockPrisma: {
+    sieSynchronizationItem: { update: jest.Mock };
+    sieSynchronization: { update: jest.Mock };
+    auditLog: { create: jest.Mock };
+  };
 
   beforeEach(() => {
     mockPort = {
@@ -36,7 +41,7 @@ describe('ProcessSieSyncUseCase', () => {
       },
     };
 
-    useCase = new ProcessSieSyncUseCase(mockPort, mockPrisma);
+    useCase = new ProcessSieSyncUseCase(mockPort, mockPrisma as unknown as PrismaClient);
   });
 
   it('debe procesar la sincronización y actualizar el estado en BD y registrar auditoría', async () => {

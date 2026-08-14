@@ -22,11 +22,19 @@ export interface AppConfig {
   };
 }
 
+function requiredEnvironment(name: string): string {
+  const value = process.env[name]?.trim();
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+}
+
 export default (): AppConfig => ({
   nodeEnv: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || process.env.API_PORT || '3000', 10),
   database: {
-    url: process.env.DATABASE_URL || 'postgresql://academic_admin:academic_secret_password_2026@localhost:5432/academic_management_db?schema=public',
+    url: requiredEnvironment('DATABASE_URL'),
   },
   redis: {
     host: process.env.REDIS_HOST || 'localhost',
@@ -34,13 +42,13 @@ export default (): AppConfig => ({
     password: process.env.REDIS_PASSWORD || undefined,
   },
   jwt: {
-    accessSecret: process.env.JWT_ACCESS_SECRET || 'dev_jwt_access_secret_key_change_in_production_32chars!',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'dev_jwt_refresh_secret_key_change_in_production_32chars!',
+    accessSecret: requiredEnvironment('JWT_ACCESS_SECRET'),
+    refreshSecret: requiredEnvironment('JWT_REFRESH_SECRET'),
     accessExpiration: process.env.JWT_ACCESS_EXPIRATION || '15m',
     refreshExpiration: process.env.JWT_REFRESH_EXPIRATION || '7d',
   },
   sie: {
-    baseUrl: process.env.SIE_BASE_URL || 'https://sie.minedu.gob.bo',
+    baseUrl: process.env.SIE_BASE_URL || '',
     headless: process.env.SIE_HEADLESS !== 'false',
     timeoutMs: parseInt(process.env.SIE_SYNC_TIMEOUT_MS || '30000', 10),
   },

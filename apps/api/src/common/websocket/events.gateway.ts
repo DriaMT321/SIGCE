@@ -7,20 +7,54 @@ import {
   MessageBody,
   ConnectedSocket,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { SieSyncResult } from '@academic/shared-types';
+import Redis from 'ioredis';
+
+const SIE_SYNC_EVENTS_CHANNEL = 'sie-synchronization-events';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
-export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(EventsGateway.name);
 
   @WebSocketServer()
-  server: Server;
+  server!: Server;
+  private subscriber: Redis | null = null;
+
+  constructor(private readonly configService: ConfigService) {}
+
+  async onModuleInit(): Promise<void> {
+    this.subscriber = new Redis({
+      host: this.configService.get<string>('redis.host', 'localhost'),
+      port: this.configService.get<number>('redis.port', 6379),
+      password: this.configService.get<string>('redis.password') || undefined,
+      maxRetriesPerRequest: null,
+    });
+    await this.subscriber.subscribe(SIE_SYNC_EVENTS_CHANNEL);
+    this.subscriber.on('message', (_channel, message) => {
+      try {
+        const envelope = JSON.parse(message) as { event: string; payload: unknown };
+        this.server.emit(envelope.event, envelope.payload);
+      } catch (error: unknown) {
+        this.logger.error(
+          `No se pudo publicar evento Redis: ${error instanceof Error ? error.message : 'error desconocido'}`,
+        );
+      }
+    });
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    if (this.subscriber) {
+      await this.subscriber.quit();
+      this.subscriber = null;
+    }
+  }
 
   handleConnection(client: Socket) {
     this.logger.log(` Cliente WebSocket conectado: ${client.id}`);
@@ -54,6 +88,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     total: number;
   }) {
     this.server.emit('sie.sync.progress', payload);
+  }
+
+  emitSieSyncQueued(payload: Record<string, unknown>) {
+    this.server.emit('sie.sync.queued', payload);
   }
 
   emitSieSyncVerified(result: SieSyncResult) {

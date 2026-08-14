@@ -3,6 +3,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../../lib/api-client';
 import { getSocket } from '../../../lib/socket';
 import {
+  sieSyncStatusEventSchema,
+  sieSyncTriggerResponseSchema,
+} from '../schemas/sie-sync.schema';
+import {
   RefreshCw,
   CheckCircle2,
   AlertTriangle,
@@ -11,6 +15,7 @@ import {
   Server,
   Globe2,
 } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
 
 interface GradeComparisonItem {
   id: string;
@@ -63,21 +68,23 @@ export const SieSyncDashboardPage: React.FC = () => {
   useEffect(() => {
     const socket = getSocket();
 
-    socket.on('sie.sync.progress', (data: { status: string }) => {
+    socket.on('sie.sync.progress', (rawData: unknown) => {
+      const data = sieSyncStatusEventSchema.parse(rawData);
       console.log('⚡ Evento WebSocket [sie.sync.progress]:', data);
       setSyncStatus(data.status);
     });
 
-    socket.on('sie.sync.verified', (data: { studentRude: string; sieValue: number; status: 'PENDING' | 'QUEUED' | 'PROCESSING' | 'VERIFIED' | 'FAILED'; isMatched: boolean }) => {
+    socket.on('sie.sync.verified', (rawData: unknown) => {
+      const data = sieSyncStatusEventSchema.parse(rawData);
       console.log('⚡ Evento WebSocket [sie.sync.verified]:', data);
       setItems((prev) =>
         prev.map((item) =>
           item.studentRude === data.studentRude
             ? {
                 ...item,
-                sieGrade: data.sieValue,
-                status: data.status,
-                isMatched: data.isMatched,
+                sieGrade: data.sieValue ?? null,
+                status: data.status === 'CANCELLED' ? 'FAILED' : data.status,
+                isMatched: data.isMatched ?? false,
               }
             : item,
         ),
@@ -95,7 +102,7 @@ export const SieSyncDashboardPage: React.FC = () => {
       const response = await apiClient.post('/sie-sync/trigger', {
         syncType: 'GRADES',
       });
-      return response.data;
+      return sieSyncTriggerResponseSchema.parse(response.data);
     },
     onSuccess: () => {
       setSyncStatus('QUEUED');
@@ -117,14 +124,15 @@ export const SieSyncDashboardPage: React.FC = () => {
           </p>
         </div>
 
-        <button
+        <Button
+          type="button"
           onClick={() => triggerMutation.mutate()}
           disabled={triggerMutation.isPending}
-          className="inline-flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all disabled:opacity-50 cursor-pointer"
+          className="space-x-2 bg-gradient-to-r from-indigo-600 to-violet-600 shadow-lg shadow-indigo-500/25 hover:from-indigo-500 hover:to-violet-500 hover:shadow-indigo-500/40"
         >
           <Sparkles className="w-4 h-4" />
           <span>{triggerMutation.isPending ? 'Encolando en BullMQ...' : 'Ejecutar Sincronización RPA'}</span>
-        </button>
+        </Button>
       </div>
 
       {/* Status Bar */}

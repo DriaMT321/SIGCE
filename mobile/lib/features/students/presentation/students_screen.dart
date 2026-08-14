@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_theme.dart';
+
 class StudentsScreen extends StatelessWidget {
   const StudentsScreen({super.key});
 
@@ -55,10 +57,10 @@ class StudentsScreen extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: const Color(0xFF6366F1),
+                  backgroundColor: AppTheme.primaryColor,
                   child: Text(
                     name.substring(0, 1),
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -87,7 +89,7 @@ class StudentsScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStat('Promedio', averageGrade, Colors.indigoAccent),
+                _buildStat('Promedio', averageGrade, AppTheme.secondaryColor),
                 _buildStat('Asistencia', attendancePercent, Colors.emeraldAccent),
               ],
             ),

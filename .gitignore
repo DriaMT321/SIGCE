@@ -13,6 +13,11 @@ out/
 .env.*
 !.env.example
 
+# Local Flutter/Dart tooling
+.flutter-plugins
+.flutter-plugins-dependencies
+.dart_tool/
+
 # Logs
 logs/
 *.log

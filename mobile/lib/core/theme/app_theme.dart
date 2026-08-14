@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const Color primaryColor = Color(0xFF6366F1); // Indigo
-  static const Color secondaryColor = Color(0xFF8B5CF6); // Violet
+  static const Color primaryColor = Color(0xFFF8C311); // Amarillo institucional
+  static const Color secondaryColor = Color(0xFFF37022); // Naranja institucional
+  static const Color accentColor = Color(0xFFB91329); // Rojo institucional
   static const Color backgroundColor = Color(0xFF0F172A); // Slate 900
   static const Color surfaceColor = Color(0xFF1E293B); // Slate 800
-  static const Color errorColor = Color(0xFFEF4444);
+  static const Color errorColor = accentColor;
   static const Color successColor = Color(0xFF10B981);
 
   static ThemeData get darkTheme {
@@ -18,7 +19,8 @@ class AppTheme {
         primary: primaryColor,
         secondary: secondaryColor,
         surface: surfaceColor,
-        error: errorColor,
+        error: accentColor,
+        tertiary: accentColor,
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: surfaceColor,
@@ -32,7 +34,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
+          backgroundColor: accentColor,
           foregroundColor: Colors.white,
           elevation: 2,
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),

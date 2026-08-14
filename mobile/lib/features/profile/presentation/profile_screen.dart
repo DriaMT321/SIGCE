@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_theme.dart';
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -16,8 +18,8 @@ class ProfileScreen extends StatelessWidget {
           children: [
             const CircleAvatar(
               radius: 40,
-              backgroundColor: Color(0xFF6366F1),
-              child: Icon(Icons.person, size: 48, color: Colors.white),
+              backgroundColor: AppTheme.primaryColor,
+              child: Icon(Icons.person, size: 48, color: Colors.black),
             ),
             const SizedBox(height: 16),
             const Text(
@@ -32,7 +34,7 @@ class ProfileScreen extends StatelessWidget {
             Card(
               color: const Color(0xFF1E293B),
               child: ListTile(
-                leading: const Icon(Icons.security, color: Colors.indigoAccent),
+                leading: const Icon(Icons.security, color: AppTheme.secondaryColor),
                 title: const Text('Rol de Usuario', style: TextStyle(color: Colors.white)),
                 trailing: const Text('PADRE / TUTOR', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
               ),
@@ -42,7 +44,7 @@ class ProfileScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEF4444),
+                  backgroundColor: AppTheme.accentColor,
                 ),
                 icon: const Icon(Icons.logout),
                 label: const Text('Cerrar Sesión'),

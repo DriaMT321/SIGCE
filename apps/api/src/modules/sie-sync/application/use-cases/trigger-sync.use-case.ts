@@ -101,6 +101,11 @@ export class TriggerSieSyncUseCase {
       progress: 0,
       total: 1,
     });
+    this.eventsGateway.emitSieSyncQueued({
+      synchronizationId: sync.id,
+      status: SieSyncStatus.QUEUED,
+      total: 1,
+    });
 
     return {
       synchronizationId: sync.id,

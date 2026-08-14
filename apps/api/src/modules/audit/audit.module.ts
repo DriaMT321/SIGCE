@@ -4,11 +4,13 @@ import { PrismaAuditLogRepository } from './infrastructure/persistence/prisma-au
 import { CreateAuditLogUseCase } from './application/use-cases/create-audit-log.use-case';
 import { GetAuditLogsUseCase } from './application/use-cases/get-audit-logs.use-case';
 import { AuditController } from './presentation/controllers/audit.controller';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 
 @Global()
 @Module({
   controllers: [AuditController],
   providers: [
+    PermissionsGuard,
     {
       provide: AUDIT_LOG_REPOSITORY,
       useClass: PrismaAuditLogRepository,

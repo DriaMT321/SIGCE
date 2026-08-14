@@ -32,13 +32,13 @@ export class PrismaUserRepository implements IUserRepository {
     ]);
 
     const items = rawUsers.map(
-      (u: any) =>
+      (u) =>
         new UserEntity(
           u.id,
           u.email,
           u.firstName,
           u.lastName,
-          u.role as any,
+          u.role as unknown as UserEntity['role'],
           u.isActive,
           u.createdAt,
           u.updatedAt,
@@ -61,7 +61,7 @@ export class PrismaUserRepository implements IUserRepository {
       u.email,
       u.firstName,
       u.lastName,
-      u.role as any,
+      u.role as unknown as UserEntity['role'],
       u.isActive,
       u.createdAt,
       u.updatedAt,
@@ -81,7 +81,7 @@ export class PrismaUserRepository implements IUserRepository {
       u.email,
       u.firstName,
       u.lastName,
-      u.role as any,
+      u.role as unknown as UserEntity['role'],
       u.isActive,
       u.createdAt,
       u.updatedAt,

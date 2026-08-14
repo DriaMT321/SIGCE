@@ -4,14 +4,17 @@ import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../../common/guards/roles.guard';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 import { UserRole } from '@academic/shared-types';
+import { Permissions } from '../../../../common/decorators/permissions.decorator';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class UsersController {
   constructor(private readonly getUsersUseCase: GetUsersUseCase) {}
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
+  @Permissions('users:read')
   async getUsers(
     @Query('role') role?: string,
     @Query('limit') limit?: string,
