@@ -21,23 +21,23 @@ export class SieWorkerApplication {
 
   async start(): Promise<void> {
     console.log('===============================================================');
-    console.log('🤖 INICIANDO WORKER RPA SIE (BULLMQ + PUPPETEER)');
+    console.log('INICIANDO WORKER RPA SIE (BULLMQ + PUPPETEER)');
     console.log('===============================================================\n');
 
     await this.prisma.$connect();
-    console.log('✅ Base de datos conectada en el Worker');
+    console.log('Base de datos conectada en el Worker');
 
     await this.eventPublisher.start();
     this.queueConsumer.start();
-    console.log('🚀 Worker RPA listo para procesar solicitudes de sincronización\n');
+    console.log('Worker RPA listo para procesar solicitudes de sincronizacion\n');
   }
 
   async stop(): Promise<void> {
-    console.log('\n🛑 Deteniendo Worker RPA...');
+    console.log('\nDeteniendo Worker RPA...');
     await this.queueConsumer.stop();
     await this.eventPublisher.stop();
     await this.puppeteerAdapter.close();
     await this.prisma.$disconnect();
-    console.log('✅ Worker RPA apagado de forma segura.');
+    console.log('Worker RPA apagado de forma segura.');
   }
 }

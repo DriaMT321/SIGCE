@@ -13,12 +13,12 @@ export class SieQueueConsumer {
   ) {}
 
   start(): void {
-    console.log(`📡 [BullMQ Worker] Escuchando la cola "${workerConfig.queueName}" en Redis ${workerConfig.redis.host}:${workerConfig.redis.port}...`);
+    console.log(`[BullMQ Worker] Escuchando la cola "${workerConfig.queueName}" en Redis ${workerConfig.redis.host}:${workerConfig.redis.port}...`);
 
     this.worker = new Worker<SieSyncJobData, SieSyncResult>(
       workerConfig.queueName,
       async (job: Job<SieSyncJobData, SieSyncResult>) => {
-        console.log(`\n📥 [BullMQ] Trabajo recibido [ID: ${job.id}, Name: ${job.name}]`);
+        console.log(`\n[BullMQ] Trabajo recibido [ID: ${job.id}, Name: ${job.name}]`);
         await this.eventPublisher.publish('sie.sync.started', {
           synchronizationId: job.data.synchronizationId,
           itemId: job.data.itemId,
@@ -51,18 +51,18 @@ export class SieQueueConsumer {
     );
 
     this.worker.on('completed', (job: Job<SieSyncJobData, SieSyncResult>) => {
-      console.log(`🎉 [BullMQ] Trabajo completado exitosamente: ${job.id}`);
+      console.log(`[BullMQ] Trabajo completado exitosamente: ${job.id}`);
     });
 
     this.worker.on('failed', (job: Job<SieSyncJobData, SieSyncResult> | undefined, err: Error) => {
-      console.error(`❌ [BullMQ] Trabajo fallido [ID: ${job?.id}]: ${err.message}`);
+      console.error(`[BullMQ] Trabajo fallido [ID: ${job?.id}]: ${err.message}`);
     });
   }
 
   async stop(): Promise<void> {
     if (this.worker) {
       await this.worker.close();
-      console.log('🛑 [BullMQ Worker] Worker detenido.');
+      console.log('[BullMQ Worker] Worker detenido.');
     }
   }
 }

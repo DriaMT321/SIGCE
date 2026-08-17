@@ -4,7 +4,7 @@
 
 ---
 
-## 🏛️ Arquitectura del Sistema
+## Arquitectura del Sistema
 
 El proyecto está diseñado bajo los principios de **Clean Architecture** y **Domain-Driven Design (DDD)** implementado como un **Monolito Modular** y un **Worker RPA asíncrono** independiente:
 
@@ -39,7 +39,7 @@ academic-management/
 
 ---
 
-## 🚀 Requisitos Previos
+## Requisitos Previos
 
 Asegúrate de tener instalados en tu computadora:
 
@@ -51,7 +51,7 @@ Asegúrate de tener instalados en tu computadora:
 
 ---
 
-## 💻 Guía de Inicialización en una Computadora Nueva
+## Guía de Inicialización en una Computadora Nueva
 
 Sigue estos sencillos pasos tras clonar el repositorio:
 
@@ -103,30 +103,30 @@ Este comando automáticamente:
 
 ---
 
-## 🏃‍♂️ Ejecución en Desarrollo
+## Ejecución en Desarrollo
 
 Puedes levantar cada componente en terminales separadas:
 
-### 🟢 Backend API (NestJS)
+### Backend API (NestJS)
 ```bash
 pnpm dev:api
 ```
 - Servidor HTTP: `http://localhost:3000/api/v1`
 - WebSocket Gateway: `http://localhost:3000`
 
-### 🔵 Frontend Web (React + Vite)
+### Frontend Web (React + Vite)
 ```bash
 pnpm dev:web
 ```
 - Aplicación Web: `http://localhost:5173`
 
-### 🤖 Worker RPA (BullMQ + Puppeteer)
+### Worker RPA (BullMQ + Puppeteer)
 ```bash
 pnpm dev:worker
 ```
 - Consume trabajos de la cola `sie-synchronization` y ejecuta Chromium headless.
 
-### 📱 Aplicación Móvil (Flutter)
+### Aplicación Móvil (Flutter)
 ```bash
 cd mobile
 flutter pub get
@@ -135,7 +135,7 @@ flutter run
 
 ---
 
-## 🔑 Credenciales de Bootstrap (Desarrollo)
+## Credenciales de Bootstrap (Desarrollo)
 
 El seed genera automáticamente las siguientes credenciales para pruebas locales:
 
@@ -145,7 +145,7 @@ El seed genera automáticamente las siguientes credenciales para pruebas locales
 
 ---
 
-## 📜 Scripts Globales Disponibles
+## Scripts Globales Disponibles
 
 | Comando | Descripción |
 |---|---|
@@ -163,7 +163,7 @@ El seed genera automáticamente las siguientes credenciales para pruebas locales
 
 ---
 
-## 🧪 Pruebas de Diagnóstico y Automatización
+## Pruebas de Diagnóstico y Automatización
 
 ### Prueba de Diagnóstico Puppeteer (Chromium Sandbox)
 Para comprobar que el motor de automatización Puppeteer puede inicializar Chromium y procesar páginas sin tocar el SIE real:
@@ -173,7 +173,7 @@ pnpm --filter @academic/sie-worker test:puppeteer
 
 ---
 
-## 🔒 Auditoría y Seguridad
+## Auditoría y Seguridad
 
 - **Autenticación**: JWT Access Token (15m) + Refresh Token rotativo (7d) persistido en BD.
 - **Autorización**: RolesGuard + decorador `@Roles()` para control de acceso basado en roles (RBAC).

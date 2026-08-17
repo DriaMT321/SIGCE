@@ -8,7 +8,7 @@ export class PuppeteerSieAdapter implements ISieAutomationPort {
 
   async initialize(): Promise<void> {
     if (!this.browser) {
-      console.log('🌐 [Puppeteer Adapter] Inicializando instancia de Chromium...');
+      console.log('[Puppeteer Adapter] Inicializando instancia de Chromium...');
       this.browser = await puppeteer.launch({
         headless: workerConfig.sie.headless,
         args: [
@@ -19,7 +19,7 @@ export class PuppeteerSieAdapter implements ISieAutomationPort {
           '--disable-gpu',
         ],
       });
-      console.log('  ✅ Chromium inicializado correctamente');
+      console.log('  Chromium inicializado correctamente');
     }
   }
 
@@ -31,7 +31,7 @@ export class PuppeteerSieAdapter implements ISieAutomationPort {
 
     const page = await this.browser.newPage();
     try {
-      console.log(`🤖 [RPA Worker] Procesando sincronización para RUDE: ${jobData.studentRude}, Materia: ${jobData.subjectCode}`);
+      console.log(`[RPA Worker] Procesando sincronizacion para RUDE: ${jobData.studentRude}, Materia: ${jobData.subjectCode}`);
 
       // En Fase 1 (Bootstrap), ejecutamos una simulación controlada de lectura y verificación
       // navegando a una página local segura en memoria
@@ -60,7 +60,7 @@ export class PuppeteerSieAdapter implements ISieAutomationPort {
       );
       const readGrade = parseFloat(readGradeStr || '0');
 
-      console.log(`  -> Datos verificados en página: RUDE=${readRude}, Nota=${readGrade}`);
+      console.log(`  -> Datos verificados en pagina: RUDE=${readRude}, Nota=${readGrade}`);
 
       const isMatched = readGrade === jobData.localGrade;
 
@@ -75,7 +75,7 @@ export class PuppeteerSieAdapter implements ISieAutomationPort {
         verifiedAt: new Date().toISOString(),
       };
     } catch (error: unknown) {
-      console.error(`❌ Error en RPA Puppeteer:`, error);
+      console.error(`Error en RPA Puppeteer:`, error);
       return {
         synchronizationId: jobData.synchronizationId,
         itemId: jobData.itemId,
@@ -133,7 +133,7 @@ export class PuppeteerSieAdapter implements ISieAutomationPort {
     if (this.browser) {
       await this.browser.close();
       this.browser = null;
-      console.log('🛑 [Puppeteer Adapter] Instancia de Chromium cerrada.');
+      console.log('[Puppeteer Adapter] Instancia de Chromium cerrada.');
     }
   }
 }

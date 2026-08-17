@@ -3,7 +3,7 @@ import { SieWorkerApplication } from './worker';
 const app = new SieWorkerApplication();
 
 app.start().catch((err) => {
-  console.error('❌ Error fatal iniciando el Worker RPA:', err);
+  console.error('Error fatal iniciando el Worker RPA:', err);
   process.exit(1);
 });
 

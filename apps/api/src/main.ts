@@ -40,9 +40,9 @@ async function bootstrap() {
 
   await app.listen(port);
   logger.log(`=======================================================`);
-  logger.log(`🎓 SERVIDOR ACADÉMICO NESTJS INICIADO EN PUERTO: ${port}`);
-  logger.log(`🌐 Base URL: http://localhost:${port}/api/v1`);
-  logger.log(`⚡ WebSocket Server activo en puerto: ${port}`);
+  logger.log(`SERVIDOR ACADEMICO NESTJS INICIADO EN PUERTO: ${port}`);
+  logger.log(`Base URL: http://localhost:${port}/api/v1`);
+  logger.log(`WebSocket Server activo en puerto: ${port}`);
   logger.log(`=======================================================`);
 }
 

@@ -10,7 +10,7 @@ import {
   History,
   RefreshCw,
   FileSpreadsheet,
-  Settings,
+  Layers,
 } from 'lucide-react';
 
 const navigation = [
@@ -26,21 +26,26 @@ const navigation = [
 
 export const Sidebar: React.FC = () => {
   return (
-    <aside className="w-64 bg-slate-900/80 border-r border-slate-800 flex flex-col flex-shrink-0">
+    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 shadow-xs">
       {/* Brand Logo */}
-      <div className="h-16 flex items-center px-6 border-b border-slate-800 space-x-3">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-          <GraduationCap className="w-5 h-5" />
+      <div className="h-16 flex items-center px-6 border-b border-slate-100 space-x-3">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#F8C311] via-[#F37022] to-[#B91329] flex items-center justify-center text-white shadow-md shadow-[#B91329]/25">
+          <GraduationCap className="w-5 h-5 text-white" />
         </div>
-        <span className="text-base font-bold tracking-tight text-white font-display">
-          Academic SIE
-        </span>
+        <div>
+          <span className="text-base font-bold tracking-tight text-slate-900 font-display block leading-none">
+            SIGCE
+          </span>
+          <span className="text-[10px] text-[#F37022] font-semibold tracking-wide">
+            Académico & SIE
+          </span>
+        </div>
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-        <div className="px-3 pb-2 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-          Módulos Principales
+      <nav className="flex-1 px-3 py-5 space-y-1.5 overflow-y-auto">
+        <div className="px-3 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          Módulos del Sistema
         </div>
 
         {navigation.map((item) => {
@@ -51,10 +56,10 @@ export const Sidebar: React.FC = () => {
               to={item.href}
               end={item.href === '/dashboard'}
               className={({ isActive }) =>
-                `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                `flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    ? 'bg-gradient-to-r from-[#fff5eb] via-[#fff9e5] to-white text-[#B91329] font-semibold border-l-4 border-l-[#B91329] border-y border-r border-orange-100 shadow-xs'
+                    : 'text-slate-600 hover:text-[#B91329] hover:bg-[#fff9e5] hover:border-l-2 hover:border-l-[#F8C311]'
                 }`
               }
             >
@@ -66,15 +71,19 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Footer Info */}
-      <div className="p-4 border-t border-slate-800/80">
-        <div className="glass-card p-3 rounded-xl flex items-center space-x-3">
-          <Settings className="w-4 h-4 text-indigo-400" />
+      <div className="p-4 border-t border-slate-100">
+        <div className="bg-slate-50 p-3 rounded-xl flex items-center space-x-3 border border-slate-200/80 hover:border-[#F37022]/40 transition-colors shadow-2xs">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#F8C311]/20 to-[#B91329]/15 flex items-center justify-center text-[#B91329]">
+            <Layers className="w-4 h-4" />
+          </div>
           <div className="text-xs">
-            <p className="font-semibold text-slate-300">Clean Architecture</p>
-            <p className="text-[10px] text-slate-500">DDD & Monolito Modular</p>
+            <p className="font-semibold text-slate-800">Clean Architecture</p>
+            <p className="text-[10px] text-[#F37022] font-semibold">DDD & Monolito Modular</p>
           </div>
         </div>
       </div>
     </aside>
   );
 };
+
+

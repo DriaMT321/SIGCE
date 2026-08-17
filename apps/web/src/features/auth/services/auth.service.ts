@@ -3,7 +3,18 @@ import { authResponseSchema, type AuthResponse, type LoginFormData } from '../sc
 
 export const authService = {
   async login(data: LoginFormData): Promise<AuthResponse['data']> {
-    const response = await apiClient.post('/auth/role-login', data);
+    const payload: Partial<LoginFormData> = {
+      role: data.role,
+      identifier: data.identifier.trim(),
+    };
+    if (data.secret && data.secret.trim() !== '') {
+      payload.secret = data.secret;
+    }
+    if (data.secondaryIdentifier && data.secondaryIdentifier.trim() !== '') {
+      payload.secondaryIdentifier = data.secondaryIdentifier.trim();
+    }
+
+    const response = await apiClient.post('/auth/role-login', payload);
     const parsed = authResponseSchema.parse(response.data);
     localStorage.setItem('access_token', parsed.data.accessToken);
     localStorage.setItem('refresh_token', parsed.data.refreshToken);

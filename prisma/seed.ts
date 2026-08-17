@@ -214,12 +214,12 @@ async function main() {
     });
   }
 
-  console.log('✅ Seed completado exitosamente.');
+  console.log('Seed completado exitosamente.');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error ejecutando seed:', e);
+    console.error('Error ejecutando seed:', e);
     process.exit(1);
   })
   .finally(async () => {

@@ -12,13 +12,14 @@ export const DashboardLayout: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-[#f8fafc] text-slate-900 overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Navbar />
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-slate-950/90 relative">
-          {/* Subtle background glow */}
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/5 rounded-full blur-3xl pointer-events-none" />
+        <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-[#f8fafc] relative">
+          {/* Subtle brand ambient light glows */}
+          <div className="absolute top-0 right-0 w-[550px] h-[550px] bg-gradient-to-br from-[#F8C311]/08 via-[#F37022]/05 to-transparent rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-10 left-10 w-[450px] h-[450px] bg-gradient-to-tr from-[#B91329]/05 via-[#F37022]/04 to-transparent rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 max-w-7xl mx-auto">
             <Outlet />
           </div>
@@ -27,3 +28,5 @@ export const DashboardLayout: React.FC = () => {
     </div>
   );
 };
+
+

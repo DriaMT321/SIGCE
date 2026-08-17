@@ -70,13 +70,13 @@ export const SieSyncDashboardPage: React.FC = () => {
 
     socket.on('sie.sync.progress', (rawData: unknown) => {
       const data = sieSyncStatusEventSchema.parse(rawData);
-      console.log('⚡ Evento WebSocket [sie.sync.progress]:', data);
+      console.log('[sie.sync.progress]:', data);
       setSyncStatus(data.status);
     });
 
     socket.on('sie.sync.verified', (rawData: unknown) => {
       const data = sieSyncStatusEventSchema.parse(rawData);
-      console.log('⚡ Evento WebSocket [sie.sync.verified]:', data);
+      console.log('[sie.sync.verified]:', data);
       setItems((prev) =>
         prev.map((item) =>
           item.studentRude === data.studentRude
@@ -113,13 +113,13 @@ export const SieSyncDashboardPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <RefreshCw className="w-6 h-6 text-indigo-400" />
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
+            <RefreshCw className="w-6 h-6 text-[#F37022]" />
             Interoperabilidad y Sincronización SIE
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-600 mt-1">
             Verificación y auditoría bidireccional entre la base académica local y el portal SIE (RPA Puppeteer).
           </p>
         </div>
@@ -128,31 +128,31 @@ export const SieSyncDashboardPage: React.FC = () => {
           type="button"
           onClick={() => triggerMutation.mutate()}
           disabled={triggerMutation.isPending}
-          className="space-x-2 bg-gradient-to-r from-indigo-600 to-violet-600 shadow-lg shadow-indigo-500/25 hover:from-indigo-500 hover:to-violet-500 hover:shadow-indigo-500/40"
+          className="space-x-2 bg-gradient-to-r from-[#B91329] via-[#F37022] to-[#B91329] text-white shadow-md shadow-[#B91329]/25 hover:brightness-105 hover:shadow-lg hover:shadow-[#B91329]/30 transition-all cursor-pointer font-semibold"
         >
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className="w-4 h-4 text-amber-200" />
           <span>{triggerMutation.isPending ? 'Encolando en BullMQ...' : 'Ejecutar Sincronización RPA'}</span>
         </Button>
       </div>
 
       {/* Status Bar */}
-      <div className="glass-card p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 border-indigo-500/20">
+      <div className="glass-card p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 border border-slate-200 shadow-xs bg-white">
         <div className="flex items-center space-x-3">
           <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs text-slate-300">
-            Worker RPA: <strong className="text-emerald-400">Activo (BullMQ + Puppeteer)</strong> — Estado:{' '}
-            <span className="text-indigo-400 font-mono font-semibold">{syncStatus}</span>
+          <span className="text-xs text-slate-700 font-medium">
+            Worker RPA: <strong className="text-emerald-700">Activo (BullMQ + Puppeteer)</strong> — Estado:{' '}
+            <span className="text-[#B91329] font-mono font-bold bg-[#fff5eb] px-2 py-0.5 rounded border border-orange-200">{syncStatus}</span>
           </span>
         </div>
-        <div className="flex items-center space-x-6 text-xs text-slate-400">
-          <span className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Verificados: 2
+        <div className="flex items-center space-x-6 text-xs text-slate-600 font-semibold">
+          <span className="flex items-center gap-1.5 text-emerald-700">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Verificados: 2
           </span>
-          <span className="flex items-center gap-1.5">
-            <AlertTriangle className="w-4 h-4 text-amber-400" /> Inconsistencias: 1
+          <span className="flex items-center gap-1.5 text-amber-700">
+            <AlertTriangle className="w-4 h-4 text-[#F37022]" /> Inconsistencias: 1
           </span>
-          <span className="flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-indigo-400" /> En cola: 0
+          <span className="flex items-center gap-1.5 text-slate-700">
+            <Clock className="w-4 h-4 text-[#F37022]" /> En cola: 0
           </span>
         </div>
       </div>
@@ -160,13 +160,15 @@ export const SieSyncDashboardPage: React.FC = () => {
       {/* Dual Panel: Sistema Local vs SIE */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Panel Izquierdo: Sistema Local */}
-        <div className="glass-panel rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center space-x-2.5 text-white font-semibold text-base">
-              <Server className="w-5 h-5 text-indigo-400" />
+        <div className="glass-panel rounded-2xl p-6 space-y-4 border border-slate-200 shadow-xs bg-white">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center space-x-2.5 text-slate-900 font-bold text-base">
+              <div className="p-1.5 rounded-lg bg-[#fff9e5] text-[#F37022]">
+                <Server className="w-4 h-4" />
+              </div>
               <h2>Sistema Académico Interno</h2>
             </div>
-            <span className="text-[11px] font-medium bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700">
+            <span className="text-[11px] font-bold bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-md border border-slate-200">
               PostgreSQL (Local)
             </span>
           </div>
@@ -175,19 +177,19 @@ export const SieSyncDashboardPage: React.FC = () => {
             {items.map((item) => (
               <div
                 key={`local-${item.id}`}
-                className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between"
+                className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between hover:bg-white hover:border-amber-300 hover:shadow-xs transition-all"
               >
                 <div>
-                  <p className="text-sm font-semibold text-white">{item.studentName}</p>
-                  <p className="text-xs text-slate-400">
-                    {item.subject} • <span className="font-mono text-slate-500">RUDE: {item.studentRude}</span>
+                  <p className="text-sm font-semibold text-slate-900">{item.studentName}</p>
+                  <p className="text-xs text-slate-500">
+                    {item.subject} • <span className="font-mono text-slate-400">RUDE: {item.studentRude}</span>
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="text-lg font-bold text-indigo-400 font-mono">
+                  <span className="text-lg font-bold text-[#F37022] font-mono">
                     {item.localGrade} pts
                   </span>
-                  <p className="text-[10px] text-slate-500">Nota Local</p>
+                  <p className="text-[10px] text-slate-400 font-medium">Nota Local</p>
                 </div>
               </div>
             ))}
@@ -195,13 +197,15 @@ export const SieSyncDashboardPage: React.FC = () => {
         </div>
 
         {/* Panel Derecho: Portal SIE */}
-        <div className="glass-panel rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center space-x-2.5 text-white font-semibold text-base">
-              <Globe2 className="w-5 h-5 text-emerald-400" />
+        <div className="glass-panel rounded-2xl p-6 space-y-4 border border-slate-200 shadow-xs bg-white">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center space-x-2.5 text-slate-900 font-bold text-base">
+              <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+                <Globe2 className="w-4 h-4" />
+              </div>
               <h2>Sistema de Información Educativa (SIE)</h2>
             </div>
-            <span className="text-[11px] font-medium bg-emerald-500/10 text-emerald-300 px-2 py-0.5 rounded-md border border-emerald-500/20">
+            <span className="text-[11px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-md border border-emerald-200">
               Verificado vía RPA
             </span>
           </div>
@@ -212,25 +216,25 @@ export const SieSyncDashboardPage: React.FC = () => {
                 key={`sie-${item.id}`}
                 className={`p-4 rounded-xl border flex items-center justify-between transition-all ${
                   item.isMatched
-                    ? 'bg-emerald-950/20 border-emerald-500/30'
-                    : 'bg-amber-950/20 border-amber-500/30'
+                    ? 'bg-emerald-50/60 border-emerald-200 hover:bg-emerald-50'
+                    : 'bg-amber-50/60 border-amber-200 hover:bg-amber-50'
                 }`}
               >
                 <div className="flex items-center space-x-3">
                   {item.isMatched ? (
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100/80 border border-emerald-200 flex items-center justify-center text-emerald-700">
                       <CheckCircle2 className="w-4 h-4" />
                     </div>
                   ) : (
-                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                    <div className="w-8 h-8 rounded-lg bg-amber-100/80 border border-amber-200 flex items-center justify-center text-[#F37022]">
                       <AlertTriangle className="w-4 h-4" />
                     </div>
                   )}
                   <div>
-                    <p className="text-sm font-semibold text-white">
+                    <p className="text-sm font-semibold text-slate-900">
                       {item.isMatched ? 'Sincronización Correcta' : 'Discrepancia Detectada'}
                     </p>
-                    <p className="text-xs text-slate-400 font-mono">
+                    <p className="text-xs text-slate-500 font-mono">
                       Estado: {item.status}
                     </p>
                   </div>
@@ -239,12 +243,12 @@ export const SieSyncDashboardPage: React.FC = () => {
                 <div className="text-right">
                   <span
                     className={`text-lg font-bold font-mono ${
-                      item.isMatched ? 'text-emerald-400' : 'text-amber-400'
+                      item.isMatched ? 'text-emerald-700' : 'text-[#B91329]'
                     }`}
                   >
                     {item.sieGrade !== null ? `${item.sieGrade} pts` : '---'}
                   </span>
-                  <p className="text-[10px] text-slate-500">Valor SIE</p>
+                  <p className="text-[10px] text-slate-400 font-medium">Valor SIE</p>
                 </div>
               </div>
             ))}
@@ -254,3 +258,5 @@ export const SieSyncDashboardPage: React.FC = () => {
     </div>
   );
 };
+
+

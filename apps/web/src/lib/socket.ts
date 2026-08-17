@@ -14,11 +14,11 @@ export const getSocket = (): Socket => {
     });
 
     socket.on('connect', () => {
-      console.log('⚡ Conectado al servidor WebSocket');
+      console.log('Conectado al servidor WebSocket');
     });
 
     socket.on('disconnect', () => {
-      console.log('🔌 Desconectado del servidor WebSocket');
+      console.log('Desconectado del servidor WebSocket');
     });
   }
 

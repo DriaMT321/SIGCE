@@ -57,11 +57,11 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   }
 
   handleConnection(client: Socket) {
-    this.logger.log(` Cliente WebSocket conectado: ${client.id}`);
+    this.logger.log(`Cliente WebSocket conectado: ${client.id}`);
   }
 
   handleDisconnect(client: Socket) {
-    this.logger.log(`🔌 Cliente WebSocket desconectado: ${client.id}`);
+    this.logger.log(`Cliente WebSocket desconectado: ${client.id}`);
   }
 
   @SubscribeMessage('ping')

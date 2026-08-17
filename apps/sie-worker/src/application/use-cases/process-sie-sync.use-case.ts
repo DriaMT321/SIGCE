@@ -9,7 +9,7 @@ export class ProcessSieSyncUseCase {
   ) {}
 
   async execute(jobData: SieSyncJobData): Promise<SieSyncResult> {
-    console.log(`\n⚙️ [Caso de Uso RPA] Procesando item de sincronización ID: ${jobData.itemId}`);
+    console.log(`\n[Caso de Uso RPA] Procesando item de sincronizacion ID: ${jobData.itemId}`);
 
     // 1. Actualizar estado a PROCESSING en base de datos
     await this.prisma.sieSynchronizationItem.update({
@@ -76,7 +76,7 @@ export class ProcessSieSyncUseCase {
       },
     });
 
-    console.log(`✅ [Caso de Uso RPA] Sincronización finalizada con estado: ${result.status}`);
+    console.log(`[Caso de Uso RPA] Sincronizacion finalizada con estado: ${result.status}`);
     return result;
   }
 }
