@@ -1,4 +1,5 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
   Users,
@@ -15,8 +16,22 @@ import {
   CheckCircle2,
   Sparkles,
 } from 'lucide-react';
+import { academicApi } from '../../../lib/academic-api';
+import { authService } from '../../auth/services/auth.service';
 
 export const DashboardOverviewPage: React.FC = () => {
+  const studentsQuery = useQuery({ queryKey: ['students'], queryFn: () => academicApi.listStudents() });
+  const currentRole = authService.getCurrentUser()?.role;
+  const canReadCourses = ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER'].includes(currentRole ?? '');
+  const canReadTeachers = ['ADMIN', 'DIRECTOR', 'SECRETARY'].includes(currentRole ?? '');
+  const coursesQuery = useQuery({ queryKey: ['courses'], queryFn: () => academicApi.listCourses(), enabled: canReadCourses });
+  const teachersQuery = useQuery({ queryKey: ['teachers'], queryFn: () => academicApi.listTeachers(), enabled: canReadTeachers });
+  const gradesQuery = useQuery({ queryKey: ['grades'], queryFn: () => academicApi.listGrades() });
+  const studentsCount = studentsQuery.data?.total ?? 0;
+  const coursesCount = coursesQuery.data?.total ?? 0;
+  const teachersCount = teachersQuery.data?.total ?? 0;
+  const grades = gradesQuery.data?.data ?? [];
+  const averageGrade = grades.length ? (grades.reduce((sum, grade) => sum + grade.value, 0) / grades.length).toFixed(1) : '—';
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -57,9 +72,9 @@ export const DashboardOverviewPage: React.FC = () => {
             </div>
           </div>
           <div>
-            <p className="text-3xl font-bold text-slate-900 font-display">420</p>
+            <p className="text-3xl font-bold text-slate-900 font-display">{studentsCount}</p>
             <p className="text-xs text-emerald-600 flex items-center gap-1 mt-1 font-semibold">
-              <TrendingUp className="w-3.5 h-3.5" /> 100% matriculados activos
+              <TrendingUp className="w-3.5 h-3.5" /> Datos en tiempo real
             </p>
           </div>
         </div>
@@ -73,8 +88,8 @@ export const DashboardOverviewPage: React.FC = () => {
             </div>
           </div>
           <div>
-            <p className="text-3xl font-bold text-slate-900 font-display">28</p>
-            <p className="text-xs text-[#F37022] mt-1 font-semibold">Asignaciones completadas</p>
+            <p className="text-3xl font-bold text-slate-900 font-display">{teachersCount}</p>
+            <p className="text-xs text-[#F37022] mt-1 font-semibold">{coursesCount} cursos activos</p>
           </div>
         </div>
 
@@ -87,8 +102,8 @@ export const DashboardOverviewPage: React.FC = () => {
             </div>
           </div>
           <div>
-            <p className="text-3xl font-bold text-slate-900 font-display">94.8%</p>
-            <p className="text-xs text-emerald-600 mt-1 font-semibold">Gestión Académica 2026</p>
+            <p className="text-3xl font-bold text-slate-900 font-display">{averageGrade}</p>
+            <p className="text-xs text-emerald-600 mt-1 font-semibold">Promedio de calificaciones</p>
           </div>
         </div>
 

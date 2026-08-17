@@ -9,6 +9,9 @@ import { GradesPage } from '../features/grades/pages/GradesPage';
 import { AttendancePage } from '../features/attendance/pages/AttendancePage';
 import { AuditPage } from '../features/audit/pages/AuditPage';
 import { ReportsPage } from '../features/reports/pages/ReportsPage';
+import { EnrollmentsPage } from '../features/enrollments/pages/EnrollmentsPage';
+import { CommunityPage } from '../features/community/pages/CommunityPage';
+import { AlertsPage } from '../features/alerts/pages/AlertsPage';
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +37,22 @@ export const router = createBrowserRouter([
       {
         path: 'courses',
         element: <CoursesPage />,
+      },
+      {
+        path: 'enrollments',
+        element: <EnrollmentsPage />,
+      },
+      {
+        path: 'teachers',
+        element: <CommunityPage mode="teachers" />,
+      },
+      {
+        path: 'parents',
+        element: <CommunityPage mode="parents" />,
+      },
+      {
+        path: 'alerts',
+        element: <AlertsPage />,
       },
       {
         path: 'grades',

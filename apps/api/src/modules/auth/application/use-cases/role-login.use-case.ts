@@ -92,7 +92,7 @@ export class RoleLoginUseCase {
       case LoginRole.ADMINISTRATIVE:
         return this.prisma.user.findFirst({
           where: {
-            email: identifier.toLowerCase(),
+            OR: [{ email: identifier.toLowerCase() }, { id: identifier }],
             role: { in: [PrismaUserRole.ADMIN, PrismaUserRole.DIRECTOR, PrismaUserRole.SECRETARY] },
           },
         });

@@ -50,7 +50,7 @@ function getIdentifierPlaceholder(role: LoginRole) {
   if (role === 'STUDENT') return 'Ej. RUDE-000123';
   if (role === 'TEACHER') return 'Ej. DOC-000123';
   if (role === 'FAMILY') return 'Ej. 1234567';
-  return 'Correo institucional asignado';
+  return 'Código o usuario asignado';
 }
 
 export function Login04Form({

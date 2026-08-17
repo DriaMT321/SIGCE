@@ -17,6 +17,28 @@ async function main() {
     { name: 'users:update', description: 'Editar usuarios', module: 'users' },
     { name: 'users:delete', description: 'Eliminar usuarios', module: 'users' },
 
+    // Módulos académicos
+    { name: 'academic-years:read', description: 'Ver gestiones académicas', module: 'academic-years' },
+    { name: 'periods:read', description: 'Ver periodos académicos', module: 'periods' },
+    { name: 'subjects:read', description: 'Ver materias', module: 'subjects' },
+    { name: 'courses:read', description: 'Ver cursos', module: 'courses' },
+    { name: 'courses:create', description: 'Crear cursos', module: 'courses' },
+    { name: 'courses:update', description: 'Editar cursos', module: 'courses' },
+    { name: 'courses:delete', description: 'Eliminar cursos', module: 'courses' },
+    { name: 'enrollments:read', description: 'Ver matrículas', module: 'enrollments' },
+    { name: 'enrollments:create', description: 'Crear matrículas', module: 'enrollments' },
+    { name: 'enrollments:update', description: 'Editar matrículas', module: 'enrollments' },
+    { name: 'alerts:read', description: 'Ver alertas', module: 'alerts' },
+    { name: 'alerts:update', description: 'Marcar alertas como leídas', module: 'alerts' },
+
+    // Módulos de comunidad educativa
+    { name: 'parents:read', description: 'Ver familiares', module: 'parents' },
+    { name: 'parents:create', description: 'Registrar familiares', module: 'parents' },
+    { name: 'parents:update', description: 'Actualizar familiares', module: 'parents' },
+    { name: 'teachers:read', description: 'Ver docentes', module: 'teachers' },
+    { name: 'teachers:create', description: 'Registrar docentes', module: 'teachers' },
+    { name: 'teachers:update', description: 'Actualizar docentes', module: 'teachers' },
+
     // Módulo Estudiantes
     { name: 'students:read', description: 'Ver estudiantes', module: 'students' },
     { name: 'students:create', description: 'Registrar estudiantes', module: 'students' },
@@ -57,16 +79,21 @@ async function main() {
     [UserRole.DIRECTOR]: [
       'users:read', 'students:read', 'students:update', 'grades:read',
       'attendance:read', 'audit:read', 'sie:read', 'sie:execute',
+      'academic-years:read', 'periods:read', 'subjects:read', 'courses:read', 'courses:create', 'courses:update', 'courses:delete',
+      'enrollments:read', 'enrollments:create', 'enrollments:update', 'alerts:read', 'alerts:update',
+      'parents:read', 'parents:create', 'parents:update', 'teachers:read', 'teachers:create', 'teachers:update',
     ],
     [UserRole.SECRETARY]: [
       'users:read', 'students:read', 'students:create', 'students:update',
-      'sie:read', 'sie:execute',
+      'sie:read', 'sie:execute', 'academic-years:read', 'periods:read', 'subjects:read',
+      'courses:read', 'courses:create', 'courses:update', 'enrollments:read', 'enrollments:create', 'enrollments:update', 'alerts:read', 'alerts:update',
+      'parents:read', 'parents:create', 'parents:update', 'teachers:read', 'teachers:create', 'teachers:update',
     ],
     [UserRole.TEACHER]: [
       'students:read', 'grades:read', 'grades:create', 'grades:update',
-      'attendance:read', 'attendance:create', 'attendance:update', 'sie:read',
+      'attendance:read', 'attendance:create', 'attendance:update', 'sie:read', 'academic-years:read', 'periods:read', 'subjects:read', 'courses:read', 'enrollments:read', 'alerts:read', 'alerts:update', 'teachers:read',
     ],
-    [UserRole.PARENT]: ['students:read', 'grades:read', 'attendance:read'],
+    [UserRole.PARENT]: ['students:read', 'grades:read', 'attendance:read', 'enrollments:read', 'academic-years:read', 'periods:read', 'subjects:read', 'alerts:read', 'alerts:update'],
   };
 
   console.log('  -> Asignando permisos a roles...');

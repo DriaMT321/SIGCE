@@ -11,20 +11,30 @@ import {
   RefreshCw,
   FileSpreadsheet,
   Layers,
+  ClipboardList,
+  ContactRound,
+  UsersRound,
+  Bell,
 } from 'lucide-react';
+import { authService } from '../../features/auth/services/auth.service';
 
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Sincronización SIE (RPA)', href: '/dashboard/sie-sync', icon: RefreshCw },
-  { name: 'Estudiantes', href: '/dashboard/students', icon: Users },
-  { name: 'Cursos y Materias', href: '/dashboard/courses', icon: BookOpen },
-  { name: 'Calificaciones', href: '/dashboard/grades', icon: Award },
-  { name: 'Asistencia', href: '/dashboard/attendance', icon: CalendarCheck },
-  { name: 'Auditoría', href: '/dashboard/audit', icon: History },
-  { name: 'Reportes', href: '/dashboard/reports', icon: FileSpreadsheet },
+const navigation: Array<{ name: string; href: string; icon: typeof LayoutDashboard; roles: string[] }> = [
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },
+  { name: 'Sincronización SIE (RPA)', href: '/dashboard/sie-sync', icon: RefreshCw, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER'] },
+  { name: 'Estudiantes', href: '/dashboard/students', icon: Users, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },
+  { name: 'Cursos y Materias', href: '/dashboard/courses', icon: BookOpen, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER'] },
+  { name: 'Matrículas', href: '/dashboard/enrollments', icon: ClipboardList, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },
+  { name: 'Docentes', href: '/dashboard/teachers', icon: ContactRound, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER'] },
+  { name: 'Familiares', href: '/dashboard/parents', icon: UsersRound, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY'] },
+  { name: 'Alertas', href: '/dashboard/alerts', icon: Bell, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },
+  { name: 'Calificaciones', href: '/dashboard/grades', icon: Award, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },
+  { name: 'Asistencia', href: '/dashboard/attendance', icon: CalendarCheck, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },
+  { name: 'Auditoría', href: '/dashboard/audit', icon: History, roles: ['ADMIN', 'DIRECTOR'] },
+  { name: 'Reportes', href: '/dashboard/reports', icon: FileSpreadsheet, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER'] },
 ];
 
 export const Sidebar: React.FC = () => {
+  const currentRole = authService.getCurrentUser()?.role ?? '';
   return (
     <aside className="w-64 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 shadow-xs">
       {/* Brand Logo */}
@@ -48,7 +58,7 @@ export const Sidebar: React.FC = () => {
           Módulos del Sistema
         </div>
 
-        {navigation.map((item) => {
+        {navigation.filter((item) => item.roles.includes(currentRole)).map((item) => {
           const Icon = item.icon;
           return (
             <NavLink

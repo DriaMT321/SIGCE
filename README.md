@@ -173,6 +173,21 @@ pnpm --filter @academic/sie-worker test:puppeteer
 
 ---
 
+## Fase 2 — MVP académico funcional
+
+La segunda fase deja operativo el núcleo académico sin conectarse todavía al SIE real:
+
+- API protegida con login por rol, JWT, refresh token rotativo, RBAC y permisos sembrados.
+- CRUD y consultas de estudiantes, padres, docentes, gestiones, periodos, materias, cursos y matrículas.
+- Registro y actualización auditada de calificaciones y asistencia.
+- Alertas por usuario, bitácora de auditoría y filtrado de datos de hijos para familiares.
+- Web conectada a REST mediante TanStack Query, formularios React Hook Form + Zod y pantalla de matrículas.
+- Móvil conectado a estudiantes, calificaciones, asistencia y alertas mediante Dio.
+
+Rutas REST principales bajo `/api/v1`: `auth`, `students`, `parents`, `teachers`, `academic-years`, `periods`, `subjects`, `courses`, `enrollments`, `grades`, `attendance`, `alerts` y `audit`.
+
+La carga real contra el portal SIE, la comparación bidireccional y la sincronización automática corresponden a la Fase 3.
+
 ## Auditoría y Seguridad
 
 - **Autenticación**: JWT Access Token (15m) + Refresh Token rotativo (7d) persistido en BD.
@@ -185,4 +200,4 @@ pnpm --filter @academic/sie-worker test:puppeteer
 - `POST /api/v1/auth/refresh` rota refresh tokens almacenados como hashes y `POST /api/v1/auth/revoke` los revoca.
 - Los endpoints protegidos combinan `RolesGuard` y `PermissionsGuard`, usando los permisos sembrados en `RolePermission`.
 - El Worker publica `sie.sync.started`, `sie.sync.verified` y `sie.sync.failed` mediante Redis; el Gateway NestJS los retransmite por Socket.IO.
-- El proyecto Flutter incluye las plataformas Android, iOS, Web, Linux, macOS y Windows. La verificación local requiere una instalación funcional del SDK Flutter.
+- El módulo Flutter contiene la capa de aplicación y consultas académicas de la Fase 2. La generación/compilación de plataformas requiere una instalación funcional del SDK Flutter; en este equipo el SDK instalado no pudo inicializarse.

@@ -42,6 +42,7 @@ module.exports = [
         HTMLDivElement: 'readonly',
         HTMLInputElement: 'readonly',
         HTMLFormElement: 'readonly',
+        HTMLSelectElement: 'readonly',
         __dirname: 'readonly',
         describe: 'readonly',
         it: 'readonly',
