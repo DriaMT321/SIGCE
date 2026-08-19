@@ -1,5 +1,7 @@
 export type SieSyncEventName =
+  | 'sie.sync.queued'
   | 'sie.sync.started'
+  | 'sie.sync.progress'
   | 'sie.sync.verified'
   | 'sie.sync.failed';
 

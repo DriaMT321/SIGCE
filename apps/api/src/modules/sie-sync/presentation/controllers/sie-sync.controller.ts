@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get, UseGuards, Param } from '@nestjs/common';
+import { Body, Controller, Post, Get, UseGuards, Param, Query } from '@nestjs/common';
 import { TriggerSieSyncUseCase } from '../../application/use-cases/trigger-sync.use-case';
 import { TriggerSieSyncDto } from '../../application/dto/trigger-sync.dto';
 import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
@@ -43,5 +43,13 @@ export class SieSyncController {
       statusCode: 200,
       data: sync,
     };
+  }
+
+  @Get()
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
+  @Permissions('sie:read')
+  async list(@Query('limit') limit?: string, @Query('offset') offset?: string) {
+    const result = await this.getSieSyncStatusUseCase.list(Math.min(Number(limit) || 20, 100), Number(offset) || 0);
+    return { statusCode: 200, message: 'Sincronizaciones obtenidas exitosamente', data: result.items, total: result.total };
   }
 }

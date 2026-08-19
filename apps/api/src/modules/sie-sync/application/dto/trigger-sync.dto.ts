@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 
 export class TriggerSieSyncDto {
   @IsString()
@@ -6,14 +6,16 @@ export class TriggerSieSyncDto {
   syncType: string; // 'GRADES', 'STUDENTS', 'ATTENDANCE'
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   courseId?: string;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   subjectId?: string;
 
   @IsOptional()
-  @IsNumber()
+  @IsInt()
+  @Min(1)
+  @Max(3)
   periodNumber?: number;
 }

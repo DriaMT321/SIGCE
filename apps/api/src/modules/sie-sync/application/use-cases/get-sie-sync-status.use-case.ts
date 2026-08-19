@@ -14,4 +14,8 @@ export class GetSieSyncStatusUseCase {
   execute(id: string) {
     return this.repository.findById(id);
   }
+
+  list(limit: number, offset: number) {
+    return this.repository.findAll(limit, offset);
+  }
 }

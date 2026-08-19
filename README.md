@@ -188,6 +188,18 @@ Rutas REST principales bajo `/api/v1`: `auth`, `students`, `parents`, `teachers`
 
 La carga real contra el portal SIE, la comparación bidireccional y la sincronización automática corresponden a la Fase 3.
 
+### Fase 3 inicial sin conexión al SIE
+
+Se implementó el bloque que no depende todavía del portal estatal:
+
+- Las solicitudes de verificación toman calificaciones existentes en PostgreSQL; no crean estudiantes ni notas ficticias.
+- Los filtros disponibles para el disparador son curso, materia y periodo académico.
+- BullMQ encola un trabajo por calificación y el Worker actualiza estados y auditoría.
+- El panel web consulta el historial real y recibe estados `queued`, `started`, `progress`, `verified` y `failed` mediante Socket.IO.
+- Puppeteer trabaja únicamente sobre una página HTML local controlada.
+
+La conexión real se habilitará posteriormente mediante un adaptador separado, sin cambiar el caso de uso ni el flujo de la cola.
+
 ## Auditoría y Seguridad
 
 - **Autenticación**: JWT Access Token (15m) + Refresh Token rotativo (7d) persistido en BD.

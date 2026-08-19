@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { apiClient } from './api-client';
+import { sieSyncListResponseSchema, sieSynchronizationSchema } from '../features/sie-sync/schemas/sie-sync.schema';
 
 const studentSchema = z.object({
   id: z.string(),
@@ -206,5 +207,13 @@ export const academicApi = {
   async listAudit() {
     const response = await apiClient.get('/audit', { params: { limit: 100 } });
     return z.object({ data: z.array(z.object({ id: z.string(), action: z.string(), entity: z.string(), entityId: z.string(), userId: z.string().nullable(), previousValue: z.unknown().nullable(), newValue: z.unknown().nullable(), createdAt: z.string() })), total: z.number() }).parse(response.data);
+  },
+  async listSieSynchronizations() {
+    const response = await apiClient.get('/sie-sync', { params: { limit: 20 } });
+    return sieSyncListResponseSchema.parse(response.data);
+  },
+  async getSieSynchronization(id: string) {
+    const response = await apiClient.get(`/sie-sync/status/${id}`);
+    return sieSynchronizationSchema.parse(response.data.data);
   },
 };

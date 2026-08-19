@@ -24,8 +24,22 @@ export class SieQueueConsumer {
           itemId: job.data.itemId,
           status: 'PROCESSING',
         });
+        await this.eventPublisher.publish('sie.sync.progress', {
+          synchronizationId: job.data.synchronizationId,
+          itemId: job.data.itemId,
+          status: 'PROCESSING',
+          progress: 0,
+          total: 1,
+        });
         try {
           const result = await this.processUseCase.execute(job.data);
+          await this.eventPublisher.publish('sie.sync.progress', {
+            synchronizationId: job.data.synchronizationId,
+            itemId: job.data.itemId,
+            status: result.status,
+            progress: 1,
+            total: 1,
+          });
           await this.eventPublisher.publish(
             result.isMatched ? 'sie.sync.verified' : 'sie.sync.failed',
             { ...result },

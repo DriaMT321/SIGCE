@@ -1,262 +1,72 @@
-import React, { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AlertTriangle, CheckCircle2, Clock3, Database, Loader2, RefreshCw, Server, ShieldCheck } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { academicApi } from '../../../lib/academic-api';
 import { apiClient } from '../../../lib/api-client';
 import { getSocket } from '../../../lib/socket';
-import {
-  sieSyncStatusEventSchema,
-  sieSyncTriggerResponseSchema,
-} from '../schemas/sie-sync.schema';
-import {
-  RefreshCw,
-  CheckCircle2,
-  AlertTriangle,
-  Clock,
-  Sparkles,
-  Server,
-  Globe2,
-} from 'lucide-react';
-import { Button } from '../../../components/ui/button';
+import { sieSyncStatusEventSchema, sieSyncTriggerResponseSchema } from '../schemas/sie-sync.schema';
 
-interface GradeComparisonItem {
-  id: string;
-  studentName: string;
-  studentRude: string;
-  subject: string;
-  localGrade: number;
-  sieGrade: number | null;
-  status: 'PENDING' | 'QUEUED' | 'PROCESSING' | 'VERIFIED' | 'FAILED';
-  isMatched: boolean;
-}
+const statusLabels: Record<string, string> = {
+  PENDING: 'Pendiente', QUEUED: 'En cola', PROCESSING: 'Procesando', VERIFIED: 'Verificada', FAILED: 'Fallida', CANCELLED: 'Cancelada',
+};
 
-export const SieSyncDashboardPage: React.FC = () => {
+export function SieSyncDashboardPage() {
   const queryClient = useQueryClient();
-  const [syncStatus, setSyncStatus] = useState<string>('EN ESPERA');
-  const [items, setItems] = useState<GradeComparisonItem[]>([
-    {
-      id: '1',
-      studentName: 'Juan Pérez García',
-      studentRude: '807300012024001',
-      subject: 'Matemática',
-      localGrade: 85,
-      sieGrade: 85,
-      status: 'VERIFIED',
-      isMatched: true,
-    },
-    {
-      id: '2',
-      studentName: 'María Rodríguez Flores',
-      studentRude: '807300012024002',
-      subject: 'Lenguaje y Comunicación',
-      localGrade: 78,
-      sieGrade: 78,
-      status: 'VERIFIED',
-      isMatched: true,
-    },
-    {
-      id: '3',
-      studentName: 'Carlos Mamani Choque',
-      studentRude: '807300012024003',
-      subject: 'Ciencias Sociales: Historia',
-      localGrade: 90,
-      sieGrade: 85,
-      status: 'FAILED',
-      isMatched: false,
-    },
-  ]);
+  const [activeId, setActiveId] = useState<string>();
+  const [liveStatus, setLiveStatus] = useState('EN ESPERA');
+  const syncQuery = useQuery({ queryKey: ['sie-sync'], queryFn: academicApi.listSieSynchronizations, refetchInterval: 5000 });
+  const synchronizations = syncQuery.data?.data ?? [];
+  const selected = synchronizations.find((item) => item.id === activeId) ?? synchronizations[0];
+  const items = selected?.items ?? [];
+  const counters = useMemo(() => ({
+    verified: items.filter((item) => item.status === 'VERIFIED').length,
+    failed: items.filter((item) => item.status === 'FAILED').length,
+    pending: items.filter((item) => ['PENDING', 'QUEUED', 'PROCESSING'].includes(item.status)).length,
+  }), [items]);
 
-  // Escucha de WebSockets en tiempo real
+  useEffect(() => {
+    if (!activeId && synchronizations[0]) setActiveId(synchronizations[0].id);
+  }, [activeId, synchronizations]);
+
   useEffect(() => {
     const socket = getSocket();
-
-    socket.on('sie.sync.progress', (rawData: unknown) => {
-      const data = sieSyncStatusEventSchema.parse(rawData);
-      console.log('[sie.sync.progress]:', data);
-      setSyncStatus(data.status);
-    });
-
-    socket.on('sie.sync.verified', (rawData: unknown) => {
-      const data = sieSyncStatusEventSchema.parse(rawData);
-      console.log('[sie.sync.verified]:', data);
-      setItems((prev) =>
-        prev.map((item) =>
-          item.studentRude === data.studentRude
-            ? {
-                ...item,
-                sieGrade: data.sieValue ?? null,
-                status: data.status === 'CANCELLED' ? 'FAILED' : data.status,
-                isMatched: data.isMatched ?? false,
-              }
-            : item,
-        ),
-      );
-    });
-
-    return () => {
-      socket.off('sie.sync.progress');
-      socket.off('sie.sync.verified');
+    const refresh = (rawData: unknown) => {
+      const parsed = sieSyncStatusEventSchema.safeParse(rawData);
+      if (parsed.success) {
+        setLiveStatus(statusLabels[parsed.data.status] ?? parsed.data.status);
+        void queryClient.invalidateQueries({ queryKey: ['sie-sync'] });
+      }
     };
-  }, []);
+    const eventNames = ['sie.sync.queued', 'sie.sync.started', 'sie.sync.progress', 'sie.sync.verified', 'sie.sync.failed'];
+    eventNames.forEach((eventName) => socket.on(eventName, refresh));
+    return () => eventNames.forEach((eventName) => socket.off(eventName, refresh));
+  }, [queryClient]);
 
   const triggerMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiClient.post('/sie-sync/trigger', {
-        syncType: 'GRADES',
-      });
+      const response = await apiClient.post('/sie-sync/trigger', { syncType: 'GRADES' });
       return sieSyncTriggerResponseSchema.parse(response.data);
     },
-    onSuccess: () => {
-      setSyncStatus('QUEUED');
-      queryClient.invalidateQueries({ queryKey: ['sie-sync'] });
+    onSuccess: (result) => {
+      setLiveStatus('En cola');
+      setActiveId(result.data.synchronizationId);
+      void queryClient.invalidateQueries({ queryKey: ['sie-sync'] });
     },
   });
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
-            <RefreshCw className="w-6 h-6 text-[#F37022]" />
-            Interoperabilidad y Sincronización SIE
-          </h1>
-          <p className="text-sm text-slate-600 mt-1">
-            Verificación y auditoría bidireccional entre la base académica local y el portal SIE (RPA Puppeteer).
-          </p>
-        </div>
-
-        <Button
-          type="button"
-          onClick={() => triggerMutation.mutate()}
-          disabled={triggerMutation.isPending}
-          className="space-x-2 bg-gradient-to-r from-[#B91329] via-[#F37022] to-[#B91329] text-white shadow-md shadow-[#B91329]/25 hover:brightness-105 hover:shadow-lg hover:shadow-[#B91329]/30 transition-all cursor-pointer font-semibold"
-        >
-          <Sparkles className="w-4 h-4 text-amber-200" />
-          <span>{triggerMutation.isPending ? 'Encolando en BullMQ...' : 'Ejecutar Sincronización RPA'}</span>
-        </Button>
-      </div>
-
-      {/* Status Bar */}
-      <div className="glass-card p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 border border-slate-200 shadow-xs bg-white">
-        <div className="flex items-center space-x-3">
-          <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs text-slate-700 font-medium">
-            Worker RPA: <strong className="text-emerald-700">Activo (BullMQ + Puppeteer)</strong> — Estado:{' '}
-            <span className="text-[#B91329] font-mono font-bold bg-[#fff5eb] px-2 py-0.5 rounded border border-orange-200">{syncStatus}</span>
-          </span>
-        </div>
-        <div className="flex items-center space-x-6 text-xs text-slate-600 font-semibold">
-          <span className="flex items-center gap-1.5 text-emerald-700">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Verificados: 2
-          </span>
-          <span className="flex items-center gap-1.5 text-amber-700">
-            <AlertTriangle className="w-4 h-4 text-[#F37022]" /> Inconsistencias: 1
-          </span>
-          <span className="flex items-center gap-1.5 text-slate-700">
-            <Clock className="w-4 h-4 text-[#F37022]" /> En cola: 0
-          </span>
-        </div>
-      </div>
-
-      {/* Dual Panel: Sistema Local vs SIE */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Panel Izquierdo: Sistema Local */}
-        <div className="glass-panel rounded-2xl p-6 space-y-4 border border-slate-200 shadow-xs bg-white">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center space-x-2.5 text-slate-900 font-bold text-base">
-              <div className="p-1.5 rounded-lg bg-[#fff9e5] text-[#F37022]">
-                <Server className="w-4 h-4" />
-              </div>
-              <h2>Sistema Académico Interno</h2>
-            </div>
-            <span className="text-[11px] font-bold bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-md border border-slate-200">
-              PostgreSQL (Local)
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {items.map((item) => (
-              <div
-                key={`local-${item.id}`}
-                className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between hover:bg-white hover:border-amber-300 hover:shadow-xs transition-all"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">{item.studentName}</p>
-                  <p className="text-xs text-slate-500">
-                    {item.subject} • <span className="font-mono text-slate-400">RUDE: {item.studentRude}</span>
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="text-lg font-bold text-[#F37022] font-mono">
-                    {item.localGrade} pts
-                  </span>
-                  <p className="text-[10px] text-slate-400 font-medium">Nota Local</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Panel Derecho: Portal SIE */}
-        <div className="glass-panel rounded-2xl p-6 space-y-4 border border-slate-200 shadow-xs bg-white">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center space-x-2.5 text-slate-900 font-bold text-base">
-              <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
-                <Globe2 className="w-4 h-4" />
-              </div>
-              <h2>Sistema de Información Educativa (SIE)</h2>
-            </div>
-            <span className="text-[11px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-md border border-emerald-200">
-              Verificado vía RPA
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {items.map((item) => (
-              <div
-                key={`sie-${item.id}`}
-                className={`p-4 rounded-xl border flex items-center justify-between transition-all ${
-                  item.isMatched
-                    ? 'bg-emerald-50/60 border-emerald-200 hover:bg-emerald-50'
-                    : 'bg-amber-50/60 border-amber-200 hover:bg-amber-50'
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  {item.isMatched ? (
-                    <div className="w-8 h-8 rounded-lg bg-emerald-100/80 border border-emerald-200 flex items-center justify-center text-emerald-700">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                  ) : (
-                    <div className="w-8 h-8 rounded-lg bg-amber-100/80 border border-amber-200 flex items-center justify-center text-[#F37022]">
-                      <AlertTriangle className="w-4 h-4" />
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">
-                      {item.isMatched ? 'Sincronización Correcta' : 'Discrepancia Detectada'}
-                    </p>
-                    <p className="text-xs text-slate-500 font-mono">
-                      Estado: {item.status}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <span
-                    className={`text-lg font-bold font-mono ${
-                      item.isMatched ? 'text-emerald-700' : 'text-[#B91329]'
-                    }`}
-                  >
-                    {item.sieGrade !== null ? `${item.sieGrade} pts` : '---'}
-                  </span>
-                  <p className="text-[10px] text-slate-400 font-medium">Valor SIE</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+  return <div className="space-y-6">
+    <div className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center"><div><h1 className="flex items-center gap-2.5 text-2xl font-bold tracking-tight text-slate-900"><RefreshCw className="h-6 w-6 text-[#F37022]" />Verificación académica local</h1><p className="mt-1 text-sm text-slate-600">Flujo de cola y auditoría preparado para el SIE. La conexión estatal real permanece desactivada.</p></div><Button type="button" onClick={() => triggerMutation.mutate()} disabled={triggerMutation.isPending} className="bg-gradient-to-r from-[#B91329] via-[#F37022] to-[#B91329] text-white"><RefreshCw className={triggerMutation.isPending ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />{triggerMutation.isPending ? 'Encolando...' : 'Ejecutar verificación local'}</Button></div>
+    {triggerMutation.isError && <p className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-[#B91329]">No se pudo encolar la verificación. Verifica que existan calificaciones locales y que Redis esté disponible.</p>}
+    <div className="grid gap-4 sm:grid-cols-4"><Metric icon={<ShieldCheck />} label="Estado actual" value={selected ? statusLabels[selected.status] : liveStatus} /><Metric icon={<CheckCircle2 />} label="Verificadas" value={String(counters.verified)} tone="green" /><Metric icon={<AlertTriangle />} label="Fallidas" value={String(counters.failed)} tone="red" /><Metric icon={<Clock3 />} label="Pendientes" value={String(counters.pending)} tone="amber" /></div>
+    <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="mb-4 flex items-center gap-2 font-bold text-slate-900"><Database className="h-4 w-4 text-[#F37022]" />Historial de ejecuciones</h2>{syncQuery.isLoading ? <Loader2 className="mx-auto h-5 w-5 animate-spin text-slate-400" /> : synchronizations.length ? <div className="space-y-2">{synchronizations.map((sync) => <button key={sync.id} type="button" onClick={() => setActiveId(sync.id)} className={`w-full rounded-xl border p-3 text-left transition ${selected?.id === sync.id ? 'border-[#F37022] bg-[#fff9e5]' : 'border-slate-200 hover:border-[#F8C311]'}`}><p className="text-sm font-semibold text-slate-900">{new Date(sync.createdAt).toLocaleString('es-BO')}</p><p className="mt-1 text-xs text-slate-500">{sync.totalItems} elementos · {statusLabels[sync.status]}</p></button>)}</div> : <p className="text-sm text-slate-500">Todavía no hay ejecuciones.</p>}</section>
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3"><div><h2 className="font-bold text-slate-900">Datos locales y resultado simulado</h2><p className="text-xs text-slate-500">Worker BullMQ + Puppeteer sobre HTML controlado</p></div><Server className="h-5 w-5 text-emerald-600" /></div>{selected && items.length ? <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Estudiante</th><th className="px-4 py-3">Materia</th><th className="px-4 py-3">Local</th><th className="px-4 py-3">Resultado</th><th className="px-4 py-3">Estado</th></tr></thead><tbody className="divide-y divide-slate-100">{items.map((item) => <tr key={item.id} className="hover:bg-[#fff9e5]"><td className="px-4 py-3 font-semibold text-slate-900">{item.student.firstName} {item.student.lastName}<span className="block font-mono text-xs font-normal text-slate-500">{item.student.rude}</span></td><td className="px-4 py-3 text-slate-600">{item.subject.name}<span className="block text-xs text-slate-400">{item.period.name}</span></td><td className="px-4 py-3 font-bold text-[#F37022]">{item.localValue}</td><td className="px-4 py-3 font-bold text-emerald-700">{item.sieValue ?? '—'}</td><td className="px-4 py-3"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${item.status === 'VERIFIED' ? 'bg-emerald-50 text-emerald-700' : item.status === 'FAILED' ? 'bg-red-50 text-[#B91329]' : 'bg-amber-50 text-amber-700'}`}>{statusLabels[item.status]}</span></td></tr>)}</tbody></table></div> : <div className="rounded-xl border border-dashed border-slate-300 p-10 text-center text-sm text-slate-500">Crea calificaciones desde el módulo académico y ejecuta una verificación local.</div>}</section>
     </div>
-  );
-};
+  </div>;
+}
 
-
+function Metric({ icon, label, value, tone = 'orange' }: { icon: ReactNode; label: string; value: string; tone?: 'orange' | 'green' | 'red' | 'amber' }) {
+  const colors = { orange: 'text-[#F37022] bg-[#fff9e5]', green: 'text-emerald-600 bg-emerald-50', red: 'text-[#B91329] bg-red-50', amber: 'text-amber-600 bg-amber-50' };
+  return <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</span><span className={`rounded-lg p-2 ${colors[tone]}`}>{icon}</span></div><p className="mt-3 text-2xl font-bold text-slate-900">{value}</p></div>;
+}
