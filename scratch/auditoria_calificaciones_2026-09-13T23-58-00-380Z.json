@@ -1,0 +1,758 @@
+[
+  {
+    "rude": "819811912026504A",
+    "studentName": "ALEJANDRO ALMANZA IBAÑEZ",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 96,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 48,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 61,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 68.3
+  },
+  {
+    "rude": "8198119120261475",
+    "studentName": "LUCIA ALMANZA IBAÑEZ",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 73,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 72,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 88,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 77.7
+  },
+  {
+    "rude": "819811912026997",
+    "studentName": "AXA ANDRADE RAMOS",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 97,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 49,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 62,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 69.3
+  },
+  {
+    "rude": "819811912026305A",
+    "studentName": "SAMIR AÑEZ ORTEGA",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 66,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 80,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 79,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 75
+  },
+  {
+    "rude": "8198119120267873",
+    "studentName": "EMANUEL ARIAS OLMOS",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 68,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 82,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 81,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 77
+  },
+  {
+    "rude": "819811912026204",
+    "studentName": "JOSE MARIO CALLEJAS PAEZ",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 98,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 60,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 63,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 73.7
+  },
+  {
+    "rude": "8198119120266304",
+    "studentName": "ABRAHAM COLQUE SACA",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 71,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 70,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 87,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 76
+  },
+  {
+    "rude": "8198119120263380",
+    "studentName": "DANNY MAXIMILIANO FLORES YAMPARA",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 59,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 87,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 86,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 77.3
+  },
+  {
+    "rude": "8198119120265831",
+    "studentName": "ABRIL HERRERA RIVERO",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 75,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 99,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 90,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 88
+  },
+  {
+    "rude": "8198119120268317",
+    "studentName": "ANDRES HUASACE SANDOVAL",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 81,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 80,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 91,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 84
+  },
+  {
+    "rude": "8198119120267747",
+    "studentName": "ABDIEL JATACO CORDERO",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 97,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 49,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 62,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 69.3
+  },
+  {
+    "rude": "8198119120265763",
+    "studentName": "EMILIA SOFÍA OSINAGA SUAREZ",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 83,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 82,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 81,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 82
+  },
+  {
+    "rude": "8198119120265364",
+    "studentName": "LUCAS JOSE PARRAGA TITO",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 86,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 85,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 84,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 85
+  },
+  {
+    "rude": "8198119120266612",
+    "studentName": "DYLAN MARIO REYNOLDS SARAVIA",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 97,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 49,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 62,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 69.3
+  },
+  {
+    "rude": "8198119120265478",
+    "studentName": "CHRISTIANE RIBERA AGUILERA",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 78,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 77,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 76,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 77
+  },
+  {
+    "rude": "819811912026496",
+    "studentName": "DANIELA MASSIEL RODRIGUEZ DORFELT",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 81,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 80,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 79,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 80
+  },
+  {
+    "rude": "8198119120261150",
+    "studentName": "IRINA ROJAS ARIAS",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 95,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 47,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 60,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 67.3
+  },
+  {
+    "rude": "8198119120261293",
+    "studentName": "LUIS EDUARDO ZAMBRANA PARADA",
+    "courseName": "INICIAL EN FAMILIA COMUNITARIA - PRIMERO A",
+    "level": "INICIAL EN FAMILIA COMUNITARIA",
+    "grade": "PRIMERO",
+    "parallel": "A",
+    "turn": "MAÑANA",
+    "comparisons": [
+      {
+        "sieSubject": "INICIAL EN FAMILIA COMUNITARIA",
+        "sigceGrade1T": null,
+        "status": "SOLO_EN_SIE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Matemática",
+        "sieGrade1T": null,
+        "sigceGrade1T": 66,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Lenguaje y Comunicación",
+        "sieGrade1T": null,
+        "sigceGrade1T": 80,
+        "status": "SOLO_EN_SIGCE"
+      },
+      {
+        "sieSubject": "— (No presente en SIE)",
+        "sigceSubject": "Ciencias Naturales: Física",
+        "sieGrade1T": null,
+        "sigceGrade1T": 79,
+        "status": "SOLO_EN_SIGCE"
+      }
+    ],
+    "overallMatch": false,
+    "totalSubjectsMatched": 0,
+    "totalDiscrepancies": 0,
+    "sieAverage": 0,
+    "sigceAverage": 75
+  }
+]

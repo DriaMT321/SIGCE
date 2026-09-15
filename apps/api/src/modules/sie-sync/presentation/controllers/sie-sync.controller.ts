@@ -10,13 +10,58 @@ import { Permissions } from '../../../../common/decorators/permissions.decorator
 import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
 import { GetSieSyncStatusUseCase } from '../../application/use-cases/get-sie-sync-status.use-case';
 
+import { CheckSieLoginUseCase } from '../../application/use-cases/check-sie-login.use-case';
+
+import { AuditSieGradesUseCase, AuditExecutionOptions } from '../../application/use-cases/audit-sie-grades.use-case';
+
 @Controller('sie-sync')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class SieSyncController {
   constructor(
     private readonly triggerSyncUseCase: TriggerSieSyncUseCase,
     private readonly getSieSyncStatusUseCase: GetSieSyncStatusUseCase,
+    private readonly checkSieLoginUseCase: CheckSieLoginUseCase,
+    private readonly auditSieGradesUseCase: AuditSieGradesUseCase,
   ) {}
+
+  @Get('audit/latest')
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
+  @Permissions('sie:read')
+  async getLatestAudit() {
+    const result = await this.auditSieGradesUseCase.getLatestAudit();
+    return {
+      statusCode: 200,
+      data: result,
+    };
+  }
+
+  @Post('audit/execute')
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY)
+  @Permissions('sie:execute')
+  async executeAudit(@Body() body?: AuditExecutionOptions) {
+    const result = await this.auditSieGradesUseCase.executeAudit(body);
+    return {
+      statusCode: 200,
+      message: result.message,
+      data: result,
+    };
+  }
+
+  @Post('check-login')
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
+  @Permissions('sie:execute')
+  async checkLogin(@Body() body?: { visualMode?: boolean; username?: string; password?: string }) {
+    const result = await this.checkSieLoginUseCase.execute({
+      visualMode: body?.visualMode !== false,
+      username: body?.username,
+      password: body?.password,
+    });
+    return {
+      statusCode: 200,
+      message: result.message,
+      data: result,
+    };
+  }
 
   @Post('trigger')
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY)

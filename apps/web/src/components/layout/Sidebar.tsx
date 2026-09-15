@@ -10,7 +10,6 @@ import {
   History,
   RefreshCw,
   FileSpreadsheet,
-  Layers,
   ClipboardList,
   ContactRound,
   UsersRound,
@@ -84,11 +83,11 @@ export const Sidebar: React.FC = () => {
       <div className="p-4 border-t border-slate-100">
         <div className="bg-slate-50 p-3 rounded-xl flex items-center space-x-3 border border-slate-200/80 hover:border-[#F37022]/40 transition-colors shadow-2xs">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#F8C311]/20 to-[#B91329]/15 flex items-center justify-center text-[#B91329]">
-            <Layers className="w-4 h-4" />
+            <GraduationCap className="w-4 h-4" />
           </div>
           <div className="text-xs">
-            <p className="font-semibold text-slate-800">Clean Architecture</p>
-            <p className="text-[10px] text-[#F37022] font-semibold">DDD & Monolito Modular</p>
+            <p className="font-semibold text-slate-800">U.E. Comunidad Cristiana B</p>
+            <p className="text-[10px] text-[#F37022] font-semibold">SIE: 81981191 · Gestión 2026</p>
           </div>
         </div>
       </div>

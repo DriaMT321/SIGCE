@@ -11,7 +11,7 @@ export class CreateCourseDto {
 
   @IsInt()
   @Min(1)
-  @Max(12)
+  @Max(20)
   gradeLevel: number;
 
   @IsString()
@@ -37,7 +37,7 @@ export class UpdateCourseDto {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @Max(12)
+  @Max(20)
   gradeLevel?: number;
 
   @IsOptional()

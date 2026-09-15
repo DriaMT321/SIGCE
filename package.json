@@ -25,7 +25,12 @@
     "db:seed": "tsx ./prisma/seed.ts",
     "db:reset": "prisma migrate reset --schema=./prisma/schema.prisma --force",
     "db:setup": "tsx ./scripts/db-setup.ts",
-    "db:studio": "prisma studio --schema=./prisma/schema.prisma"
+    "db:studio": "prisma studio --schema=./prisma/schema.prisma",
+    "db:backup": "tsx ./scripts/backup-db.ts",
+    "db:inject": "tsx ./scripts/inject-extracted-data.ts",
+    "db:rollback": "tsx ./scripts/rollback-extracted-data.ts",
+    "sie:tracking": "tsx ./scripts/sie-tracking.ts",
+    "sie:compare": "tsx ./scripts/compare-sie-grades.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

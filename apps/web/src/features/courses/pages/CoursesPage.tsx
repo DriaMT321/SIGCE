@@ -12,7 +12,7 @@ import { authService } from '../../auth/services/auth.service';
 const courseFormSchema = z.object({
   academicYearId: z.string().uuid('Selecciona una gestión'),
   name: z.string().min(1, 'El nombre es obligatorio'),
-  gradeLevel: z.coerce.number().int().min(1).max(12),
+  gradeLevel: z.coerce.number().int().min(1).max(20),
   section: z.string().min(1, 'La sección es obligatoria'),
   shift: z.enum(['MORNING', 'AFTERNOON', 'EVENING']),
   maxCapacity: z.coerce.number().int().min(1).max(100),

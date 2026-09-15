@@ -5,6 +5,8 @@ import { GetSieSyncStatusUseCase } from './application/use-cases/get-sie-sync-st
 import { PrismaSieSynchronizationRepository } from './infrastructure/persistence/prisma-sie-synchronization.repository';
 import { SIE_SYNC_REPOSITORY } from './domain/repositories/sie-synchronization.repository.interface';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { CheckSieLoginUseCase } from './application/use-cases/check-sie-login.use-case';
+import { AuditSieGradesUseCase } from './application/use-cases/audit-sie-grades.use-case';
 
 @Module({
   controllers: [SieSyncController],
@@ -12,11 +14,14 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
     PermissionsGuard,
     TriggerSieSyncUseCase,
     GetSieSyncStatusUseCase,
+    CheckSieLoginUseCase,
+    AuditSieGradesUseCase,
     {
       provide: SIE_SYNC_REPOSITORY,
       useClass: PrismaSieSynchronizationRepository,
     },
   ],
-  exports: [TriggerSieSyncUseCase],
+  exports: [TriggerSieSyncUseCase, CheckSieLoginUseCase, AuditSieGradesUseCase],
 })
 export class SieSyncModule {}
+
