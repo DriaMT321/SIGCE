@@ -1,58 +1,73 @@
 import React from 'react';
 import { authService } from '../../features/auth/services/auth.service';
-import { LogOut, User, Bell, Shield, Sparkles } from 'lucide-react';
+import { LogOut, Bell, Shield, Calendar } from 'lucide-react';
+import { Badge } from '../ui/badge';
 
 export const Navbar: React.FC = () => {
   const user = authService.getCurrentUser();
+  const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || 'U';
+
+  const roleLabels: Record<string, string> = {
+    ADMIN: 'Administrador del Sistema',
+    DIRECTOR: 'Dirección Académica',
+    SECRETARY: 'Secretaría General',
+    TEACHER: 'Docente Titular',
+    PARENT: 'Padre / Tutor de Familia',
+  };
 
   return (
-    <header className="h-16 border-b border-slate-200/80 bg-white/90 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs">
-      <div className="flex items-center space-x-3">
-        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#fff5eb] text-[#B91329] border border-orange-200 shadow-2xs">
-          <Shield className="w-3.5 h-3.5 mr-1.5 text-[#F37022]" />
-          Rol: {user?.role || 'ADMIN'}
-        </span>
-        <span className="text-xs text-slate-500 hidden sm:flex items-center gap-1.5 font-medium">
-          <Sparkles className="w-3.5 h-3.5 text-[#F37022]" />
-          Gestión Académica 2026
-        </span>
+    <header className="h-16 border-b border-slate-200/90 bg-white/95 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
+      {/* Left: Academic Status and Role */}
+      <div className="flex items-center gap-3">
+        <Badge variant="brand" className="font-medium gap-1.5 py-1">
+          <Shield className="w-3.5 h-3.5 text-brand-700" />
+          <span>{roleLabels[user?.role ?? ''] ?? user?.role ?? 'Usuario'}</span>
+        </Badge>
+
+        <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500 font-medium pl-2 border-l border-slate-200">
+          <Calendar className="w-3.5 h-3.5 text-slate-400" />
+          <span>Gestión Académica 2026</span>
+          <span className="text-slate-300">/</span>
+          <span className="text-slate-700 font-semibold">1er Trimestre</span>
+        </div>
       </div>
 
-      <div className="flex items-center space-x-4">
+      {/* Right: Notifications & User Profile */}
+      <div className="flex items-center gap-3">
         <button
           type="button"
-          title="Notificaciones"
+          title="Notificaciones y avisos"
           className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors relative cursor-pointer"
         >
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#F37022] rounded-full ring-2 ring-white" />
+          <Bell className="w-4 h-4" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-600 rounded-full ring-2 ring-white" />
         </button>
 
-        <div className="h-6 w-px bg-slate-200" />
+        <div className="h-5 w-px bg-slate-200" />
 
-        <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#F8C311] via-[#F37022] to-[#B91329] flex items-center justify-center text-white text-xs font-bold shadow-md shadow-[#B91329]/25">
-            <User className="w-4 h-4" />
+        {/* User Identity Chip */}
+        <div className="flex items-center gap-2.5 pl-1">
+          <div className="w-8 h-8 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center text-xs font-bold font-mono shadow-2xs border border-slate-800">
+            {initials}
           </div>
           <div className="text-left hidden md:block">
-            <p className="text-xs font-semibold text-slate-800">
+            <p className="text-xs font-semibold text-slate-900 leading-tight">
               {user?.firstName} {user?.lastName}
             </p>
-            <p className="text-[11px] text-slate-500 font-mono">{user?.email}</p>
+            <p className="text-[10px] text-slate-500 font-mono leading-tight">{user?.email}</p>
           </div>
         </div>
 
+        {/* Logout Action */}
         <button
           type="button"
           onClick={() => authService.logout()}
-          title="Cerrar sesión"
-          className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+          title="Cerrar sesión segura"
+          className="p-2 text-slate-400 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors cursor-pointer ml-1"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="w-4 h-4" />
         </button>
       </div>
     </header>
   );
 };
-
-

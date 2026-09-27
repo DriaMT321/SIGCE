@@ -7,10 +7,11 @@ import {
   IconKey,
   IconSchool,
   IconUsersGroup,
+  IconShieldLock,
+  IconCheck,
 } from '@tabler/icons-react';
-import { AlertCircle, ShieldCheck } from 'lucide-react';
+import { AlertCircle, Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { LoginFormData, LoginRole } from '../schemas/auth.schema';
@@ -26,10 +27,10 @@ interface Login04FormProps {
 }
 
 const roleOptions: Array<{ value: LoginRole; label: string; description: string }> = [
-  { value: 'STUDENT', label: 'Estudiante', description: 'Código de alumno' },
-  { value: 'TEACHER', label: 'Docente', description: 'Código y clave' },
-  { value: 'FAMILY', label: 'Familiar', description: 'CI y celular' },
-  { value: 'ADMINISTRATIVE', label: 'Administrativo', description: 'Código y clave' },
+  { value: 'ADMINISTRATIVE', label: 'Directivo / Admin', description: 'Dirección y Secretaría' },
+  { value: 'TEACHER', label: 'Docente Titular', description: 'Registro pedagógico' },
+  { value: 'STUDENT', label: 'Estudiante', description: 'Consulta de notas' },
+  { value: 'FAMILY', label: 'Padre / Tutor', description: 'Seguimiento escolar' },
 ];
 
 function RoleIcon({ role, className }: { role: LoginRole; className?: string }) {
@@ -40,17 +41,17 @@ function RoleIcon({ role, className }: { role: LoginRole; className?: string }) 
 }
 
 function getIdentifierLabel(role: LoginRole) {
-  if (role === 'STUDENT') return 'Código de alumno';
-  if (role === 'TEACHER') return 'Código de docente';
-  if (role === 'FAMILY') return 'Cédula de identidad';
-  return 'Código de administrador';
+  if (role === 'STUDENT') return 'Código RUDE de estudiante';
+  if (role === 'TEACHER') return 'Código o ítem de docente';
+  if (role === 'FAMILY') return 'Cédula de identidad (C.I.)';
+  return 'Código o correo institucional';
 }
 
 function getIdentifierPlaceholder(role: LoginRole) {
-  if (role === 'STUDENT') return 'Ej. RUDE-000123';
-  if (role === 'TEACHER') return 'Ej. DOC-000123';
-  if (role === 'FAMILY') return 'Ej. 1234567';
-  return 'Código o usuario asignado';
+  if (role === 'STUDENT') return 'Ej. 81981191202401';
+  if (role === 'TEACHER') return 'Ej. DOC-2967609';
+  if (role === 'FAMILY') return 'Ej. 5489210';
+  return 'admin@ue-comunidadcristiana.edu.bo';
 }
 
 export function Login04Form({
@@ -66,126 +67,213 @@ export function Login04Form({
   const usesSecondaryIdentifier = role === 'FAMILY';
 
   return (
-    <Card className="w-full max-w-5xl overflow-hidden border-white/70 bg-white shadow-2xl shadow-black/25">
-      <CardContent className="grid p-0 md:grid-cols-[1.15fr_0.85fr]">
-        <form onSubmit={onSubmit} className="p-6 text-slate-900 sm:p-8">
-          <div className="flex flex-col gap-6">
+    <div className="w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] grid md:grid-cols-12">
+      {/* Left Column: Prestigious Institutional Brand World */}
+      <div className="md:col-span-5 bg-slate-950 p-8 text-white flex flex-col justify-between relative overflow-hidden border-b md:border-b-0 md:border-r border-slate-800">
+        {/* Subtle geometric hairline pattern */}
+        <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+
+        <div className="relative z-10 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-amber-400 shadow-inner">
+              <IconSchool className="w-6 h-6 stroke-[1.75]" />
+            </div>
             <div>
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#F8C311] via-[#F37022] to-[#B91329] shadow-lg">
-                <IconId className="h-7 w-7 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold tracking-tight">Selecciona tu acceso</h1>
-              <p className="mt-2 text-sm text-slate-500">Elige tu rol e ingresa los datos asignados por la institución.</p>
+              <p className="text-base font-bold tracking-tight text-white font-display leading-tight">
+                SIGCE
+              </p>
+              <p className="text-[11px] text-slate-400 font-mono">
+                SIE: 81981191
+              </p>
             </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-3" aria-label="Tipo de acceso">
-              {roleOptions.map((option) => {
-                const isSelected = option.value === role;
-                return (
-                  <Button
-                    key={option.value}
-                    type="button"
-                    variant="outline"
-                    aria-pressed={isSelected}
-                    onClick={() => onRoleChange(option.value)}
-                    className={isSelected
-                      ? 'h-auto min-h-16 justify-start border-[#B91329] bg-[#B91329] px-3 py-2 text-left text-white hover:bg-[#961021] hover:text-white'
-                      : 'h-auto min-h-16 justify-start border-slate-200 bg-white px-3 py-2 text-left text-slate-700 hover:border-[#F37022] hover:bg-[#fff9e5] hover:text-[#B91329]'}
-                  >
-                    <RoleIcon role={option.value} className="h-5 w-5 shrink-0" />
-                    <span className="flex min-w-0 flex-col items-start">
-                      <span className="font-semibold">{option.label}</span>
-                      <span className={isSelected ? 'text-xs text-white/75' : 'text-xs text-slate-500'}>{option.description}</span>
-                    </span>
-                  </Button>
-                );
-              })}
+          <div className="pt-4 space-y-3">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-400/10 text-amber-300 border border-amber-400/20">
+              <IconShieldLock className="w-3.5 h-3.5" />
+              Portal Educativo Oficial
             </div>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-100 font-display leading-snug">
+              U.E. Comunidad Cristiana B
+            </h2>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Sistema integral de control académico, registro de calificaciones y conciliación automatizada con el Sistema de Información Educativa (SIE).
+            </p>
+          </div>
 
-            {errorMessage && (
-              <div role="alert" className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-[#B91329]">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
+          <div className="space-y-2 pt-2 border-t border-slate-800/80">
+            <div className="flex items-center gap-2 text-[11px] text-slate-300">
+              <IconCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Conformidad con Ley 070 (Avelino Siñani)</span>
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-slate-300">
+              <IconCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Auditoría biométrica y trazabilidad RPA</span>
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-slate-300">
+              <IconCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Gestión Escolar Vigente 2026</span>
+            </div>
+          </div>
+        </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="identifier">{getIdentifierLabel(role)}</Label>
+        <div className="relative z-10 pt-8 border-t border-slate-800/80 text-[11px] text-slate-500 font-mono">
+          Distrito Educativo Cochabamba · Turno Mañana
+        </div>
+      </div>
+
+      {/* Right Column: Tactile Access Console */}
+      <div className="md:col-span-7 p-6 sm:p-8 flex flex-col justify-center bg-white">
+        <form onSubmit={onSubmit} className="space-y-5">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-brand-700">
+              Control de Autenticación
+            </span>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-display mt-0.5">
+              Ingreso al Sistema
+            </h1>
+            <p className="text-xs text-slate-500 mt-1">
+              Seleccione su rol asignado para ingresar con sus credenciales institucionales.
+            </p>
+          </div>
+
+          {/* Role selector tiles */}
+          <div className="grid grid-cols-2 gap-2" role="group" aria-label="Seleccionar rol">
+            {roleOptions.map((option) => {
+              const isSelected = option.value === role;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => onRoleChange(option.value)}
+                  className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left transition-all duration-150 cursor-pointer ${
+                    isSelected
+                      ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                      : 'border-slate-200 bg-slate-50/60 hover:bg-slate-100 hover:border-slate-300 text-slate-800'
+                  }`}
+                >
+                  <RoleIcon
+                    role={option.value}
+                    className={`w-4 h-4 shrink-0 mt-0.5 ${isSelected ? 'text-amber-400' : 'text-slate-500'}`}
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold leading-tight truncate">{option.label}</p>
+                    <p className={`text-[10px] leading-tight mt-0.5 truncate ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                      {option.description}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Error Banner */}
+          {errorMessage && (
+            <div
+              role="alert"
+              className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50/90 p-3 text-xs text-red-800"
+            >
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+              <span className="leading-relaxed">{errorMessage}</span>
+            </div>
+          )}
+
+          {/* Inputs */}
+          <div className="space-y-3.5">
+            <div className="space-y-1.5">
+              <Label htmlFor="identifier" className="text-xs font-semibold text-slate-700">
+                {getIdentifierLabel(role)}
+              </Label>
               <div className="relative">
-                <IconId className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#B91329]" />
+                <IconId className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   {...register('identifier')}
                   id="identifier"
                   type="text"
                   autoComplete="username"
                   placeholder={getIdentifierPlaceholder(role)}
-                  className="border-slate-200 bg-slate-50 pl-10 text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#F37022]"
+                  className="pl-10 h-10 border-slate-200 bg-slate-50/40 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:bg-white"
                   aria-invalid={Boolean(errors.identifier)}
                 />
               </div>
-              {errors.identifier && <p className="text-xs text-[#B91329]">{errors.identifier.message}</p>}
+              {errors.identifier && (
+                <p className="text-[11px] text-red-600 font-medium">{errors.identifier.message}</p>
+              )}
             </div>
 
             {usesSecondaryIdentifier && (
-              <div className="grid gap-2">
-                <Label htmlFor="secondaryIdentifier">Número de celular</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="secondaryIdentifier" className="text-xs font-semibold text-slate-700">
+                  Número de teléfono celular
+                </Label>
                 <div className="relative">
-                  <IconUsersGroup className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#B91329]" />
+                  <IconUsersGroup className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     {...register('secondaryIdentifier')}
                     id="secondaryIdentifier"
                     type="tel"
                     autoComplete="tel"
-                    placeholder="Ej. 70000000"
-                    className="border-slate-200 bg-slate-50 pl-10 text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#F37022]"
+                    placeholder="Ej. 76401234"
+                    className="pl-10 h-10 border-slate-200 bg-slate-50/40 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:bg-white"
                     aria-invalid={Boolean(errors.secondaryIdentifier)}
                   />
                 </div>
-                {errors.secondaryIdentifier && <p className="text-xs text-[#B91329]">{errors.secondaryIdentifier.message}</p>}
+                {errors.secondaryIdentifier && (
+                  <p className="text-[11px] text-red-600 font-medium">
+                    {errors.secondaryIdentifier.message}
+                  </p>
+                )}
               </div>
             )}
 
             {usesSecret && (
-              <div className="grid gap-2">
-                <Label htmlFor="secret">Clave</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="secret" className="text-xs font-semibold text-slate-700">
+                  Contraseña de acceso
+                </Label>
                 <div className="relative">
-                  <IconKey className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#B91329]" />
+                  <IconKey className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     {...register('secret')}
                     id="secret"
                     type="password"
                     autoComplete="current-password"
-                    placeholder="••••••••"
-                    className="border-slate-200 bg-slate-50 pl-10 text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#F37022]"
+                    placeholder="••••••••••••"
+                    className="pl-10 h-10 border-slate-200 bg-slate-50/40 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:bg-white"
                     aria-invalid={Boolean(errors.secret)}
                   />
                 </div>
-                {errors.secret && <p className="text-xs text-[#B91329]">{errors.secret.message}</p>}
+                {errors.secret && (
+                  <p className="text-[11px] text-red-600 font-medium">{errors.secret.message}</p>
+                )}
               </div>
             )}
-
-            <Button type="submit" disabled={isLoading} className="h-11 w-full bg-gradient-to-r from-[#B91329] via-[#F37022] to-[#B91329] text-white shadow-lg shadow-[#B91329]/25 hover:brightness-105">
-              {isLoading ? 'Validando acceso...' : 'Ingresar al sistema'}
-            </Button>
           </div>
+
+          {/* Submit Action */}
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs tracking-wide shadow-xs active:scale-[0.98] transition-all"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                <span>Verificando credenciales...</span>
+              </>
+            ) : (
+              <>
+                <span>Ingresar a la Plataforma</span>
+                <ArrowRight className="w-4 h-4 ml-1.5 text-amber-400" />
+              </>
+            )}
+          </Button>
+
+          <p className="text-center text-[11px] text-slate-400">
+            ¿Dudas sobre su código o acceso? Contacte a Secretaría General.
+          </p>
         </form>
-
-        <div className="relative hidden min-h-[620px] overflow-hidden bg-gradient-to-br from-[#F8C311] via-[#F37022] to-[#B91329] md:block">
-          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/20 blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-[#B91329]/30 blur-3xl" />
-          <div className="relative flex h-full flex-col justify-between p-8 text-white drop-shadow-md">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
-              <ShieldCheck className="h-4 w-4" />
-              Acceso seguro
-            </div>
-            <div>
-              <p className="text-3xl font-semibold leading-tight">Un acceso para cada integrante de la comunidad educativa.</p>
-              <p className="mt-4 text-sm leading-6 text-white/90">Selecciona tu rol y utiliza el código o las credenciales asignadas por tu institución.</p>
-            </div>
-            <p className="text-xs text-white/75">Plataforma de Gestión Académica</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

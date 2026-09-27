@@ -56,13 +56,10 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-[#F8C311] via-[#F37022] to-[#B91329] px-4 py-10 sm:px-6 lg:px-8">
-      <div className="pointer-events-none absolute inset-0 bg-black/10" />
-      <div className="relative z-10 flex w-full max-w-5xl flex-col items-center gap-6">
-        <div className="text-center text-white drop-shadow-md">
-          <p className="text-sm font-semibold uppercase tracking-[0.25em]">Gestión Académica</p>
-          <p className="mt-2 text-sm text-white/90">Plataforma Administrativa e Interoperabilidad SIE</p>
-        </div>
+    <div className="relative flex min-h-[100dvh] items-center justify-center bg-slate-100/70 px-4 py-8 sm:px-6 lg:px-8">
+      {/* Subtle institutional ambient canvas */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#000000_1px,transparent_1px),linear-gradient(to_bottom,#000000_1px,transparent_1px)] bg-[size:32px_32px]" />
+      <div className="relative z-10 w-full max-w-4xl flex flex-col items-center">
         <Login04Form
           role={selectedRole}
           register={register}
