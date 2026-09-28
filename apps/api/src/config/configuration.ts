@@ -36,11 +36,24 @@ export default (): AppConfig => ({
   database: {
     url: requiredEnvironment('DATABASE_URL'),
   },
-  redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379', 10),
-    password: process.env.REDIS_PASSWORD || undefined,
-  },
+  redis: (() => {
+    let host = process.env.REDIS_HOST || process.env.REDISHOST || 'localhost';
+    let port = parseInt(process.env.REDIS_PORT || process.env.REDISPORT || '6379', 10);
+    let password = process.env.REDIS_PASSWORD || process.env.REDISPASSWORD || undefined;
+
+    if (process.env.REDIS_URL) {
+      try {
+        const parsed = new URL(process.env.REDIS_URL);
+        host = parsed.hostname;
+        port = parseInt(parsed.port || '6379', 10);
+        password = parsed.password || undefined;
+      } catch {
+        // Ignorar si el formato URL no es válido y usar variables individuales
+      }
+    }
+
+    return { host, port, password };
+  })(),
   jwt: {
     accessSecret: requiredEnvironment('JWT_ACCESS_SECRET'),
     refreshSecret: requiredEnvironment('JWT_REFRESH_SECRET'),

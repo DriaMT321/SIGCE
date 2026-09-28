@@ -3,11 +3,24 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 export const workerConfig = {
-  redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379', 10),
-    password: process.env.REDIS_PASSWORD || undefined,
-  },
+  redis: (() => {
+    let host = process.env.REDIS_HOST || process.env.REDISHOST || 'localhost';
+    let port = parseInt(process.env.REDIS_PORT || process.env.REDISPORT || '6379', 10);
+    let password = process.env.REDIS_PASSWORD || process.env.REDISPASSWORD || undefined;
+
+    if (process.env.REDIS_URL) {
+      try {
+        const parsed = new URL(process.env.REDIS_URL);
+        host = parsed.hostname;
+        port = parseInt(parsed.port || '6379', 10);
+        password = parsed.password || undefined;
+      } catch {
+        // Fallback
+      }
+    }
+
+    return { host, port, password };
+  })(),
   sie: {
     baseUrl: process.env.SIE_BASE_URL || '',
     username: process.env.SIE_USERNAME || '',

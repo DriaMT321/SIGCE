@@ -4,6 +4,7 @@
   "private": true,
   "description": "Backend NestJS - Sistema de Gestión Académica",
   "scripts": {
+    "prebuild": "pnpm --filter @academic/shared-types build",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

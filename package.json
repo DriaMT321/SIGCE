@@ -6,6 +6,7 @@
   "author": "Proyecto de Grado",
   "license": "UNLICENSED",
   "scripts": {
+    "postinstall": "prisma generate --schema=./prisma/schema.prisma",
     "dev:api": "pnpm --filter @academic/api start:dev",
     "dev:web": "pnpm --filter @academic/web dev",
     "dev:worker": "pnpm --filter @academic/sie-worker dev",
@@ -27,8 +28,10 @@
     "db:setup": "tsx ./scripts/db-setup.ts",
     "db:studio": "prisma studio --schema=./prisma/schema.prisma",
     "db:backup": "tsx ./scripts/backup-db.ts",
+    "db:restore": "tsx ./scripts/restore-db.ts",
     "db:inject": "tsx ./scripts/inject-extracted-data.ts",
     "db:rollback": "tsx ./scripts/rollback-extracted-data.ts",
+    "test:logins": "tsx ./scripts/test-all-logins.ts",
     "sie:tracking": "tsx ./scripts/sie-tracking.ts",
     "sie:compare": "tsx ./scripts/compare-sie-grades.ts"
   },

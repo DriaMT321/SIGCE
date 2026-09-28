@@ -4,6 +4,7 @@
   "private": true,
   "description": "Worker RPA Puppeteer para interoperabilidad y sincronización con el SIE",
   "scripts": {
+    "prebuild": "pnpm --filter @academic/shared-types build",
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
