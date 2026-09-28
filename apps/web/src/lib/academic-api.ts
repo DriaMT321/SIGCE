@@ -150,6 +150,27 @@ export interface CurriculumTopicItem {
   course?: { id: string; name: string } | null;
 }
 
+export interface MyScheduleChildItem {
+  student: { id: string; firstName: string; lastName: string; rude: string; ci: string };
+  relationship?: string;
+  course: Course | null;
+  schedules: ClassScheduleItem[];
+  teacherSubjects: any[];
+}
+
+export interface MyScheduleData {
+  type: 'student' | 'parent' | 'teacher' | 'administrative';
+  student?: { id: string; firstName: string; lastName: string; rude: string; ci: string };
+  parent?: { id: string; firstName: string; lastName: string; ci: string };
+  children?: MyScheduleChildItem[];
+  course?: Course | null;
+  schedules: ClassScheduleItem[];
+  teacherSubjects?: any[];
+  teacher?: Teacher;
+  assignments?: any[];
+  message?: string;
+}
+
 export const academicApi = {
   async listStudents(search?: string, limit = 1000, offset = 0) {
     const response = await apiClient.get('/students', { params: { search, limit, offset } });
@@ -252,6 +273,10 @@ export const academicApi = {
   async listSchedules(params?: { courseId?: string; teacherId?: string; dayOfWeek?: string }) {
     const response = await apiClient.get('/schedules', { params });
     return response.data as { statusCode: number; data: ClassScheduleItem[]; total: number };
+  },
+  async getMySchedule() {
+    const response = await apiClient.get('/schedules/my-schedule');
+    return response.data as { statusCode: number; message: string; data: MyScheduleData };
   },
   async getCourseSchedule(courseId: string) {
     const response = await apiClient.get(`/schedules/course/${courseId}`);

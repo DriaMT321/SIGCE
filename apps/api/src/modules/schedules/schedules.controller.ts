@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
-import { UserRole } from '@academic/shared-types';
+import { AuthenticatedUser, UserRole } from '@academic/shared-types';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -12,7 +13,7 @@ export class SchedulesController {
   constructor(private readonly schedulesService: SchedulesService) {}
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER, UserRole.PARENT)
   async list(
     @Query('courseId') courseId?: string,
     @Query('teacherId') teacherId?: string,
@@ -33,8 +34,19 @@ export class SchedulesController {
     };
   }
 
+  @Get('my-schedule')
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER, UserRole.PARENT)
+  async getMySchedule(@CurrentUser() user: AuthenticatedUser) {
+    const data = await this.schedulesService.getMySchedule(user);
+    return {
+      statusCode: 200,
+      message: 'Horario personal obtenido exitosamente',
+      data,
+    };
+  }
+
   @Get('course/:courseId')
-  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER, UserRole.PARENT)
   async getCourseSchedule(@Param('courseId') courseId: string) {
     const data = await this.schedulesService.getCourseSchedule(courseId);
     return {
