@@ -38,7 +38,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalFilters(new AllExceptionsFilter());
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`=======================================================`);
   logger.log(`SERVIDOR ACADEMICO NESTJS INICIADO EN PUERTO: ${port}`);
   logger.log(`Base URL: http://localhost:${port}/api/v1`);

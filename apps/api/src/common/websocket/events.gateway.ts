@@ -30,23 +30,34 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   constructor(private readonly configService: ConfigService) {}
 
   async onModuleInit(): Promise<void> {
-    this.subscriber = new Redis({
-      host: this.configService.get<string>('redis.host', 'localhost'),
-      port: this.configService.get<number>('redis.port', 6379),
-      password: this.configService.get<string>('redis.password') || undefined,
-      maxRetriesPerRequest: null,
-    });
-    await this.subscriber.subscribe(SIE_SYNC_EVENTS_CHANNEL);
-    this.subscriber.on('message', (_channel, message) => {
-      try {
-        const envelope = JSON.parse(message) as { event: string; payload: unknown };
-        this.server.emit(envelope.event, envelope.payload);
-      } catch (error: unknown) {
-        this.logger.error(
-          `No se pudo publicar evento Redis: ${error instanceof Error ? error.message : 'error desconocido'}`,
-        );
-      }
-    });
+    try {
+      this.subscriber = new Redis({
+        host: this.configService.get<string>('redis.host', 'localhost'),
+        port: this.configService.get<number>('redis.port', 6379),
+        password: this.configService.get<string>('redis.password') || undefined,
+        maxRetriesPerRequest: null,
+      });
+
+      this.subscriber.on('error', (err) => {
+        this.logger.warn(`Aviso de conexión Redis (EventsGateway): ${err.message}`);
+      });
+
+      await this.subscriber.subscribe(SIE_SYNC_EVENTS_CHANNEL);
+      this.subscriber.on('message', (_channel, message) => {
+        try {
+          const envelope = JSON.parse(message) as { event: string; payload: unknown };
+          this.server.emit(envelope.event, envelope.payload);
+        } catch (error: unknown) {
+          this.logger.error(
+            `No se pudo publicar evento Redis: ${error instanceof Error ? error.message : 'error desconocido'}`,
+          );
+        }
+      });
+    } catch (error: unknown) {
+      this.logger.error(
+        `Error al inicializar suscriptor de Redis: ${error instanceof Error ? error.message : 'desconocido'}`,
+      );
+    }
   }
 
   async onModuleDestroy(): Promise<void> {
