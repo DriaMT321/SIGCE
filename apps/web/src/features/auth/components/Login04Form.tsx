@@ -69,34 +69,35 @@ export function Login04Form({
   return (
     <div className="w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] grid md:grid-cols-12">
       {/* Left Column: Prestigious Institutional Brand World */}
-      <div className="md:col-span-5 bg-slate-950 p-8 text-white flex flex-col justify-between relative overflow-hidden border-b md:border-b-0 md:border-r border-slate-800">
-        {/* Subtle geometric hairline pattern */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+      <div className="md:col-span-5 bg-institutional-radial p-8 text-white flex flex-col justify-between relative overflow-hidden border-b md:border-b-0 md:border-r border-red-950/30 shadow-inner">
+        {/* Semi-transparent dark scrim for contrast and geometric hairline pattern */}
+        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.05] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
 
         <div className="relative z-10 space-y-6">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-amber-400 shadow-inner">
+            <div className="w-11 h-11 rounded-2xl bg-black/35 backdrop-blur-md border border-white/25 flex items-center justify-center text-amber-300 shadow-md">
               <IconSchool className="w-6 h-6 stroke-[1.75]" />
             </div>
             <div>
-              <p className="text-base font-bold tracking-tight text-white font-display leading-tight">
+              <p className="text-base font-bold tracking-tight text-white font-display leading-tight drop-shadow-xs">
                 SIGCE
               </p>
-              <p className="text-[11px] text-slate-400 font-mono">
+              <p className="text-[11px] text-white/80 font-mono">
                 SIE: 81981191
               </p>
             </div>
           </div>
 
           <div className="pt-4 space-y-3">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-400/10 text-amber-300 border border-amber-400/20">
-              <IconShieldLock className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-black/30 backdrop-blur-xs text-amber-200 border border-amber-300/30">
+              <IconShieldLock className="w-3.5 h-3.5 text-amber-300" />
               Portal Educativo Oficial
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-100 font-display leading-snug">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-display leading-snug drop-shadow-sm">
               U.E. Comunidad Cristiana B
             </h2>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-white/90 leading-relaxed drop-shadow-xs">
               Sistema integral de control académico, registro de calificaciones y conciliación automatizada con el Sistema de Información Educativa (SIE).
             </p>
           </div>

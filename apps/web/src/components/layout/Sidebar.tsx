@@ -15,6 +15,8 @@ import {
   UsersRound,
   Bell,
   Sparkles,
+  Clock,
+  BookMarked,
 } from 'lucide-react';
 import { authService } from '../../features/auth/services/auth.service';
 
@@ -43,7 +45,9 @@ const navSections: NavSection[] = [
     title: 'Académico',
     items: [
       { name: 'Estudiantes', href: '/dashboard/students', icon: Users, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },
-      { name: 'Cursos y Materias', href: '/dashboard/courses', icon: BookOpen, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER'] },
+      { name: '16 Cursos Oficiales', href: '/dashboard/courses', icon: BookOpen, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER'] },
+      { name: 'Horarios de Clases', href: '/dashboard/schedules', icon: Clock, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'], tag: 'Semanal' },
+      { name: 'Avance Curricular', href: '/dashboard/curriculum', icon: BookMarked, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER'], tag: 'R.M. 1040' },
       { name: 'Matrículas', href: '/dashboard/enrollments', icon: ClipboardList, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },
       { name: 'Calificaciones', href: '/dashboard/grades', icon: Award, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },
       { name: 'Asistencia', href: '/dashboard/attendance', icon: CalendarCheck, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },

@@ -82,6 +82,21 @@ enum RelationshipType {
   OTHER
 }
 
+enum DayOfWeek {
+  LUNES
+  MARTES
+  MIERCOLES
+  JUEVES
+  VIERNES
+  SABADO
+}
+
+enum CurriculumStatus {
+  PLANIFICADO
+  EN_DESARROLLO
+  COMPLETADO
+}
+
 // ==============================================================================
 // AUTENTICACIÓN Y USUARIOS
 // ==============================================================================
@@ -246,6 +261,7 @@ model Teacher {
 
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   teacherSubjects TeacherSubject[]
+  schedules       ClassSchedule[]
 
   @@index([ci])
   @@index([userId])
@@ -267,10 +283,12 @@ model AcademicYear {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  periods         AcademicPeriod[]
-  courses         Course[]
-  enrollments     Enrollment[]
-  teacherSubjects TeacherSubject[]
+  periods          AcademicPeriod[]
+  courses          Course[]
+  enrollments      Enrollment[]
+  teacherSubjects  TeacherSubject[]
+  schedules        ClassSchedule[]
+  curriculumTopics CurriculumTopic[]
 
   @@index([year])
   @@index([isActive])
@@ -308,10 +326,12 @@ model Course {
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
-  academicYear    AcademicYear     @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
-  enrollments     Enrollment[]
-  teacherSubjects TeacherSubject[]
-  attendances     Attendance[]
+  academicYear     AcademicYear      @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  enrollments      Enrollment[]
+  teacherSubjects  TeacherSubject[]
+  attendances      Attendance[]
+  schedules        ClassSchedule[]
+  curriculumTopics CurriculumTopic[]
 
   @@unique([academicYearId, gradeLevel, section, shift])
   @@index([academicYearId])
@@ -327,9 +347,11 @@ model Subject {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  teacherSubjects TeacherSubject[]
-  grades          Grade[]
-  syncItems       SieSynchronizationItem[]
+  teacherSubjects  TeacherSubject[]
+  grades           Grade[]
+  syncItems        SieSynchronizationItem[]
+  schedules        ClassSchedule[]
+  curriculumTopics CurriculumTopic[]
 
   @@index([code])
   @@map("subjects")
@@ -353,6 +375,58 @@ model TeacherSubject {
   @@index([subjectId])
   @@index([courseId])
   @@map("teacher_subjects")
+}
+
+model ClassSchedule {
+  id             String       @id @default(uuid())
+  courseId       String       @map("course_id")
+  subjectId      String       @map("subject_id")
+  teacherId      String       @map("teacher_id")
+  academicYearId String       @map("academic_year_id")
+  dayOfWeek      DayOfWeek    @map("day_of_week")
+  startTime      String       @map("start_time") // Ej. "08:00"
+  endTime        String       @map("end_time")   // Ej. "08:45"
+  periodIndex    Int          @default(1) @map("period_index") // 1..6
+  classroom      String?      // Ej. "Aula 1", "Laboratorio", "Cancha"
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  course       Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subject      Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher      Teacher      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@index([teacherId])
+  @@index([dayOfWeek])
+  @@map("class_schedules")
+}
+
+model CurriculumTopic {
+  id              String           @id @default(uuid())
+  subjectId       String           @map("subject_id")
+  courseId        String?          @map("course_id")
+  academicYearId  String           @map("academic_year_id")
+  periodNumber    Int              @map("period_number") // 1, 2, 3 (Trimestre)
+  gradeLevel      Int              @map("grade_level")   // 1..16
+  campo           String           // "Comunidad y Sociedad", "Ciencia, Tecnología y Producción", etc.
+  unitTitle       String           @map("unit_title")    // Unidad temática o bloque
+  title           String                                 // Contenido / Tema
+  description     String?                                // Detalle / Perfil de salida
+  progressPercent Int              @default(0) @map("progress_percent") // 0..100
+  status          CurriculumStatus @default(PLANIFICADO)
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  subject      Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  course       Course?      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  @@index([subjectId])
+  @@index([courseId])
+  @@index([gradeLevel])
+  @@index([periodNumber])
+  @@map("curriculum_topics")
 }
 
 // ==============================================================================

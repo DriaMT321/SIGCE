@@ -66,7 +66,11 @@ export class RoleLoginUseCase {
     switch (role) {
       case LoginRole.STUDENT: {
         const student = await this.prisma.student.findFirst({
-          where: { rude: identifier, deletedAt: null, userId: { not: null } },
+          where: {
+            deletedAt: null,
+            userId: { not: null },
+            OR: [{ rude: identifier }, { ci: identifier }],
+          },
           include: { user: true },
         });
         return student?.user ?? null;
@@ -75,7 +79,11 @@ export class RoleLoginUseCase {
         const teacher = await this.prisma.teacher.findFirst({
           where: {
             deletedAt: null,
-            OR: [{ itemNumber: identifier }, { ci: identifier }],
+            OR: [
+              { itemNumber: identifier },
+              { ci: identifier },
+              { user: { email: identifier.toLowerCase() } },
+            ],
           },
           include: { user: true },
         });

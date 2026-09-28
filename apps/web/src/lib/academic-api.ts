@@ -119,6 +119,37 @@ const academicYearSchema = z.object({ id: z.string(), year: z.number(), name: z.
 const periodSchema = z.object({ id: z.string(), name: z.string(), number: z.number(), academicYearId: z.string(), isClosed: z.boolean() });
 const subjectSchema = z.object({ id: z.string(), code: z.string(), name: z.string() });
 
+export interface ClassScheduleItem {
+  id: string;
+  courseId: string;
+  subjectId: string;
+  teacherId: string;
+  dayOfWeek: 'LUNES' | 'MARTES' | 'MIERCOLES' | 'JUEVES' | 'VIERNES' | 'SABADO';
+  startTime: string;
+  endTime: string;
+  periodIndex: number;
+  classroom?: string | null;
+  course?: { id: string; name: string; gradeLevel: number; section: string };
+  subject?: { id: string; code: string; name: string; area?: string | null };
+  teacher?: { id: string; firstName: string; lastName: string; specialty: string };
+}
+
+export interface CurriculumTopicItem {
+  id: string;
+  subjectId: string;
+  courseId?: string | null;
+  periodNumber: number;
+  gradeLevel: number;
+  campo: string;
+  unitTitle: string;
+  title: string;
+  description?: string | null;
+  progressPercent: number;
+  status: 'PLANIFICADO' | 'EN_DESARROLLO' | 'COMPLETADO';
+  subject?: { id: string; code: string; name: string; area?: string | null };
+  course?: { id: string; name: string } | null;
+}
+
 export const academicApi = {
   async listStudents(search?: string) {
     const response = await apiClient.get('/students', { params: { search, limit: 100 } });
@@ -215,5 +246,47 @@ export const academicApi = {
   async getSieSynchronization(id: string) {
     const response = await apiClient.get(`/sie-sync/status/${id}`);
     return sieSynchronizationSchema.parse(response.data.data);
+  },
+
+  // Horarios de Clases
+  async listSchedules(params?: { courseId?: string; teacherId?: string; dayOfWeek?: string }) {
+    const response = await apiClient.get('/schedules', { params });
+    return response.data as { statusCode: number; data: ClassScheduleItem[]; total: number };
+  },
+  async getCourseSchedule(courseId: string) {
+    const response = await apiClient.get(`/schedules/course/${courseId}`);
+    return response.data as { statusCode: number; data: { course: Course; schedules: ClassScheduleItem[]; teacherSubjects: any[] } };
+  },
+  async getTeacherSchedule(teacherId: string) {
+    const response = await apiClient.get(`/schedules/teacher/${teacherId}`);
+    return response.data as { statusCode: number; data: { teacher: Teacher; schedules: ClassScheduleItem[]; assignments: any[] } };
+  },
+
+  // Avance Curricular
+  async listCurriculum(params?: { courseId?: string; gradeLevel?: number; subjectId?: string; periodNumber?: number; status?: string; search?: string }) {
+    const response = await apiClient.get('/curriculum', { params });
+    return response.data as { statusCode: number; data: CurriculumTopicItem[]; total: number };
+  },
+  async getCurriculumStats() {
+    const response = await apiClient.get('/curriculum/stats');
+    return response.data as {
+      statusCode: number;
+      data: {
+        totalTopics: number;
+        completed: number;
+        inProgress: number;
+        planned: number;
+        averageProgress: number;
+        byLevel: {
+          inicial: { total: number; completed: number; avgProgress: number };
+          primaria: { total: number; completed: number; avgProgress: number };
+          secundaria: { total: number; completed: number; avgProgress: number };
+        };
+      };
+    };
+  },
+  async updateCurriculumProgress(id: string, data: { status?: string; progressPercent?: number }) {
+    const response = await apiClient.patch(`/curriculum/${id}/progress`, data);
+    return response.data as { statusCode: number; data: CurriculumTopicItem };
   },
 };

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root, [data-theme="institutional"] {
     --background: 210 40% 98%;
     --foreground: 222.2 47% 11%;
 
@@ -13,30 +13,40 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 47% 11%;
 
-    --primary: 0 72% 38%;
-    --primary-foreground: 210 40% 98%;
+    /* Official School Crimson (#b91329) */
+    --primary: 352 81% 40%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 24 90% 96%;
+    --secondary-foreground: 24 90% 35%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Official School Orange (#f37022) */
+    --accent: 22 90% 54%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 0 72% 38%;
+    --ring: 352 81% 40%;
 
     --radius: 0.75rem;
 
     --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     --font-display: 'Plus Jakarta Sans', 'Outfit', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  [data-theme="executive"] {
+    --primary: 222 47% 20%;
+    --primary-foreground: 210 40% 98%;
+    --ring: 222 47% 20%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
   }
 
   * {
@@ -118,3 +128,37 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* ==========================================================================
+   Signature Institutional Design Utilities (U.E. Comunidad Cristiana B)
+   Colors: Carmine #b91329 | Orange #f37022 | Gold #ffc54c
+   ========================================================================== */
+.bg-institutional-radial {
+  background-image: radial-gradient(circle at 100% 0%, #ffc54c 0%, #ffb946 12.5%, #ffa93d 25%, #fe9430 37.5%, #f37b1f 50%, #e76010 62.5%, #df470c 75%, #da2e11 87.5%, #d8091a 100%);
+  background-repeat: no-repeat;
+}
+
+.bg-institutional-linear {
+  background-image: linear-gradient(135deg, #ffc54c 0%, #f37022 50%, #b91329 100%);
+}
+
+.bg-institutional-subtle {
+  background-image: linear-gradient(135deg, #fffbf0 0%, #fff7ed 50%, #fff1f2 100%);
+}
+
+.text-gradient-institutional {
+  background-image: linear-gradient(135deg, #b91329 0%, #f37022 50%, #b91329 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.border-institutional-gradient {
+  border-image: linear-gradient(135deg, #ffc54c, #f37022, #b91329) 1;
+}
+
+.ribbon-institutional {
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, #ffc54c 0%, #f37022 50%, #b91329 100%);
+}
+

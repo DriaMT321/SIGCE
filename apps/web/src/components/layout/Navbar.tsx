@@ -1,10 +1,12 @@
 import React from 'react';
 import { authService } from '../../features/auth/services/auth.service';
-import { LogOut, Bell, Shield, Calendar } from 'lucide-react';
+import { LogOut, Bell, Shield, Calendar, Palette } from 'lucide-react';
 import { Badge } from '../ui/badge';
+import { useTheme } from '../../lib/theme';
 
 export const Navbar: React.FC = () => {
   const user = authService.getCurrentUser();
+  const { isInstitutional, toggleTheme } = useTheme();
   const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || 'U';
 
   const roleLabels: Record<string, string> = {
@@ -32,8 +34,36 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Right: Notifications & User Profile */}
+      {/* Right: Theme Switcher, Notifications & User Profile */}
       <div className="flex items-center gap-3">
+        {/* Color Palette Switcher (Official School Colors vs Executive) */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          title={
+            isInstitutional
+              ? 'Identidad U.E. Comunidad Cristiana B activa (#b91329 / #f37022 / #ffc54c). Clic para cambiar a Modo Ejecutivo.'
+              : 'Modo Ejecutivo activo. Clic para activar Colores Oficiales del Colegio.'
+          }
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+            isInstitutional
+              ? 'border-brand-crimson/30 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10 text-brand-crimson shadow-xs'
+              : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          <Palette className={`w-3.5 h-3.5 ${isInstitutional ? 'text-brand-crimson' : 'text-slate-500'}`} />
+          <span className="hidden sm:inline text-[11px] font-medium">
+            {isInstitutional ? 'Identidad Colegio' : 'Tema Ejecutivo'}
+          </span>
+          <span
+            className={`w-2 h-2 rounded-full ${
+              isInstitutional
+                ? 'bg-gradient-to-r from-[#ffc54c] via-[#f37022] to-[#b91329]'
+                : 'bg-slate-400'
+            }`}
+          />
+        </button>
+
         <button
           type="button"
           title="Notificaciones y avisos"

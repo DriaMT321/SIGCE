@@ -12,7 +12,16 @@ export class PrismaEnrollmentRepository implements EnrollmentRepository {
       ...(query.academicYearId ? { academicYearId: query.academicYearId } : {}),
       ...(query.courseId ? { courseId: query.courseId } : {}),
       ...(query.studentId ? { studentId: query.studentId } : {}),
-      ...(query.parentUserId ? { student: { studentParents: { some: { parent: { userId: query.parentUserId } } } } } : {}),
+      ...(query.parentUserId
+        ? {
+            student: {
+              OR: [
+                { studentParents: { some: { parent: { userId: query.parentUserId } } } },
+                { userId: query.parentUserId },
+              ],
+            },
+          }
+        : {}),
     };
     const [items, total] = await Promise.all([
       this.prisma.enrollment.findMany({ where, skip: query.offset, take: query.limit, orderBy: { createdAt: 'desc' }, include: { student: true, course: true, academicYear: true } }),

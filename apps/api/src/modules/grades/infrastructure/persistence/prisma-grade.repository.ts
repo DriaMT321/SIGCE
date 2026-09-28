@@ -12,7 +12,16 @@ export class PrismaGradeRepository implements GradeRepository {
       ...(query.studentId ? { studentId: query.studentId } : {}),
       ...(query.enrollmentId ? { enrollmentId: query.enrollmentId } : {}),
       ...(query.periodId ? { periodId: query.periodId } : {}),
-      ...(query.parentUserId ? { student: { studentParents: { some: { parent: { userId: query.parentUserId } } } } } : {}),
+      ...(query.parentUserId
+        ? {
+            student: {
+              OR: [
+                { studentParents: { some: { parent: { userId: query.parentUserId } } } },
+                { userId: query.parentUserId },
+              ],
+            },
+          }
+        : {}),
     };
     const [items, total] = await Promise.all([
       this.prisma.grade.findMany({ where, skip: query.offset, take: query.limit, orderBy: [{ period: { number: 'asc' } }, { subject: { name: 'asc' } }], include: { student: true, subject: true, period: true } }),

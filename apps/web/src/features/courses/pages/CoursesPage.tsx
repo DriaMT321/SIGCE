@@ -57,8 +57,16 @@ export const CoursesPage = () => {
     },
   });
 
-  const courses = coursesQuery.data?.data ?? [];
-  const totalCount = courses.length;
+  const [levelFilter, setLevelFilter] = useState<'ALL' | 'INICIAL' | 'PRIMARIA' | 'SECUNDARIA'>('ALL');
+
+  const courses = (coursesQuery.data?.data ?? []).filter((c) => {
+    if (levelFilter === 'INICIAL') return c.gradeLevel <= 4;
+    if (levelFilter === 'PRIMARIA') return c.gradeLevel >= 5 && c.gradeLevel <= 10;
+    if (levelFilter === 'SECUNDARIA') return c.gradeLevel >= 11;
+    return true;
+  });
+  const totalCount = (coursesQuery.data?.data ?? []).length;
+  const totalStudents = (coursesQuery.data?.data ?? []).reduce((acc, curr) => acc + (curr.enrollmentCount ?? 0), 0);
 
   return (
     <div className="space-y-6">
@@ -68,17 +76,20 @@ export const CoursesPage = () => {
           <div className="flex items-center gap-2 mb-1.5">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
               <BookOpen className="w-3.5 h-3.5 text-brand-700" />
-              <span>Oferta Curricular</span>
+              <span>Estructura Oficial Institucional</span>
             </span>
-            <Badge variant="outline" className="font-mono">
-              {totalCount} paralelos
+            <Badge variant="outline" className="font-mono bg-white">
+              {totalCount} cursos oficiales
+            </Badge>
+            <Badge className="bg-slate-900 text-amber-400 font-mono">
+              {totalStudents} estudiantes matriculados
             </Badge>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 font-display">
-            Cursos y Paralelos Habilitados
+            16 Cursos Institucionales
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-            Estructuración pedagógica por grados, secciones, turnos y cupos máximos por aula.
+            Distribución oficial: 4 cursos de Inicial (Pollito, Nidito, Pre Kinder, Kinder), 6 de Primaria y 6 de Secundaria.
           </p>
         </div>
 
@@ -102,100 +113,49 @@ export const CoursesPage = () => {
         )}
       </div>
 
-      {/* Formulario de Alta de Curso */}
-      {showForm && canManage && (
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-[0_1px_3px_0_rgba(15,23,42,0.03)] space-y-4">
-          <div className="pb-3 border-b border-slate-100">
-            <h2 className="text-base font-bold text-slate-900 font-display">
-              Apertura de Curso o Paralelo
-            </h2>
-            <p className="text-xs text-slate-500">
-              Defina el grado y capacidad límite según las directrices de la Dirección Distrital.
-            </p>
-          </div>
-
-          <form onSubmit={form.handleSubmit((data) => createMutation.mutate(data))} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <label className="grid gap-1.5 text-xs font-semibold text-slate-700 sm:col-span-2 lg:col-span-3">
-                <span>Gestión Académica</span>
-                <select
-                  {...form.register('academicYearId')}
-                  className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/10"
-                >
-                  <option value="">Seleccione una gestión anual</option>
-                  {(yearsQuery.data ?? []).map((year) => (
-                    <option key={year.id} value={year.id}>
-                      {year.name} ({year.year})
-                    </option>
-                  ))}
-                </select>
-                {form.formState.errors.academicYearId && (
-                  <span className="text-[10px] font-normal text-red-600">
-                    {form.formState.errors.academicYearId.message}
-                  </span>
-                )}
-              </label>
-
-              <Field label="Nombre del Curso" error={form.formState.errors.name?.message}>
-                <Input {...form.register('name')} placeholder="Ej. 1ro de Secundaria A" className="text-xs" />
-              </Field>
-
-              <Field label="Nivel / Grado Numérico" error={form.formState.errors.gradeLevel?.message}>
-                <Input type="number" {...form.register('gradeLevel')} className="text-xs font-mono" />
-              </Field>
-
-              <Field label="Sección o Paralelo" error={form.formState.errors.section?.message}>
-                <Input {...form.register('section')} placeholder="A, B o C" className="text-xs font-mono" />
-              </Field>
-
-              <Field label="Turno" error={form.formState.errors.shift?.message}>
-                <select
-                  {...form.register('shift')}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/10"
-                >
-                  <option value="MORNING">Mañana</option>
-                  <option value="AFTERNOON">Tarde</option>
-                  <option value="EVENING">Noche</option>
-                </select>
-              </Field>
-
-              <Field label="Capacidad Máxima (Estudiantes)" error={form.formState.errors.maxCapacity?.message}>
-                <Input type="number" {...form.register('maxCapacity')} className="text-xs font-mono" />
-              </Field>
-
-              <div className="flex items-end">
-                <Button
-                  disabled={createMutation.isPending}
-                  type="submit"
-                  className="w-full h-10 bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold gap-1.5 shadow-xs"
-                >
-                  {createMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Guardar Curso</span>
-                </Button>
-              </div>
-            </div>
-          </form>
+      {/* Level Tabs and Search Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Level Tabs */}
+        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 overflow-x-auto">
+          {[
+            { id: 'ALL', label: `Todos (${totalCount})` },
+            { id: 'INICIAL', label: '🌱 Inicial (4)' },
+            { id: 'PRIMARIA', label: '📘 Primaria (6)' },
+            { id: 'SECUNDARIA', label: '🎓 Secundaria (6)' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setLevelFilter(tab.id as any)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                levelFilter === tab.id
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
-      )}
 
-      {/* Buscador */}
-      <div className="relative max-w-md">
-        <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <Input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Buscar curso o grado..."
-          className="pl-9 h-10 text-xs bg-white"
-        />
-        {search && (
-          <button
-            type="button"
-            onClick={() => setSearch('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
+        {/* Buscador */}
+        <div className="relative max-w-xs w-full">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar curso o grado..."
+            className="pl-9 h-9 text-xs bg-white rounded-xl"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Grid de Cursos */}

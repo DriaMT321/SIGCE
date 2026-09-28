@@ -10,14 +10,25 @@ export class PrismaStudentRepository implements StudentRepository {
   async findAll(query: { search?: string; parentUserId?: string; limit: number; offset: number }) {
     const where = {
       deletedAt: null,
-      ...(query.parentUserId ? { studentParents: { some: { parent: { userId: query.parentUserId } } } } : {}),
-      ...(query.search
+      ...(query.parentUserId
         ? {
             OR: [
-              { firstName: { contains: query.search, mode: 'insensitive' as const } },
-              { lastName: { contains: query.search, mode: 'insensitive' as const } },
-              { rude: { contains: query.search, mode: 'insensitive' as const } },
-              { ci: { contains: query.search, mode: 'insensitive' as const } },
+              { studentParents: { some: { parent: { userId: query.parentUserId } } } },
+              { userId: query.parentUserId },
+            ],
+          }
+        : {}),
+      ...(query.search
+        ? {
+            AND: [
+              {
+                OR: [
+                  { firstName: { contains: query.search, mode: 'insensitive' as const } },
+                  { lastName: { contains: query.search, mode: 'insensitive' as const } },
+                  { rude: { contains: query.search, mode: 'insensitive' as const } },
+                  { ci: { contains: query.search, mode: 'insensitive' as const } },
+                ],
+              },
             ],
           }
         : {}),
@@ -41,8 +52,20 @@ export class PrismaStudentRepository implements StudentRepository {
   }
 
   async findById(id: string, parentUserId?: string) {
+    const where = {
+      id,
+      deletedAt: null,
+      ...(parentUserId
+        ? {
+            OR: [
+              { studentParents: { some: { parent: { userId: parentUserId } } } },
+              { userId: parentUserId },
+            ],
+          }
+        : {}),
+    };
     const student = await this.prisma.student.findFirst({
-      where: { id, deletedAt: null, ...(parentUserId ? { studentParents: { some: { parent: { userId: parentUserId } } } } : {}) },
+      where,
       include: {
         enrollments: { include: { course: true, academicYear: true } },
       },

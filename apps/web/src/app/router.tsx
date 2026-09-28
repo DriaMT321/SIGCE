@@ -10,6 +10,8 @@ import { AttendancePage } from '../features/attendance/pages/AttendancePage';
 import { AuditPage } from '../features/audit/pages/AuditPage';
 import { ReportsPage } from '../features/reports/pages/ReportsPage';
 import { EnrollmentsPage } from '../features/enrollments/pages/EnrollmentsPage';
+import { SchedulesPage } from '../features/schedules/pages/SchedulesPage';
+import { CurriculumPage } from '../features/curriculum/pages/CurriculumPage';
 import { CommunityPage } from '../features/community/pages/CommunityPage';
 import { AlertsPage } from '../features/alerts/pages/AlertsPage';
 
@@ -37,6 +39,14 @@ export const router = createBrowserRouter([
       {
         path: 'courses',
         element: <CoursesPage />,
+      },
+      {
+        path: 'schedules',
+        element: <SchedulesPage />,
+      },
+      {
+        path: 'curriculum',
+        element: <CurriculumPage />,
       },
       {
         path: 'enrollments',

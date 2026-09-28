@@ -47,26 +47,33 @@ export default {
           foreground: 'hsl(var(--card-foreground))',
         },
         brand: {
-          50: '#fef2f2',
-          100: '#fee2e2',
-          200: '#fecaca',
-          300: '#fca5a5',
-          400: '#f87171',
-          500: '#ef4444',
-          600: '#dc2626',
-          700: '#b91c1c',
-          800: '#991b1b',
-          900: '#7f1d1d',
-          950: '#450a0a',
-          // Institutional accents
+          50: '#fff5f5',
+          100: '#ffe1e4',
+          200: '#ffc8cd',
+          300: '#ffa1aa',
+          400: '#f86d7c',
+          500: '#ee394d',
+          600: '#db1d33',
+          700: '#b91329', // Official School Carmine/Red
+          800: '#9b1325',
+          900: '#821424',
+          950: '#47050e',
+          // Institutional Palette from School Stylesheet
+          crimson: '#b91329', // Exact Institutional Red
+          orange: '#f37022',  // Exact Institutional Orange
+          gold: '#ffc54c',    // Exact Institutional Amber/Gold
+          amber: '#f37b1f',
+          yellow: '#f8c311',
           garnet: '#881337',
-          amber: '#d97706',
           // Backward compatibility mappings
-          gold: '#d97706',
-          orange: '#ea580c',
-          red: '#b91c1c',
-          darkred: '#7f1d1d',
+          red: '#b91329',
+          darkred: '#821424',
         },
+      },
+      backgroundImage: {
+        'institutional-radial': 'radial-gradient(circle at 100% 0%, #ffc54c 0%, #ffb946 12.5%, #ffa93d 25%, #fe9430 37.5%, #f37b1f 50%, #e76010 62.5%, #df470c 75%, #da2e11 87.5%, #d8091a 100%)',
+        'institutional-linear': 'linear-gradient(135deg, #ffc54c 0%, #f37022 50%, #b91329 100%)',
+        'institutional-subtle': 'linear-gradient(135deg, #fffbf0 0%, #fff7ed 50%, #fff1f2 100%)',
       },
       borderRadius: {
         lg: 'var(--radius)',

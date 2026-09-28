@@ -12,7 +12,16 @@ export class PrismaAttendanceRepository implements AttendanceRepository {
       ...(query.studentId ? { studentId: query.studentId } : {}),
       ...(query.courseId ? { courseId: query.courseId } : {}),
       ...(query.from || query.to ? { date: { ...(query.from ? { gte: query.from } : {}), ...(query.to ? { lte: query.to } : {}) } } : {}),
-      ...(query.parentUserId ? { student: { studentParents: { some: { parent: { userId: query.parentUserId } } } } } : {}),
+      ...(query.parentUserId
+        ? {
+            student: {
+              OR: [
+                { studentParents: { some: { parent: { userId: query.parentUserId } } } },
+                { userId: query.parentUserId },
+              ],
+            },
+          }
+        : {}),
     };
     const [items, total] = await Promise.all([
       this.prisma.attendance.findMany({ where, skip: query.offset, take: query.limit, orderBy: { date: 'desc' }, include: { student: true, course: true } }),
