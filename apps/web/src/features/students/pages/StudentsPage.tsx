@@ -13,6 +13,8 @@ import {
   Search,
   Users,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
@@ -35,6 +37,8 @@ type StudentFormData = z.infer<typeof studentFormSchema>;
 export const StudentsPage = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
   const [showForm, setShowForm] = useState(false);
   const [copiedRude, setCopiedRude] = useState<string | null>(null);
 
@@ -42,8 +46,8 @@ export const StudentsPage = () => {
   const canManage = currentRole === 'ADMIN' || currentRole === 'DIRECTOR' || currentRole === 'SECRETARY';
 
   const studentsQuery = useQuery({
-    queryKey: ['students', search],
-    queryFn: () => academicApi.listStudents(search),
+    queryKey: ['students', search, page, pageSize],
+    queryFn: () => academicApi.listStudents(search, pageSize, (page - 1) * pageSize),
   });
 
   const form = useForm<StudentFormData>({
@@ -76,6 +80,7 @@ export const StudentsPage = () => {
 
   const students = studentsQuery.data?.data ?? [];
   const totalCount = studentsQuery.data?.total ?? students.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   return (
     <div className="space-y-6">
@@ -309,6 +314,68 @@ export const StudentsPage = () => {
                 )}
               </tbody>
             </table>
+
+            {/* Pagination Controls */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-3.5 bg-slate-50/70 border-t border-slate-200/80 text-xs">
+              <div className="flex items-center gap-2 text-slate-500">
+                <span>
+                  Mostrando{' '}
+                  <strong className="text-slate-800 font-mono">
+                    {totalCount === 0 ? 0 : (page - 1) * pageSize + 1} -{' '}
+                    {Math.min(page * pageSize, totalCount)}
+                  </strong>{' '}
+                  de <strong className="text-slate-800 font-mono">{totalCount}</strong> estudiantes
+                </span>
+                <span className="text-slate-300">|</span>
+                <div className="flex items-center gap-1.5">
+                  <span>Por página:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setPage(1);
+                    }}
+                    className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-900"
+                  >
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                    <option value={200}>200</option>
+                    <option value={1000}>Ver todos ({totalCount})</option>
+                  </select>
+                </div>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className="h-8 px-2.5 text-xs text-slate-600 gap-1 cursor-pointer disabled:opacity-40"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>Anterior</span>
+                  </Button>
+
+                  <span className="px-2 text-xs font-medium text-slate-600">
+                    Página <strong className="text-slate-900 font-mono">{page}</strong> de{' '}
+                    <strong className="text-slate-900 font-mono">{totalPages}</strong>
+                  </span>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages}
+                    className="h-8 px-2.5 text-xs text-slate-600 gap-1 cursor-pointer disabled:opacity-40"
+                  >
+                    <span>Siguiente</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

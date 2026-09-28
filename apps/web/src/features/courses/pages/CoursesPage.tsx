@@ -119,9 +119,9 @@ export const CoursesPage = () => {
         <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 overflow-x-auto">
           {[
             { id: 'ALL', label: `Todos (${totalCount})` },
-            { id: 'INICIAL', label: '🌱 Inicial (4)' },
-            { id: 'PRIMARIA', label: '📘 Primaria (6)' },
-            { id: 'SECUNDARIA', label: '🎓 Secundaria (6)' },
+            { id: 'INICIAL', label: 'Inicial (4)' },
+            { id: 'PRIMARIA', label: 'Primaria (6)' },
+            { id: 'SECUNDARIA', label: 'Secundaria (6)' },
           ].map((tab) => (
             <button
               key={tab.id}

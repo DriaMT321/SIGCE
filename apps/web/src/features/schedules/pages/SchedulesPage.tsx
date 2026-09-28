@@ -184,21 +184,21 @@ export const SchedulesPage: React.FC = () => {
               onChange={(e) => setSelectedCourseId(e.target.value)}
               className="flex-1 max-w-md h-10 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
             >
-              <optgroup label="🌱 Nivel Inicial (4 Cursos)">
+              <optgroup label="Nivel Inicial (4 Cursos)">
                 {inicialCourses.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.enrollmentCount} estudiantes)
                   </option>
                 ))}
               </optgroup>
-              <optgroup label="📘 Nivel Primaria (6 Cursos)">
+              <optgroup label="Nivel Primaria (6 Cursos)">
                 {primariaCourses.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.enrollmentCount} estudiantes)
                   </option>
                 ))}
               </optgroup>
-              <optgroup label="🎓 Nivel Secundaria (6 Cursos)">
+              <optgroup label="Nivel Secundaria (6 Cursos)">
                 {secundariaCourses.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.enrollmentCount} estudiantes)
@@ -278,7 +278,7 @@ export const SchedulesPage: React.FC = () => {
                         {period.start} - {period.end}
                       </td>
                       <td colSpan={5} className="py-2 px-4 text-center font-semibold text-amber-900 tracking-wide">
-                        ☕ {period.label}
+                        {period.label}
                       </td>
                     </tr>
                   );

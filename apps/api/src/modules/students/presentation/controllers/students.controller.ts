@@ -26,7 +26,7 @@ export class StudentsController {
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER, UserRole.PARENT)
   @Permissions('students:read')
   async list(@CurrentUser() user: AuthenticatedUser, @Query('search') search?: string, @Query('limit') limit?: string, @Query('offset') offset?: string) {
-    const result = await this.listStudents.execute({ search, parentUserId: user.role === UserRole.PARENT ? user.id : undefined, limit: Math.min(Number(limit) || 50, 100), offset: Number(offset) || 0 });
+    const result = await this.listStudents.execute({ search, parentUserId: user.role === UserRole.PARENT ? user.id : undefined, limit: Math.min(Number(limit) || 50, 1000), offset: Number(offset) || 0 });
     return { statusCode: 200, message: 'Estudiantes obtenidos exitosamente', data: result.items, total: result.total };
   }
 

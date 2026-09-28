@@ -27,9 +27,9 @@ const TRIMESTRES = [
 
 const NIVELES = [
   { id: 'ALL', label: 'Todos los Niveles' },
-  { id: 'INICIAL', label: '🌱 Inicial (4 Cursos)' },
-  { id: 'PRIMARIA', label: '📘 Primaria (1º a 6º)' },
-  { id: 'SECUNDARIA', label: '🎓 Secundaria (1º a 6º)' },
+  { id: 'INICIAL', label: 'Inicial (4 Cursos)' },
+  { id: 'PRIMARIA', label: 'Primaria (1º a 6º)' },
+  { id: 'SECUNDARIA', label: 'Secundaria (1º a 6º)' },
 ];
 
 const GRADE_NAMES: Record<number, string> = {

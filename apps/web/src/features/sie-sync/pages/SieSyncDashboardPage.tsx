@@ -854,7 +854,7 @@ export function SieSyncDashboardPage() {
                               {c.status === 'COINCIDE' ? (
                                 <span className="text-emerald-700">✓ Coincide</span>
                               ) : c.status === 'DISCREPANCIA' ? (
-                                <span className="text-rose-600">⚠️ Discrepancia</span>
+                                <span className="text-rose-600">Discrepancia</span>
                               ) : (
                                 <span className="text-slate-500">Solo en SIE</span>
                               )}

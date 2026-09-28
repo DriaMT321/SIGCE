@@ -151,8 +151,8 @@ export interface CurriculumTopicItem {
 }
 
 export const academicApi = {
-  async listStudents(search?: string) {
-    const response = await apiClient.get('/students', { params: { search, limit: 100 } });
+  async listStudents(search?: string, limit = 1000, offset = 0) {
+    const response = await apiClient.get('/students', { params: { search, limit, offset } });
     return listResponse(studentSchema).parse(response.data);
   },
   async createStudent(data: unknown) {

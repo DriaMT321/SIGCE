@@ -19,7 +19,7 @@ export class EnrollmentsController {
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER, UserRole.PARENT)
   @Permissions('enrollments:read')
   async list(@CurrentUser() user: AuthenticatedUser, @Query('academicYearId') academicYearId?: string, @Query('courseId') courseId?: string, @Query('studentId') studentId?: string, @Query('limit') limit?: string, @Query('offset') offset?: string) {
-    const result = await this.listEnrollments.execute({ academicYearId, courseId, studentId, parentUserId: user.role === UserRole.PARENT ? user.id : undefined, limit: Math.min(Number(limit) || 50, 100), offset: Number(offset) || 0 });
+    const result = await this.listEnrollments.execute({ academicYearId, courseId, studentId, parentUserId: user.role === UserRole.PARENT ? user.id : undefined, limit: Math.min(Number(limit) || 50, 1000), offset: Number(offset) || 0 });
     return { statusCode: 200, message: 'Matrículas obtenidas exitosamente', data: result.items, total: result.total };
   }
 
