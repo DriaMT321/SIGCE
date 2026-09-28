@@ -18,6 +18,21 @@ export class TokenService {
     private readonly configService: ConfigService,
   ) {}
 
+  private sanitizeExpiration(val: unknown, fallback: string): string | number {
+    if (typeof val === 'number') return val;
+    if (typeof val !== 'string') return fallback;
+    const clean = val.trim().replace(/^['"]|['"]$/g, '');
+    if (!clean) return fallback;
+
+    if (/^\d+$/.test(clean)) {
+      const num = parseInt(clean, 10);
+      if (num <= 31 && fallback.endsWith('d')) return `${num}d`;
+      if (num <= 60 && fallback.endsWith('m')) return `${num}m`;
+      return num;
+    }
+    return clean;
+  }
+
   issueForUser(user: Pick<User, 'id' | 'email' | 'role' | 'firstName' | 'lastName'>): TokenPair {
     const payload: JwtPayload = {
       sub: user.id,
@@ -27,8 +42,12 @@ export class TokenService {
       lastName: user.lastName,
     };
 
-    const accessExpiration = this.configService.get<string>('jwt.accessExpiration', '15m') as JwtSignOptions['expiresIn'];
-    const refreshExpiration = this.configService.get<string>('jwt.refreshExpiration', '7d') as JwtSignOptions['expiresIn'];
+    const rawAccess = this.configService.get<string>('jwt.accessExpiration', '15m');
+    const rawRefresh = this.configService.get<string>('jwt.refreshExpiration', '7d');
+
+    const accessExpiration = this.sanitizeExpiration(rawAccess, '15m') as JwtSignOptions['expiresIn'];
+    const refreshExpiration = this.sanitizeExpiration(rawRefresh, '7d') as JwtSignOptions['expiresIn'];
+
     const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.getOrThrow<string>('jwt.accessSecret'),
       expiresIn: accessExpiration,
