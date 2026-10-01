@@ -59,12 +59,11 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="relative flex min-h-[100dvh] items-center justify-center bg-slate-100/80 px-4 py-8 sm:px-6 lg:px-8">
-      {/* Subtle institutional ambient radial glow based on official school colors */}
-      {isInstitutional && (
-        <div className="pointer-events-none absolute top-0 right-0 w-[500px] h-[500px] bg-institutional-radial opacity-[0.07] blur-3xl rounded-full" />
-      )}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#000000_1px,transparent_1px),linear-gradient(to_bottom,#000000_1px,transparent_1px)] bg-[size:32px_32px]" />
+    <div className="relative min-h-[100dvh] flex items-center justify-center bg-slate-100/90 px-4 py-8 sm:px-6 lg:px-8 overflow-hidden">
+      {/* Soft Ambient Radial Atmosphere */}
+      <div className="pointer-events-none absolute -top-40 -left-40 w-96 h-96 bg-brand-700/10 blur-[100px] rounded-full" />
+      <div className="pointer-events-none absolute -bottom-40 -right-40 w-96 h-96 bg-amber-500/10 blur-[100px] rounded-full" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.025] bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:32px_32px]" />
 
       {/* Theme quick switch in login header */}
       <div className="absolute top-4 right-4 z-20">
@@ -72,7 +71,7 @@ export const LoginPage = () => {
           type="button"
           onClick={toggleTheme}
           title={isInstitutional ? "Cambiar a Modo Ejecutivo" : "Cambiar a Identidad Comunidad Cristiana B"}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200/90 bg-white/90 backdrop-blur-sm text-xs text-slate-600 shadow-2xs hover:bg-white transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200/90 bg-white/90 backdrop-blur-sm text-xs text-slate-600 shadow-2xs hover:bg-white transition-all cursor-pointer haptic-press"
         >
           <Palette className={`w-3.5 h-3.5 ${isInstitutional ? 'text-brand-crimson' : 'text-slate-500'}`} />
           <span className="text-[11px] font-medium hidden sm:inline">
