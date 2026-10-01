@@ -12,6 +12,7 @@ import {
   ChevronRight,
   BarChart3,
   SlidersHorizontal,
+  Loader2,
 } from 'lucide-react';
 import { academicApi, CurriculumTopicItem } from '../../../lib/academic-api';
 import { Badge } from '../../../components/ui/badge';
@@ -52,11 +53,11 @@ const GRADE_NAMES: Record<number, string> = {
 };
 
 const CAMPO_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  'Comunidad y Sociedad': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-  'Ciencia, Tecnología y Producción': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  'Vida Tierra Territorio': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
-  'Cosmos y Pensamiento': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-  'Desarrollo Infantil': { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  'Comunidad y Sociedad': { bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' },
+  'Ciencia, Tecnología y Producción': { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-200' },
+  'Vida Tierra Territorio': { bg: 'bg-green-50', text: 'text-green-800', border: 'border-green-200' },
+  'Cosmos y Pensamiento': { bg: 'bg-purple-50', text: 'text-purple-800', border: 'border-purple-200' },
+  'Desarrollo Infantil': { bg: 'bg-sky-50', text: 'text-sky-800', border: 'border-sky-200' },
 };
 
 export const CurriculumPage: React.FC = () => {
@@ -117,214 +118,248 @@ export const CurriculumPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header Institucional */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/90">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Planes y Programas Oficiales</span>
-            </span>
-            <Badge variant="outline" className="font-mono text-slate-700 bg-white">
-              R.M. 1040/2022 (4095.pdf & 4096.pdf)
-            </Badge>
+      {/* Header Institucional con Doble Bisel */}
+      <div className="p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 shadow-subtle">
+        <div className="bg-white rounded-xl p-5 sm:p-6 shadow-doppelrand-inner flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Planes y Programas Oficiales</span>
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                R.M. 1040/2022
+              </span>
+              <span className="text-[11px] font-mono text-slate-500 uppercase tracking-wider">
+                Ministerio de Educación de Bolivia
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 font-display">
+              Avance Curricular Institucional
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
+              Monitoreo pedagógico y cumplimiento temático en tiempo real estructurado por campos de saberes, unidades de aprendizaje y trimestres reglamentarios.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 font-display">
-            Avance Curricular Institucional
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-            Monitoreo pedagógico en tiempo real por campos de saberes, unidades temáticas y trimestres oficiales.
-          </p>
-        </div>
 
-        {/* Global Progress Pill */}
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
-          <div className="text-right">
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              Avance General
+          {/* Global Progress Pill */}
+          <div className="p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 shadow-subtle self-start md:self-auto shrink-0">
+            <div className="bg-white rounded-xl p-3.5 shadow-doppelrand-inner flex items-center gap-4">
+              <div className="text-right">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  Avance Global
+                </div>
+                <div className="text-2xl font-black text-slate-950 font-mono tabular-nums">
+                  {stats?.averageProgress ?? 0}%
+                </div>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-slate-950 text-amber-400 flex flex-col items-center justify-center font-bold text-xs font-mono shadow-xs">
+                <span>{stats?.completed ?? 0}</span>
+                <span className="text-[9px] text-slate-400 font-normal">/{stats?.totalTopics ?? 0}</span>
+              </div>
             </div>
-            <div className="text-xl font-bold text-slate-900 font-mono">
-              {stats?.averageProgress ?? 0}%
-            </div>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-bold text-sm">
-            {stats?.completed ?? 0}/{stats?.totalTopics ?? 0}
           </div>
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* 4 Tarjetas de Métricas con Doble Bisel */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Topics */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Temas Totales</span>
-            <BookOpen className="w-4 h-4 text-brand-600" />
-          </div>
-          <div className="text-2xl font-bold text-slate-900 font-mono">
-            {stats?.totalTopics ?? 0}
-          </div>
-          <div className="text-xs text-slate-500 mt-1">Planificados para la gestión 2026</div>
-        </div>
-
-        {/* Inicial */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Nivel Inicial</span>
-            <span className="text-xs font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full">
-              4 Cursos
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-bold text-slate-900 font-mono">
-              {stats?.byLevel?.inicial?.avgProgress ?? 0}%
+        {/* Temas Totales */}
+        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
+          <div className="bg-white rounded-xl p-4 shadow-doppelrand-inner space-y-2 h-full flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Temas Totales</span>
+              <div className="w-7 h-7 rounded-lg bg-brand-50 text-brand-700 flex items-center justify-center">
+                <BookOpen className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <div className="text-xs text-slate-500">
-              {stats?.byLevel?.inicial?.completed ?? 0} de {stats?.byLevel?.inicial?.total ?? 0} completados
+            <div>
+              <div className="text-2xl font-black text-slate-900 font-mono tabular-nums">
+                {stats?.totalTopics ?? 0}
+              </div>
+              <div className="text-xs text-slate-500 mt-0.5">Planificados gestión 2026</div>
             </div>
-          </div>
-          <div className="w-full bg-slate-100 rounded-full h-2 mt-2 overflow-hidden">
-            <div
-              className="bg-sky-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${stats?.byLevel?.inicial?.avgProgress ?? 0}%` }}
-            />
           </div>
         </div>
 
-        {/* Primaria */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Nivel Primaria</span>
-            <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
-              1º a 6º
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-bold text-slate-900 font-mono">
-              {stats?.byLevel?.primaria?.avgProgress ?? 0}%
+        {/* Nivel Inicial */}
+        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
+          <div className="bg-white rounded-xl p-4 shadow-doppelrand-inner space-y-2 h-full flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-sky-800">Educación Inicial</span>
+              <span className="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
+                4 Cursos
+              </span>
             </div>
-            <div className="text-xs text-slate-500">
-              {stats?.byLevel?.primaria?.completed ?? 0} de {stats?.byLevel?.primaria?.total ?? 0} completados
+            <div className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-2xl font-black text-slate-900 font-mono tabular-nums">
+                  {stats?.byLevel?.inicial?.avgProgress ?? 0}%
+                </span>
+                <span className="text-[11px] text-slate-500 font-mono">
+                  {stats?.byLevel?.inicial?.completed ?? 0} / {stats?.byLevel?.inicial?.total ?? 0}
+                </span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden p-0.5">
+                <div
+                  className="bg-sky-500 h-full rounded-full transition-all duration-300"
+                  style={{ width: `${stats?.byLevel?.inicial?.avgProgress ?? 0}%` }}
+                />
+              </div>
             </div>
-          </div>
-          <div className="w-full bg-slate-100 rounded-full h-2 mt-2 overflow-hidden">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${stats?.byLevel?.primaria?.avgProgress ?? 0}%` }}
-            />
           </div>
         </div>
 
-        {/* Secundaria */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Nivel Secundaria</span>
-            <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-              1º a 6º
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-bold text-slate-900 font-mono">
-              {stats?.byLevel?.secundaria?.avgProgress ?? 0}%
+        {/* Nivel Primaria */}
+        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
+          <div className="bg-white rounded-xl p-4 shadow-doppelrand-inner space-y-2 h-full flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800">Educación Primaria</span>
+              <span className="text-[10px] font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                1º a 6º
+              </span>
             </div>
-            <div className="text-xs text-slate-500">
-              {stats?.byLevel?.secundaria?.completed ?? 0} de {stats?.byLevel?.secundaria?.total ?? 0} completados
+            <div className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-2xl font-black text-slate-900 font-mono tabular-nums">
+                  {stats?.byLevel?.primaria?.avgProgress ?? 0}%
+                </span>
+                <span className="text-[11px] text-slate-500 font-mono">
+                  {stats?.byLevel?.primaria?.completed ?? 0} / {stats?.byLevel?.primaria?.total ?? 0}
+                </span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden p-0.5">
+                <div
+                  className="bg-blue-600 h-full rounded-full transition-all duration-300"
+                  style={{ width: `${stats?.byLevel?.primaria?.avgProgress ?? 0}%` }}
+                />
+              </div>
             </div>
-          </div>
-          <div className="w-full bg-slate-100 rounded-full h-2 mt-2 overflow-hidden">
-            <div
-              className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${stats?.byLevel?.secundaria?.avgProgress ?? 0}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-        {/* Top Controls */}
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-          {/* Search */}
-          <div className="relative flex-1 max-w-lg">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <Input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar tema, unidad temática o contenido curricular..."
-              className="pl-9 h-10 text-xs sm:text-sm bg-slate-50/70 border-slate-200 rounded-xl"
-            />
-          </div>
-
-          {/* Trimester Tabs */}
-          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 overflow-x-auto">
-            {TRIMESTRES.map((trim) => (
-              <button
-                key={trim.id}
-                onClick={() => setSelectedTrimestre(trim.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                  selectedTrimestre === trim.id
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {trim.label}
-              </button>
-            ))}
           </div>
         </div>
 
-        {/* Secondary Filter Chips */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-              <Filter className="w-3.5 h-3.5 text-slate-400" />
-              Nivel:
-            </span>
-            {NIVELES.map((niv) => (
-              <button
-                key={niv.id}
-                onClick={() => setSelectedNivel(niv.id)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
-                  selectedNivel === niv.id
-                    ? 'bg-slate-900 text-white border-slate-900'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                {niv.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Estado:</span>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="h-8 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700"
-            >
-              <option value="ALL">Todos los Estados</option>
-              <option value="PLANIFICADO">Planificado</option>
-              <option value="EN_DESARROLLO">En Desarrollo</option>
-              <option value="COMPLETADO">Completado</option>
-            </select>
+        {/* Nivel Secundaria */}
+        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
+          <div className="bg-white rounded-xl p-4 shadow-doppelrand-inner space-y-2 h-full flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Educación Secundaria</span>
+              <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                1º a 6º
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-2xl font-black text-slate-900 font-mono tabular-nums">
+                  {stats?.byLevel?.secundaria?.avgProgress ?? 0}%
+                </span>
+                <span className="text-[11px] text-slate-500 font-mono">
+                  {stats?.byLevel?.secundaria?.completed ?? 0} / {stats?.byLevel?.secundaria?.total ?? 0}
+                </span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden p-0.5">
+                <div
+                  className="bg-emerald-600 h-full rounded-full transition-all duration-300"
+                  style={{ width: `${stats?.byLevel?.secundaria?.avgProgress ?? 0}%` }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Topics List */}
+      {/* Barra de Filtros con Doble Bisel */}
+      <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
+        <div className="bg-white rounded-xl p-4 shadow-doppelrand-inner space-y-4">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+            {/* Search */}
+            <div className="relative flex-1 max-w-lg">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar tema, unidad temática o contenido curricular..."
+                className="pl-9 pr-4 h-10 text-xs bg-slate-50/60 border-slate-200/90 rounded-xl focus:bg-white transition-all"
+              />
+            </div>
+
+            {/* Trimester Tabs */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 overflow-x-auto">
+              {TRIMESTRES.map((trim) => (
+                <button
+                  key={trim.id}
+                  onClick={() => setSelectedTrimestre(trim.id)}
+                  className={`haptic-press px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                    selectedTrimestre === trim.id
+                      ? 'bg-slate-950 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {trim.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Secondary Filters */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                <Filter className="w-3.5 h-3.5 text-slate-400" />
+                Nivel:
+              </span>
+              {NIVELES.map((niv) => (
+                <button
+                  key={niv.id}
+                  onClick={() => setSelectedNivel(niv.id)}
+                  className={`haptic-press px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                    selectedNivel === niv.id
+                      ? 'bg-slate-950 text-white border-slate-950 shadow-xs'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  {niv.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Estado:</span>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="h-8 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none"
+              >
+                <option value="ALL">Todos los Estados</option>
+                <option value="PLANIFICADO">Planificado</option>
+                <option value="EN_DESARROLLO">En Desarrollo</option>
+                <option value="COMPLETADO">Completado</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Lista de Contenidos Curriculares */}
       <div className="space-y-3">
         <div className="flex items-center justify-between text-xs text-slate-500 px-1 font-medium">
-          <span>Mostrando {filteredTopics.length} contenidos curriculares</span>
-          <span>Basado en R.M. 1040/2022 del Ministerio de Educación</span>
+          <span>Mostrando <strong className="text-slate-900 font-mono">{filteredTopics.length}</strong> contenidos curriculares</span>
+          <span className="font-mono text-[11px] text-slate-400">R.M. 1040/2022</span>
         </div>
 
         {isLoading ? (
-          <div className="p-12 text-center text-slate-500 font-medium">
-            Cargando temas del avance curricular...
+          <div className="flex flex-col items-center justify-center p-16 text-slate-500 gap-3">
+            <Loader2 className="w-6 h-6 animate-spin text-brand-600" />
+            <span className="text-xs font-medium font-mono text-slate-600">
+              Cargando matriz de avance curricular...
+            </span>
           </div>
         ) : filteredTopics.length === 0 ? (
-          <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 text-slate-500">
-            No se encontraron temas con los filtros seleccionados.
+          <div className="p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 shadow-subtle">
+            <div className="bg-white rounded-xl p-16 text-center text-slate-500 space-y-2 shadow-doppelrand-inner">
+              <BookOpen className="w-10 h-10 text-slate-300 mx-auto" />
+              <p className="font-bold text-slate-800 text-sm">No se encontraron temas con los filtros seleccionados</p>
+              <p className="text-xs text-slate-400">Intente modificando el término de búsqueda o el nivel seleccionado.</p>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3">
@@ -342,106 +377,105 @@ export const CurriculumPage: React.FC = () => {
               return (
                 <div
                   key={topic.id}
-                  className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-shadow flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+                  className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle hover:border-slate-300 transition-all group"
                 >
-                  {/* Topic Metadata & Details */}
-                  <div className="flex-1 space-y-1.5 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-lg bg-slate-900 text-white">
-                        {GRADE_NAMES[topic.gradeLevel] || `Grado ${topic.gradeLevel}`}
-                      </span>
+                  <div className="bg-white rounded-xl p-4 shadow-doppelrand-inner flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    {/* Metadata & Details */}
+                    <div className="flex-1 space-y-1.5 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-lg bg-slate-900 text-white">
+                          {GRADE_NAMES[topic.gradeLevel] || `Grado ${topic.gradeLevel}`}
+                        </span>
 
-                      <span
-                        className={`text-[11px] font-bold px-2 py-0.5 rounded-md border ${campoColor.bg} ${campoColor.text} ${campoColor.border}`}
-                      >
-                        {topic.subject?.name} ({topic.subject?.code})
-                      </span>
+                        <span
+                          className={`text-[11px] font-bold px-2 py-0.5 rounded-md border ${campoColor.bg} ${campoColor.text} ${campoColor.border}`}
+                        >
+                          {topic.subject?.name} ({topic.subject?.code})
+                        </span>
 
-                      <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                        {topic.periodNumber}º Trimestre
-                      </span>
+                        <span className="text-[11px] font-mono font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">
+                          {topic.periodNumber}º Trimestre
+                        </span>
 
-                      <span className="text-[11px] font-medium text-slate-500 truncate max-w-[200px]">
-                        {topic.campo}
-                      </span>
-                    </div>
-
-                    <div>
-                      <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">
-                        {topic.unitTitle}
+                        <span className="text-[11px] font-medium text-slate-400 truncate max-w-[200px]">
+                          {topic.campo}
+                        </span>
                       </div>
-                      <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug">
-                        {topic.title}
-                      </h3>
-                      {topic.description && (
-                        <p className="text-xs text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
-                          {topic.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Progress Controls & Status */}
-                  <div className="w-full md:w-64 shrink-0 flex flex-col gap-2 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
-                    <div className="flex items-center justify-between text-xs">
-                      <span
-                        className={`font-bold px-2 py-0.5 rounded-full text-[10px] ${
-                          isCompleted
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : isInProgress
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-slate-100 text-slate-600'
-                        }`}
-                      >
-                        {topic.status}
-                      </span>
-                      <span className="font-mono font-bold text-slate-800">
-                        {topic.progressPercent}%
-                      </span>
+                      <div>
+                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                          {topic.unitTitle}
+                        </div>
+                        <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug group-hover:text-brand-900 transition-colors">
+                          {topic.title}
+                        </h3>
+                        {topic.description && (
+                          <p className="text-xs text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
+                            {topic.description}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Progress Bar */}
-                    <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                      <div
-                        className={`h-2.5 rounded-full transition-all duration-300 ${
-                          isCompleted
-                            ? 'bg-emerald-500'
-                            : isInProgress
-                            ? 'bg-blue-600'
-                            : 'bg-slate-300'
-                        }`}
-                        style={{ width: `${topic.progressPercent}%` }}
-                      />
-                    </div>
+                    {/* Progress Controls */}
+                    <div className="w-full md:w-64 shrink-0 flex flex-col gap-2 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
+                      <div className="flex items-center justify-between text-xs">
+                        <span
+                          className={`font-mono font-bold px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider border ${
+                            isCompleted
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              : isInProgress
+                              ? 'bg-blue-50 text-blue-800 border-blue-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                          }`}
+                        >
+                          {topic.status}
+                        </span>
+                        <span className="font-mono font-bold text-slate-900 tabular-nums">
+                          {topic.progressPercent}%
+                        </span>
+                      </div>
 
-                    {/* Action Buttons for quick progress update */}
-                    <div className="flex items-center gap-1.5 pt-1">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleAdvance(topic, -25)}
-                        disabled={topic.progressPercent <= 0 || updateMutation.isPending}
-                        className="h-7 px-2 text-[10px] font-bold text-slate-600"
-                      >
-                        -25%
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleAdvance(topic, 25)}
-                        disabled={topic.progressPercent >= 100 || updateMutation.isPending}
-                        className="h-7 px-2 text-[10px] font-bold text-blue-700 bg-blue-50/50 border-blue-200"
-                      >
-                        +25%
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleAdvance(topic, 100)}
-                        disabled={isCompleted || updateMutation.isPending}
-                        className="h-7 px-2 text-[10px] font-bold flex-1 bg-slate-900 text-amber-400 hover:bg-slate-800"
-                      >
-                        Completar
-                      </Button>
+                      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden p-0.5">
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${
+                            isCompleted
+                              ? 'bg-emerald-500'
+                              : isInProgress
+                              ? 'bg-blue-600'
+                              : 'bg-slate-300'
+                          }`}
+                          style={{ width: `${topic.progressPercent}%` }}
+                        />
+                      </div>
+
+                      {/* Tactile Action Buttons */}
+                      <div className="flex items-center gap-1.5 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => handleAdvance(topic, -25)}
+                          disabled={topic.progressPercent <= 0 || updateMutation.isPending}
+                          className="haptic-press h-7 px-2.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+                        >
+                          -25%
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAdvance(topic, 25)}
+                          disabled={topic.progressPercent >= 100 || updateMutation.isPending}
+                          className="haptic-press h-7 px-2.5 rounded-lg border border-blue-200 bg-blue-50 text-[10px] font-bold text-blue-800 hover:bg-blue-100 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+                        >
+                          +25%
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAdvance(topic, 100)}
+                          disabled={isCompleted || updateMutation.isPending}
+                          className="haptic-press h-7 px-2.5 rounded-lg bg-slate-950 text-amber-400 hover:bg-slate-900 text-[10px] font-bold flex-1 disabled:opacity-40 disabled:pointer-events-none cursor-pointer shadow-xs"
+                        >
+                          Completar
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -15,6 +15,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Filter,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
@@ -84,300 +85,333 @@ export const StudentsPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header Institucional */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/90">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
-              <Users className="w-3.5 h-3.5 text-brand-700" />
-              <span>Padrón Estudiantil</span>
-            </span>
-            <Badge variant="outline" className="font-mono">
-              {totalCount} registrados
-            </Badge>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 font-display">
-            Directorio de Estudiantes
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-            Gestión de datos de filiación, registro único de estudiante (RUDE) y estado de matrícula.
-          </p>
-        </div>
-
-        {canManage && (
-          <Button
-            onClick={() => setShowForm((prev) => !prev)}
-            className="h-9 bg-slate-900 hover:bg-slate-800 text-white gap-1.5 shadow-xs"
-          >
-            {showForm ? (
-              <>
-                <X className="w-4 h-4" />
-                <span>Cancelar</span>
-              </>
-            ) : (
-              <>
-                <Plus className="w-4 h-4 text-amber-400" />
-                <span>Nuevo Estudiante</span>
-              </>
-            )}
-          </Button>
-        )}
-      </div>
-
-      {/* Formulario de Registro Estudiantil */}
-      {showForm && canManage && (
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-[0_1px_3px_0_rgba(15,23,42,0.03)] space-y-5">
-          <div className="pb-3 border-b border-slate-100">
-            <h2 className="text-base font-bold text-slate-900 font-display">
-              Ficha de Inscripción y Filiación Estudiantil
-            </h2>
-            <p className="text-xs text-slate-500">
-              Complete los datos obligatorios según el certificado de nacimiento o cédula de identidad.
+      {/* Header Institucional con Doble Bisel */}
+      <div className="p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 shadow-subtle">
+        <div className="bg-white rounded-xl p-5 sm:p-6 shadow-doppelrand-inner flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+                <Users className="w-3.5 h-3.5 text-brand-700" />
+                <span>Padrón Estudiantil</span>
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-50 text-amber-900 border border-amber-200/80">
+                {totalCount} Registrados
+              </span>
+              <span className="text-[11px] font-mono text-slate-500 uppercase tracking-wider">
+                Gestión 2026 · SIE 81981191
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 font-display">
+              Directorio General de Estudiantes
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
+              Consolidado de filiación oficial, registros únicos RUDE y estado de matrícula por aula para la gestión académica en curso.
             </p>
           </div>
 
-          <form onSubmit={form.handleSubmit((data) => createMutation.mutate(data))} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Field label="Código RUDE" error={form.formState.errors.rude?.message}>
-                <Input {...form.register('rude')} placeholder="819811912026..." className="font-mono text-xs" />
-              </Field>
+          {canManage && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowForm((prev) => !prev)}
+                className="haptic-press inline-flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-slate-950 text-white font-medium text-xs shadow-md hover:bg-slate-900 transition-all cursor-pointer"
+              >
+                <span>{showForm ? 'Cerrar Ficha' : 'Nuevo Estudiante'}</span>
+                <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-amber-400">
+                  {showForm ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
-              <Field label="Cédula de Identidad (C.I.)" error={form.formState.errors.ci?.message}>
-                <Input {...form.register('ci')} placeholder="Ej. 12345678" className="font-mono text-xs" />
-              </Field>
-
-              <Field label="Nombres" error={form.formState.errors.firstName?.message}>
-                <Input {...form.register('firstName')} placeholder="Nombres del alumno" className="text-xs" />
-              </Field>
-
-              <Field label="Apellidos" error={form.formState.errors.lastName?.message}>
-                <Input {...form.register('lastName')} placeholder="Apellidos paterno y materno" className="text-xs" />
-              </Field>
-
-              <Field label="Fecha de Nacimiento" error={form.formState.errors.birthDate?.message}>
-                <Input type="date" {...form.register('birthDate')} className="text-xs" />
-              </Field>
-
-              <Field label="Género" error={form.formState.errors.gender?.message}>
-                <select
-                  {...form.register('gender')}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/10"
-                >
-                  <option value="MALE">Masculino</option>
-                  <option value="FEMALE">Femenino</option>
-                </select>
-              </Field>
-
-              <Field label="Teléfono de Contacto" error={form.formState.errors.phone?.message}>
-                <Input {...form.register('phone')} placeholder="Opcional" className="text-xs" />
-              </Field>
-
-              <div className="flex items-end">
-                <Button
-                  disabled={createMutation.isPending}
-                  type="submit"
-                  className="w-full h-10 bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold gap-1.5 shadow-xs"
-                >
-                  {createMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Guardar Estudiante</span>
-                </Button>
+      {/* Formulario de Registro Estudiantil con Doble Bisel */}
+      {showForm && canManage && (
+        <div className="p-1 rounded-2xl bg-amber-500/10 border border-amber-500/20 shadow-subtle animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl p-6 shadow-doppelrand-inner space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h2 className="text-base font-bold text-slate-900 font-display flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-brand-600" />
+                  Ficha de Inscripción y Filiación Estudiantil
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Complete los datos de identidad según el certificado de nacimiento o cédula de identidad del Estado Plurinacional.
+                </p>
               </div>
+              <Badge variant="outline" className="font-mono text-[10px]">
+                Ley 070 Avelino Siñani
+              </Badge>
             </div>
 
-            {createMutation.isError && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-700 text-xs border border-red-200">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>No se pudo registrar el estudiante. Verifique que el RUDE o C.I. no estén duplicados.</span>
+            <form onSubmit={form.handleSubmit((data) => createMutation.mutate(data))} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Field label="Código RUDE" error={form.formState.errors.rude?.message}>
+                  <Input {...form.register('rude')} placeholder="819811912026..." className="font-mono text-xs rounded-xl" />
+                </Field>
+
+                <Field label="Cédula de Identidad (C.I.)" error={form.formState.errors.ci?.message}>
+                  <Input {...form.register('ci')} placeholder="Ej. 12345678" className="font-mono text-xs rounded-xl" />
+                </Field>
+
+                <Field label="Nombres" error={form.formState.errors.firstName?.message}>
+                  <Input {...form.register('firstName')} placeholder="Nombres del alumno" className="text-xs rounded-xl" />
+                </Field>
+
+                <Field label="Apellidos" error={form.formState.errors.lastName?.message}>
+                  <Input {...form.register('lastName')} placeholder="Apellidos paterno y materno" className="text-xs rounded-xl" />
+                </Field>
+
+                <Field label="Fecha de Nacimiento" error={form.formState.errors.birthDate?.message}>
+                  <Input type="date" {...form.register('birthDate')} className="text-xs rounded-xl" />
+                </Field>
+
+                <Field label="Género" error={form.formState.errors.gender?.message}>
+                  <select
+                    {...form.register('gender')}
+                    className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/10 cursor-pointer"
+                  >
+                    <option value="MALE">Masculino</option>
+                    <option value="FEMALE">Femenino</option>
+                  </select>
+                </Field>
+
+                <Field label="Teléfono de Contacto" error={form.formState.errors.phone?.message}>
+                  <Input {...form.register('phone')} placeholder="Opcional" className="text-xs rounded-xl" />
+                </Field>
+
+                <div className="flex items-end">
+                  <Button
+                    disabled={createMutation.isPending}
+                    type="submit"
+                    className="haptic-press w-full h-10 bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold gap-2 rounded-xl shadow-xs"
+                  >
+                    {createMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    <span>Guardar Estudiante</span>
+                  </Button>
+                </div>
               </div>
-            )}
-          </form>
+
+              {createMutation.isError && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 text-rose-800 text-xs border border-rose-200">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <span>No se pudo registrar el estudiante. Verifique que el RUDE o C.I. no estén previamente asentados.</span>
+                </div>
+              )}
+            </form>
+          </div>
         </div>
       )}
 
-      {/* Barra de Búsqueda */}
-      <div className="relative max-w-md">
-        <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <Input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Buscar por nombre, RUDE o cédula..."
-          className="pl-9 h-10 text-xs bg-white"
-        />
-        {search && (
-          <button
-            type="button"
-            onClick={() => setSearch('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
+      {/* Barra de Filtros y Búsqueda con Doble Bisel */}
+      <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
+        <div className="bg-white rounded-xl p-3 shadow-doppelrand-inner flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Buscar por nombre, RUDE o cédula..."
+              className="pl-9 pr-9 h-10 text-xs bg-slate-50/60 border-slate-200/90 rounded-xl focus:bg-white transition-all"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end gap-3 text-xs">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600">
+              <Filter className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-[11px] font-medium text-slate-500">Filas:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="bg-transparent font-mono font-bold text-slate-800 cursor-pointer focus:outline-none"
+              >
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={200}>200</option>
+                <option value={1000}>Todos ({totalCount})</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Tabla de Estudiantes */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_0_rgba(15,23,42,0.03)]">
-        {studentsQuery.isLoading ? (
-          <div className="flex items-center justify-center p-12 text-slate-500">
-            <Loader2 className="w-5 h-5 animate-spin mr-2 text-slate-400" />
-            <span className="text-xs font-medium">Cargando directorio de estudiantes...</span>
-          </div>
-        ) : studentsQuery.isError ? (
-          <div className="p-12 text-center text-xs text-red-600">
-            No se pudo conectar con el servidor para cargar los estudiantes.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                  <th className="py-3 pl-5 pr-3">Estudiante</th>
-                  <th className="px-3 py-3">Código RUDE</th>
-                  <th className="px-3 py-3">Cédula de Identidad</th>
-                  <th className="px-3 py-3">Curso Matriculado</th>
-                  <th className="py-3 pl-3 pr-5 text-right">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {students.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="py-12 text-center text-slate-500">
-                      <div className="flex flex-col items-center justify-center gap-1.5">
-                        <GraduationCap className="w-8 h-8 text-slate-300" />
-                        <p className="font-semibold text-slate-700 text-sm">No se encontraron estudiantes</p>
-                        <p className="text-xs text-slate-400">Intente con otro término de búsqueda.</p>
-                      </div>
-                    </td>
+      {/* Tabla de Estudiantes con Doble Bisel Concéntrico */}
+      <div className="p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 shadow-subtle">
+        <div className="bg-white rounded-xl shadow-doppelrand-inner overflow-hidden">
+          {studentsQuery.isLoading ? (
+            <div className="flex flex-col items-center justify-center p-16 text-slate-500 gap-3">
+              <Loader2 className="w-6 h-6 animate-spin text-brand-600" />
+              <span className="text-xs font-medium font-mono text-slate-600">
+                Sincronizando nómina de estudiantes desde base institucional...
+              </span>
+            </div>
+          ) : studentsQuery.isError ? (
+            <div className="p-12 text-center text-xs text-rose-600">
+              No se pudo conectar con el servidor institucional para cargar los estudiantes.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200/90 bg-slate-50/90 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <th className="py-3.5 pl-5 pr-3">Estudiante</th>
+                    <th className="px-3 py-3.5">Código RUDE</th>
+                    <th className="px-3 py-3.5">Cédula de Identidad</th>
+                    <th className="px-3 py-3.5">Curso Matriculado</th>
+                    <th className="py-3.5 pl-3 pr-5 text-right">Estado</th>
                   </tr>
-                ) : (
-                  students.map((student) => {
-                    const initials = `${student.firstName[0] ?? ''}${student.lastName[0] ?? ''}`.toUpperCase();
-                    return (
-                      <tr key={student.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-3.5 pl-5 pr-3">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] font-mono shrink-0">
-                              {initials}
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {students.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-16 text-center text-slate-500">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
+                            <GraduationCap className="w-6 h-6" />
+                          </div>
+                          <p className="font-bold text-slate-800 text-sm">No se encontraron estudiantes</p>
+                          <p className="text-xs text-slate-400">Intente modificando los parámetros de búsqueda.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    students.map((student) => {
+                      const initials = `${student.firstName[0] ?? ''}${student.lastName[0] ?? ''}`.toUpperCase();
+                      return (
+                        <tr key={student.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-3.5 pl-5 pr-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200/80 text-slate-800 flex items-center justify-center font-extrabold text-[11px] font-mono shrink-0 shadow-xs">
+                                {initials}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-slate-900 leading-tight">
+                                  {student.firstName} {student.lastName}
+                                </p>
+                                <span className="text-[10px] font-medium text-slate-400 leading-tight">
+                                  {student.gender === 'MALE' ? 'Varón' : 'Mujer'}
+                                </span>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-semibold text-slate-900 leading-tight">
-                                {student.firstName} {student.lastName}
-                              </p>
-                              <span className="text-[10px] text-slate-400 leading-tight">
-                                {student.gender === 'MALE' ? 'Varón' : 'Mujer'}
+                          </td>
+
+                          <td className="px-3 py-3.5 font-mono text-slate-700">
+                            <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200/80 text-xs">
+                              <span className="font-semibold text-slate-800">{student.rude}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleCopyRude(student.rude)}
+                                className="haptic-press text-slate-400 hover:text-slate-700 cursor-pointer ml-1"
+                                title="Copiar RUDE"
+                              >
+                                {copiedRude === student.rude ? (
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                ) : (
+                                  <Copy className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </div>
+                          </td>
+
+                          <td className="px-3 py-3.5 font-mono text-slate-600">
+                            <span className="px-2 py-0.5 rounded-md bg-slate-50 text-slate-700 font-semibold border border-slate-200/60">
+                              {student.ci}
+                            </span>
+                          </td>
+
+                          <td className="px-3 py-3.5">
+                            {student.enrollments?.[0]?.course ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-900 border border-blue-200/80 text-[11px] font-semibold">
+                                {student.enrollments[0].course.name}
                               </span>
-                            </div>
-                          </div>
-                        </td>
+                            ) : (
+                              <span className="text-[11px] text-slate-400 italic">
+                                Sin matrícula activa
+                              </span>
+                            )}
+                          </td>
 
-                        <td className="px-3 py-3.5 font-mono text-slate-700">
-                          <div className="flex items-center gap-1.5">
-                            <span>{student.rude}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyRude(student.rude)}
-                              className="text-slate-400 hover:text-slate-600 cursor-pointer"
-                              title="Copiar RUDE"
+                          <td className="py-3.5 pl-3 pr-5 text-right">
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
+                                student.isActive
+                                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                  : 'bg-slate-100 text-slate-600 border border-slate-200'
+                              }`}
                             >
-                              {copiedRude === student.rude ? (
-                                <Check className="w-3 h-3 text-emerald-600" />
-                              ) : (
-                                <Copy className="w-3 h-3" />
-                              )}
-                            </button>
-                          </div>
-                        </td>
-
-                        <td className="px-3 py-3.5 font-mono text-slate-600">
-                          {student.ci}
-                        </td>
-
-                        <td className="px-3 py-3.5">
-                          {student.enrollments?.[0]?.course ? (
-                            <span className="inline-block px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-medium">
-                              {student.enrollments[0].course.name}
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  student.isActive ? 'bg-emerald-500' : 'bg-slate-400'
+                                }`}
+                              />
+                              {student.isActive ? 'Activo' : 'Inactivo'}
                             </span>
-                          ) : (
-                            <span className="text-[11px] text-slate-400 italic">
-                              Sin matrícula activa
-                            </span>
-                          )}
-                        </td>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
 
-                        <td className="py-3.5 pl-3 pr-5 text-right">
-                          <Badge variant={student.isActive ? 'success' : 'secondary'} className="font-mono text-[10px]">
-                            {student.isActive ? 'Activo' : 'Inactivo'}
-                          </Badge>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-
-            {/* Pagination Controls */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-3.5 bg-slate-50/70 border-t border-slate-200/80 text-xs">
-              <div className="flex items-center gap-2 text-slate-500">
-                <span>
+              {/* Controles de Paginación */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-3.5 bg-slate-50/80 border-t border-slate-200/90 text-xs">
+                <div className="text-slate-500">
                   Mostrando{' '}
-                  <strong className="text-slate-800 font-mono">
+                  <strong className="text-slate-900 font-mono">
                     {totalCount === 0 ? 0 : (page - 1) * pageSize + 1} -{' '}
                     {Math.min(page * pageSize, totalCount)}
                   </strong>{' '}
-                  de <strong className="text-slate-800 font-mono">{totalCount}</strong> estudiantes
-                </span>
-                <span className="text-slate-300">|</span>
-                <div className="flex items-center gap-1.5">
-                  <span>Por página:</span>
-                  <select
-                    value={pageSize}
-                    onChange={(e) => {
-                      setPageSize(Number(e.target.value));
-                      setPage(1);
-                    }}
-                    className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-900"
-                  >
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                    <option value={200}>200</option>
-                    <option value={1000}>Ver todos ({totalCount})</option>
-                  </select>
+                  de <strong className="text-slate-900 font-mono">{totalCount}</strong> estudiantes registrados
                 </div>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                      className="haptic-press inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 font-medium disabled:opacity-40 disabled:pointer-events-none hover:bg-slate-50 shadow-xs cursor-pointer"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                      <span>Anterior</span>
+                    </button>
+
+                    <div className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-xs font-mono font-semibold text-slate-800 shadow-xs">
+                      {page} / {totalPages}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page >= totalPages}
+                      className="haptic-press inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 font-medium disabled:opacity-40 disabled:pointer-events-none hover:bg-slate-50 shadow-xs cursor-pointer"
+                    >
+                      <span>Siguiente</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {totalPages > 1 && (
-                <div className="flex items-center gap-1.5">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page <= 1}
-                    className="h-8 px-2.5 text-xs text-slate-600 gap-1 cursor-pointer disabled:opacity-40"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>Anterior</span>
-                  </Button>
-
-                  <span className="px-2 text-xs font-medium text-slate-600">
-                    Página <strong className="text-slate-900 font-mono">{page}</strong> de{' '}
-                    <strong className="text-slate-900 font-mono">{totalPages}</strong>
-                  </span>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={page >= totalPages}
-                    className="h-8 px-2.5 text-xs text-slate-600 gap-1 cursor-pointer disabled:opacity-40"
-                  >
-                    <span>Siguiente</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -388,7 +422,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
     <label className="grid gap-1.5 text-xs font-semibold text-slate-700">
       <span>{label}</span>
       {children}
-      {error && <span className="text-[10px] font-normal text-red-600">{error}</span>}
+      {error && <span className="text-[10px] font-normal text-rose-600">{error}</span>}
     </label>
   );
 }

@@ -227,133 +227,137 @@ export const SchedulesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Student / Parent Context Toolbar */}
+      {/* Student / Parent Context Toolbar (Double-Bezel Hardware Architecture) */}
       {isParentOrStudent ? (
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3">
-            {activeCourse && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-xl text-xs font-bold shadow-xs">
-                <GraduationCap className="w-4 h-4 text-amber-400" />
-                <span>Curso: {activeCourse.name}</span>
-              </div>
-            )}
+        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
+          <div className="bg-white p-4 rounded-[calc(1rem-0.25rem)] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              {activeCourse && (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-xl text-xs font-bold shadow-xs">
+                  <GraduationCap className="w-4 h-4 text-amber-400" />
+                  <span>Curso: {activeCourse.name}</span>
+                </div>
+              )}
 
-            {activeStudent && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-900 border border-brand-200 rounded-xl text-xs font-semibold">
-                <User className="w-3.5 h-3.5 text-brand-700" />
-                <span>
-                  Estudiante: {activeStudent.firstName} {activeStudent.lastName}
-                </span>
-              </div>
-            )}
+              {activeStudent && (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-900 border border-brand-200/80 rounded-xl text-xs font-semibold">
+                  <User className="w-3.5 h-3.5 text-brand-700" />
+                  <span>
+                    Estudiante: {activeStudent.firstName} {activeStudent.lastName}
+                  </span>
+                </div>
+              )}
 
-            {activeStudent?.rude && (
-              <Badge variant="outline" className="font-mono text-xs text-slate-700 bg-white">
-                RUDE: {activeStudent.rude}
-              </Badge>
-            )}
+              {activeStudent?.rude && (
+                <Badge variant="outline" className="font-mono text-xs text-slate-700 bg-white">
+                  RUDE: {activeStudent.rude}
+                </Badge>
+              )}
 
-            {myData?.type === 'parent' && children.length > 1 && (
-              <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Hijos:</span>
-                {children.map((child, idx) => (
-                  <Button
-                    key={child.student.id}
-                    size="sm"
-                    variant={selectedChildIndex === idx ? 'default' : 'outline'}
-                    onClick={() => setSelectedChildIndex(idx)}
-                    className="text-xs font-semibold h-8"
-                  >
-                    <Users className="w-3 h-3" />
-                    {child.student.firstName}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
+              {myData?.type === 'parent' && children.length > 1 && (
+                <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Hijos:</span>
+                  {children.map((child, idx) => (
+                    <Button
+                      key={child.student.id}
+                      size="sm"
+                      variant={selectedChildIndex === idx ? 'default' : 'outline'}
+                      onClick={() => setSelectedChildIndex(idx)}
+                      className="text-xs font-semibold h-8 rounded-lg haptic-press"
+                    >
+                      <Users className="w-3 h-3" />
+                      {child.student.firstName}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          <div className="text-xs text-slate-500 flex items-center gap-2 self-end md:self-center font-medium">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            6 períodos pedagógicos diarios / 30 por semana
+            <div className="text-xs text-slate-500 flex items-center gap-2 self-end md:self-center font-medium font-mono">
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              6 períodos pedagógicos diarios / 30 por semana
+            </div>
           </div>
         </div>
       ) : (
         /* Staff Admin Toolbar */
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-          {viewMode === 'course' ? (
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
-                <Filter className="w-3.5 h-3.5 text-brand-600" />
-                Seleccionar Curso:
-              </label>
-              <select
-                value={selectedCourseId}
-                onChange={(e) => setSelectedCourseId(e.target.value)}
-                className="flex-1 max-w-md h-10 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
-              >
-                <optgroup label="Nivel Inicial (4 Cursos)">
-                  {inicialCourses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.enrollmentCount} estudiantes)
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Nivel Primaria (6 Cursos)">
-                  {primariaCourses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.enrollmentCount} estudiantes)
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Nivel Secundaria (6 Cursos)">
-                  {secundariaCourses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.enrollmentCount} estudiantes)
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
+        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
+          <div className="bg-white p-4 rounded-[calc(1rem-0.25rem)] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            {viewMode === 'course' ? (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
+                  <Filter className="w-3.5 h-3.5 text-brand-600" />
+                  Seleccionar Curso:
+                </label>
+                <select
+                  value={selectedCourseId}
+                  onChange={(e) => setSelectedCourseId(e.target.value)}
+                  className="flex-1 max-w-md h-10 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                >
+                  <optgroup label="Nivel Inicial (4 Cursos)">
+                    {inicialCourses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.enrollmentCount} estudiantes)
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Nivel Primaria (6 Cursos)">
+                    {primariaCourses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.enrollmentCount} estudiantes)
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Nivel Secundaria (6 Cursos)">
+                    {secundariaCourses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.enrollmentCount} estudiantes)
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
 
-              {activeCourse && (
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-slate-900 text-amber-400 text-xs py-1 px-2.5">
-                    Capacidad: {activeCourse.enrollmentCount} / {activeCourse.maxCapacity}
+                {activeCourse && (
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-slate-900 text-amber-400 text-xs py-1 px-2.5">
+                      Capacidad: {activeCourse.enrollmentCount} / {activeCourse.maxCapacity}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs text-slate-600">
+                      Aula Oficial
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
+                  <Filter className="w-3.5 h-3.5 text-brand-600" />
+                  Seleccionar Docente:
+                </label>
+                <select
+                  value={selectedTeacherId}
+                  onChange={(e) => setSelectedTeacherId(e.target.value)}
+                  className="flex-1 max-w-md h-10 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                >
+                  {teachers.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.lastName} {t.firstName} — {t.specialty}
+                    </option>
+                  ))}
+                </select>
+
+                {selectedTeacher && (
+                  <Badge className="bg-slate-900 text-white text-xs py-1 px-2.5">
+                    Ítem: {selectedTeacher.itemNumber || 'N/A'}
                   </Badge>
-                  <Badge variant="outline" className="text-xs text-slate-600">
-                    Aula Oficial
-                  </Badge>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
-                <Filter className="w-3.5 h-3.5 text-brand-600" />
-                Seleccionar Docente:
-              </label>
-              <select
-                value={selectedTeacherId}
-                onChange={(e) => setSelectedTeacherId(e.target.value)}
-                className="flex-1 max-w-md h-10 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
-              >
-                {teachers.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.lastName} {t.firstName} — {t.specialty}
-                  </option>
-                ))}
-              </select>
+                )}
+              </div>
+            )}
 
-              {selectedTeacher && (
-                <Badge className="bg-slate-900 text-white text-xs py-1 px-2.5">
-                  Ítem: {selectedTeacher.itemNumber || 'N/A'}
-                </Badge>
-              )}
+            <div className="text-xs text-slate-500 flex items-center gap-2 self-end md:self-center font-medium font-mono">
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              6 períodos pedagógicos / 30 sesiones por curso
             </div>
-          )}
-
-          <div className="text-xs text-slate-500 flex items-center gap-2 self-end md:self-center font-medium">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            6 períodos pedagógicos / 30 sesiones por curso
           </div>
         </div>
       )}
@@ -374,10 +378,11 @@ export const SchedulesPage: React.FC = () => {
           </p>
         </div>
       ) : (
-        /* Timetable Grid */
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse min-w-[760px]">
+        /* Timetable Grid with Double-Bezel Architecture */
+        <div className="p-1 rounded-3xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
+          <div className="bg-white rounded-[calc(1.5rem-0.25rem)] overflow-hidden shadow-doppelrand-inner">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse min-w-[760px]">
               <thead>
                 <tr className="bg-slate-900 text-white text-xs">
                   <th className="py-3 px-4 text-left font-bold w-36 uppercase tracking-wider border-r border-slate-800">
@@ -490,43 +495,50 @@ export const SchedulesPage: React.FC = () => {
             </table>
           </div>
         </div>
+      </div>
       )}
 
-      {/* Footer Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
-            <BookOpen className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xs text-slate-500 font-medium">Asignaturas Programadas</div>
-            <div className="text-lg font-bold text-slate-900">
-              {isParentOrStudent || viewMode === 'course'
-                ? `${new Set(activeSchedules.map((s) => s.subjectId)).size} Materias Oficiales`
-                : `${new Set(activeSchedules.map((s) => s.courseId)).size} Cursos Asignados`}
+      {/* Footer Info Cards (Double-Bezel Architecture) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
+          <div className="bg-white p-5 rounded-[calc(1rem-0.25rem)] flex items-center gap-3.5 h-full">
+            <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-200/60 flex items-center justify-center text-blue-700 shadow-2xs shrink-0">
+              <BookOpen className="w-5 h-5 stroke-[1.75]" />
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-sans">Asignaturas Programadas</div>
+              <div className="text-lg font-black text-slate-900 font-display">
+                {isParentOrStudent || viewMode === 'course'
+                  ? `${new Set(activeSchedules.map((s) => s.subjectId)).size} Materias Oficiales`
+                  : `${new Set(activeSchedules.map((s) => s.courseId)).size} Cursos Asignados`}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
-            <Clock className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xs text-slate-500 font-medium">Carga Semanal Total</div>
-            <div className="text-lg font-bold text-slate-900">
-              {activeSchedules.length} Períodos ({activeSchedules.length * 45} min/sem)
+        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
+          <div className="bg-white p-5 rounded-[calc(1rem-0.25rem)] flex items-center gap-3.5 h-full">
+            <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-700 shadow-2xs shrink-0">
+              <Clock className="w-5 h-5 stroke-[1.75]" />
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-sans">Carga Semanal Total</div>
+              <div className="text-lg font-black text-slate-900 font-display">
+                {activeSchedules.length} Períodos ({activeSchedules.length * 45} min/sem)
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
-            <Sparkles className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xs text-slate-500 font-medium">Normativa Curricular</div>
-            <div className="text-lg font-bold text-slate-900">R.M. 1040/2022 Aprobada</div>
+        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
+          <div className="bg-white p-5 rounded-[calc(1rem-0.25rem)] flex items-center gap-3.5 h-full">
+            <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-700 shadow-2xs shrink-0">
+              <Sparkles className="w-5 h-5 stroke-[1.75]" />
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-sans">Normativa Curricular</div>
+              <div className="text-lg font-black text-slate-900 font-display">R.M. 1040/2022 Aprobada</div>
+            </div>
           </div>
         </div>
       </div>

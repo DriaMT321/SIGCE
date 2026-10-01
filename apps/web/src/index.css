@@ -36,7 +36,7 @@
 
     --radius: 0.75rem;
 
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     --font-display: 'Plus Jakarta Sans', 'Outfit', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
   }
@@ -160,5 +160,32 @@
   height: 3px;
   width: 100%;
   background: linear-gradient(90deg, #ffc54c 0%, #f37022 50%, #b91329 100%);
+}
+
+/* Haptic Micro-Interactions */
+.haptic-press {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.haptic-press:active {
+  transform: scale(0.98);
+}
+
+/* Executive Obsidian Surface for High-End Academic Shell */
+.obsidian-surface {
+  background: radial-gradient(circle at 50% 0%, rgba(30, 41, 59, 0.45) 0%, rgba(8, 12, 20, 0.98) 100%), #080c14;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hairline-pattern {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.navbar-glass {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
 }
 
