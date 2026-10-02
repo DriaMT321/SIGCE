@@ -2,9 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   History,
-  Shield,
   Search,
-  Filter,
   RefreshCw,
   Download,
   Copy,
@@ -19,11 +17,8 @@ import {
   Edit3,
   Trash2,
   Database,
-  Layers,
-  Lock,
 } from 'lucide-react';
 import { academicApi } from '../../../lib/academic-api';
-import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 
 interface AuditLog {
@@ -47,14 +42,13 @@ export const AuditPage: React.FC = () => {
   const auditQuery = useQuery({
     queryKey: ['audit'],
     queryFn: academicApi.listAudit,
-    refetchInterval: 30000, // Background polling every 30s for security dashboard
+    refetchInterval: 30000,
   });
 
   const logs: AuditLog[] = useMemo(() => {
     return (auditQuery.data?.data ?? []) as AuditLog[];
   }, [auditQuery.data]);
 
-  // Unique entities for filtering
   const availableEntities = useMemo(() => {
     const set = new Set<string>();
     logs.forEach((log) => {
@@ -63,7 +57,6 @@ export const AuditPage: React.FC = () => {
     return Array.from(set).sort();
   }, [logs]);
 
-  // Filtered logs
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
       const matchesAction = actionFilter === 'ALL' || log.action.toUpperCase() === actionFilter;
@@ -85,7 +78,6 @@ export const AuditPage: React.FC = () => {
     });
   }, [logs, actionFilter, entityFilter, searchTerm]);
 
-  // Statistics
   const stats = useMemo(() => {
     const total = logs.length;
     const creates = logs.filter((l) => l.action.toUpperCase().includes('CREATE') || l.action.toUpperCase().includes('INSERT')).length;
@@ -131,41 +123,40 @@ export const AuditPage: React.FC = () => {
     const upper = action.toUpperCase();
     if (upper.includes('CREATE') || upper.includes('INSERT')) {
       return (
-        <Badge variant="success" className="gap-1 font-mono text-[11px] font-semibold">
-          <PlusCircle className="h-3 w-3" />
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+          <PlusCircle className="w-3 h-3" />
           {action}
-        </Badge>
+        </span>
       );
     }
     if (upper.includes('UPDATE') || upper.includes('PATCH') || upper.includes('EDIT')) {
       return (
-        <Badge variant="warning" className="gap-1 font-mono text-[11px] font-semibold">
-          <Edit3 className="h-3 w-3" />
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+          <Edit3 className="w-3 h-3" />
           {action}
-        </Badge>
+        </span>
       );
     }
     if (upper.includes('DELETE') || upper.includes('REMOVE')) {
       return (
-        <Badge variant="danger" className="gap-1 font-mono text-[11px] font-semibold">
-          <Trash2 className="h-3 w-3" />
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700">
+          <Trash2 className="w-3 h-3" />
           {action}
-        </Badge>
+        </span>
       );
     }
     if (upper.includes('SYNC')) {
       return (
-        <Badge variant="info" className="gap-1 font-mono text-[11px] font-semibold">
-          <RefreshCw className="h-3 w-3" />
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+          <RefreshCw className="w-3 h-3" />
           {action}
-        </Badge>
+        </span>
       );
     }
     return (
-      <Badge variant="secondary" className="gap-1 font-mono text-[11px] font-semibold">
-        <Layers className="h-3 w-3" />
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
         {action}
-      </Badge>
+      </span>
     );
   };
 
@@ -190,177 +181,93 @@ export const AuditPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border/80 pb-5">
+    <div className="space-y-5">
+      {/* Header - Clean */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-crimson/10 text-brand-crimson ring-1 ring-brand-crimson/20">
-              <History className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900 font-display">
-                  Bitácora de Auditoría y Trazabilidad
-                </h1>
-                <Badge variant="outline" className="hidden sm:inline-flex text-[11px] font-mono text-slate-600 bg-slate-50 border-slate-200">
-                  <Lock className="h-3 w-3 mr-1 text-slate-400" />
-                  Registro Inmutable
-                </Badge>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Auditoría forense de transacciones, modificaciones de calificaciones, matrículas y sincronizaciones SIE.
-              </p>
-            </div>
-          </div>
+          <h1 className="text-xl font-bold text-slate-900">Auditoría</h1>
+          <p className="text-sm text-slate-500 mt-0.5">Bitácora de trazabilidad y control de integridad</p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => auditQuery.refetch()}
             disabled={auditQuery.isFetching}
-            className="gap-2 text-slate-700 hover:text-slate-900"
+            className="gap-2 text-sm text-slate-700"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${auditQuery.isFetching ? 'animate-spin text-brand-crimson' : ''}`} />
-            <span>Actualizar</span>
+            <RefreshCw className={`w-4 h-4 ${auditQuery.isFetching ? 'animate-spin' : ''}`} />
+            Actualizar
           </Button>
 
           <Button
-            variant="brand"
             size="sm"
             onClick={handleExportCSV}
             disabled={filteredLogs.length === 0}
-            className="gap-2 shadow-xs"
+            className="gap-2 text-sm"
           >
-            <Download className="h-3.5 w-3.5" />
-            <span>Exportar CSV</span>
+            <Download className="w-4 h-4" />
+            CSV
           </Button>
         </div>
       </div>
 
-      {/* Normative Security Notice */}
-      <div className="rounded-xl border border-amber-200/80 bg-gradient-to-r from-amber-50/70 via-amber-50/40 to-white p-4 text-xs text-slate-700 shadow-xs flex items-start gap-3">
-        <div className="rounded-lg bg-amber-100 p-2 text-amber-800 shrink-0 mt-0.5">
-          <Shield className="h-4 w-4" />
-        </div>
-        <div className="space-y-1">
-          <p className="font-semibold text-slate-900">
-            Mecanismo de No-Repudio y Control de Integridad Académica
-          </p>
-          <p className="text-slate-600 leading-relaxed">
-            Conforme a la normativa ministerial de gestión de datos educativos, cada mutación de datos en el sistema
-            registra obligatoriamente la identidad del operador (Docente, Secretaría o Dirección), la estampa de tiempo sincronizada,
-            el estado anterior del recurso y la nueva carga útil generada para fines de fiscalización institucional.
-          </p>
-        </div>
-      </div>
-
-      {/* Stats Bento Grid */}
+      {/* Stats - Clean */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <div className="rounded-xl border border-border bg-white p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Total Eventos</span>
-            <Database className="h-4 w-4 text-slate-400" />
+        {[
+          { label: 'Total', value: stats.total, color: 'text-slate-900' },
+          { label: 'Altas', value: stats.creates, color: 'text-emerald-600' },
+          { label: 'Cambios', value: stats.updates, color: 'text-amber-600' },
+          { label: 'Bajas', value: stats.deletes, color: 'text-rose-600' },
+          { label: 'Sincronías', value: stats.syncs, color: 'text-blue-600' },
+        ].map((item) => (
+          <div key={item.label} className="bg-white rounded-xl border border-slate-200 p-4">
+            <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">{item.label}</span>
+            <p className={`text-2xl font-bold font-mono tabular-nums mt-1 ${item.color}`}>{item.value}</p>
           </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 font-display tabular-nums">
-            {stats.total}
-          </p>
-          <span className="text-[11px] text-slate-400 font-mono">En bitácora activa</span>
-        </div>
-
-        <div className="rounded-xl border border-border bg-white p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-emerald-700">Altas (CREATE)</span>
-            <PlusCircle className="h-4 w-4 text-emerald-500" />
-          </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-emerald-700 font-display tabular-nums">
-            {stats.creates}
-          </p>
-          <span className="text-[11px] text-emerald-600 font-mono">Nuevas inserciones</span>
-        </div>
-
-        <div className="rounded-xl border border-border bg-white p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-amber-700">Cambios (UPDATE)</span>
-            <Edit3 className="h-4 w-4 text-amber-500" />
-          </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-amber-700 font-display tabular-nums">
-            {stats.updates}
-          </p>
-          <span className="text-[11px] text-amber-600 font-mono">Ediciones de registro</span>
-        </div>
-
-        <div className="rounded-xl border border-border bg-white p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-rose-700">Bajas (DELETE)</span>
-            <Trash2 className="h-4 w-4 text-rose-500" />
-          </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-rose-700 font-display tabular-nums">
-            {stats.deletes}
-          </p>
-          <span className="text-[11px] text-rose-600 font-mono">Eliminaciones críticas</span>
-        </div>
-
-        <div className="col-span-2 sm:col-span-1 rounded-xl border border-border bg-white p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-sky-700">Sincronías (RPA)</span>
-            <RefreshCw className="h-4 w-4 text-sky-500" />
-          </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-sky-700 font-display tabular-nums">
-            {stats.syncs}
-          </p>
-          <span className="text-[11px] text-sky-600 font-mono">Integraciones SIE</span>
-        </div>
+        ))}
       </div>
 
-      {/* Filters Toolbar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-4 shadow-xs md:flex-row md:items-center md:justify-between">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por entidad, ID, usuario o contenido de carga útil..."
-            className="h-10 w-full rounded-xl border border-input bg-slate-50/50 pl-9 pr-8 text-xs text-slate-800 placeholder-slate-400 transition-colors focus:border-brand-crimson focus:bg-white focus:outline-hidden focus:ring-1 focus:ring-brand-crimson"
-          />
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
+      {/* Filters - Clean */}
+      <div className="bg-white rounded-xl border border-slate-200 p-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 w-4 h-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar por entidad, ID, usuario o contenido..."
+              className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-8 text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Action Filter */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-500">
-            <Filter className="h-3.5 w-3.5 text-slate-400" />
-            <span>Acción:</span>
+          <div className="flex items-center gap-2">
             <select
               value={actionFilter}
               onChange={(e) => setActionFilter(e.target.value)}
-              className="h-9 rounded-lg border border-input bg-white px-2.5 py-1 text-xs text-slate-700 focus:border-brand-crimson focus:outline-hidden"
+              className="h-10 rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
             >
               <option value="ALL">Todas las acciones</option>
-              <option value="CREATE">CREATE (Altas)</option>
-              <option value="UPDATE">UPDATE (Modificaciones)</option>
-              <option value="DELETE">DELETE (Bajas)</option>
-              <option value="SYNC">SYNC (Sincronizaciones)</option>
+              <option value="CREATE">CREATE</option>
+              <option value="UPDATE">UPDATE</option>
+              <option value="DELETE">DELETE</option>
+              <option value="SYNC">SYNC</option>
             </select>
-          </div>
 
-          {/* Entity Filter */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-500">
-            <span>Entidad:</span>
             <select
               value={entityFilter}
               onChange={(e) => setEntityFilter(e.target.value)}
-              className="h-9 rounded-lg border border-input bg-white px-2.5 py-1 text-xs text-slate-700 focus:border-brand-crimson focus:outline-hidden"
+              className="h-10 rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
             >
               <option value="ALL">Todas las entidades</option>
               {availableEntities.map((ent) => (
@@ -373,39 +280,38 @@ export const AuditPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Audit Table */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-xs">
+      {/* Table - Clean */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         {auditQuery.isLoading ? (
-          <div className="flex flex-col items-center justify-center p-16 text-center text-slate-400">
-            <RefreshCw className="h-8 w-8 animate-spin text-brand-crimson mb-3" />
-            <p className="text-sm font-medium text-slate-700">Cargando registros de auditoría...</p>
-            <p className="text-xs text-slate-400 mt-1">Verificando firma criptográfica e integridad de bitácora.</p>
+          <div className="flex items-center justify-center p-16 text-slate-500">
+            <RefreshCw className="w-5 h-5 animate-spin mr-2" />
+            <span className="text-sm">Cargando registros...</span>
           </div>
         ) : auditQuery.isError ? (
           <div className="p-12 text-center">
-            <AlertTriangle className="mx-auto h-8 w-8 text-rose-500 mb-2" />
-            <p className="font-semibold text-slate-900">No se pudo cargar la bitácora</p>
-            <p className="text-xs text-slate-500 mt-1">Ocurrió un error al contactar al servicio de auditoría.</p>
+            <AlertTriangle className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+            <p className="font-medium text-slate-900">No se pudo cargar la bitácora</p>
+            <p className="text-sm text-slate-500 mt-1">Ocurrió un error al contactar al servicio.</p>
             <Button
               variant="outline"
               size="sm"
               onClick={() => auditQuery.refetch()}
               className="mt-4 gap-2"
             >
-              <RefreshCw className="h-3.5 w-3.5" /> Reintentar
+              <RefreshCw className="w-4 h-4" /> Reintentar
             </Button>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500 border-b border-border">
-                <tr>
-                  <th className="px-5 py-3.5">Estampa de Tiempo</th>
-                  <th className="px-5 py-3.5">Acción</th>
-                  <th className="px-5 py-3.5">Entidad Afectada</th>
-                  <th className="px-5 py-3.5">Operador Responsable</th>
-                  <th className="px-5 py-3.5">Resumen de Cambio</th>
-                  <th className="px-5 py-3.5 text-right">Detalle</th>
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500 uppercase tracking-wide">
+                  <th className="px-5 py-3">Fecha</th>
+                  <th className="px-5 py-3">Acción</th>
+                  <th className="px-5 py-3">Entidad</th>
+                  <th className="px-5 py-3">Operador</th>
+                  <th className="px-5 py-3">Resumen</th>
+                  <th className="px-5 py-3 text-right">Detalle</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -417,12 +323,11 @@ export const AuditPage: React.FC = () => {
                     <tr
                       key={log.id}
                       onClick={() => setSelectedLog(log)}
-                      className="cursor-pointer transition-colors hover:bg-slate-50/80 group"
+                      className="cursor-pointer hover:bg-slate-50 transition-colors"
                     >
-                      {/* Timestamp */}
                       <td className="px-5 py-4 whitespace-nowrap">
-                        <div className="flex items-start gap-2.5">
-                          <Clock className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
+                        <div className="flex items-start gap-2">
+                          <Clock className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                           <div>
                             <div className="font-mono text-xs font-medium text-slate-800 tabular-nums">
                               {dateObj.toLocaleDateString('es-BO', {
@@ -438,25 +343,23 @@ export const AuditPage: React.FC = () => {
                                 })}
                               </span>
                             </div>
-                            <span className="text-[11px] text-slate-400">
+                            <span className="text-xs text-slate-400">
                               {formatRelativeTime(log.createdAt)}
                             </span>
                           </div>
                         </div>
                       </td>
 
-                      {/* Action */}
                       <td className="px-5 py-4 whitespace-nowrap">
                         {renderActionBadge(log.action)}
                       </td>
 
-                      {/* Entity */}
                       <td className="px-5 py-4">
                         <div className="space-y-0.5">
-                          <span className="font-semibold text-slate-800 text-xs">
+                          <span className="font-medium text-slate-800 text-xs">
                             {log.entity}
                           </span>
-                          <div className="flex items-center gap-1.5 font-mono text-[11px] text-slate-500">
+                          <div className="flex items-center gap-1.5 font-mono text-xs text-slate-500">
                             <span className="max-w-[130px] truncate" title={log.entityId}>
                               {log.entityId}
                             </span>
@@ -466,41 +369,39 @@ export const AuditPage: React.FC = () => {
                                 e.stopPropagation();
                                 handleCopy(log.entityId, log.entityId);
                               }}
-                              className="text-slate-400 hover:text-slate-600 transition-colors"
+                              className="text-slate-400 hover:text-slate-600"
                               title="Copiar ID"
                             >
                               {isCopied ? (
-                                <Check className="h-3 w-3 text-emerald-600" />
+                                <Check className="w-3 h-3 text-emerald-600" />
                               ) : (
-                                <Copy className="h-3 w-3" />
+                                <Copy className="w-3 h-3" />
                               )}
                             </button>
                           </div>
                         </div>
                       </td>
 
-                      {/* Operator / User */}
                       <td className="px-5 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600 font-mono text-xs font-semibold">
+                          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
                             {log.userId ? (
-                              <User className="h-3.5 w-3.5 text-slate-600" />
+                              <User className="w-3.5 h-3.5" />
                             ) : (
-                              <Shield className="h-3.5 w-3.5 text-amber-600" />
+                              <Database className="w-3.5 h-3.5" />
                             )}
                           </div>
                           <div>
                             <p className="text-xs font-medium text-slate-700">
-                              {log.userId ? 'Usuario Autenticado' : 'Sistema Automático'}
+                              {log.userId ? 'Usuario' : 'Sistema'}
                             </p>
-                            <span className="font-mono text-[11px] text-slate-400">
-                              {log.userId ? log.userId.slice(0, 12) + '...' : 'SIE/Cron Task'}
+                            <span className="font-mono text-xs text-slate-400">
+                              {log.userId ? log.userId.slice(0, 12) + '...' : 'Automático'}
                             </span>
                           </div>
                         </div>
                       </td>
 
-                      {/* Summary of changes */}
                       <td className="px-5 py-4 max-w-xs">
                         <div className="text-xs text-slate-600 truncate font-mono bg-slate-50 rounded-md px-2 py-1 border border-slate-100">
                           {log.newValue ? (
@@ -508,18 +409,17 @@ export const AuditPage: React.FC = () => {
                           ) : log.previousValue ? (
                             <span className="text-rose-600">Eliminado: {JSON.stringify(log.previousValue)}</span>
                           ) : (
-                            <span className="text-slate-400">— Sin payload —</span>
+                            <span className="text-slate-400">—</span>
                           )}
                         </div>
                       </td>
 
-                      {/* Actions */}
                       <td className="px-5 py-4 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end text-slate-400 group-hover:text-brand-crimson transition-colors">
-                          <span className="text-xs font-medium mr-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            Inspeccionar
+                        <div className="flex items-center justify-end text-slate-400">
+                          <span className="text-xs font-medium mr-1 opacity-0 group-hover:opacity-100">
+                            Ver
                           </span>
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="w-4 h-4" />
                         </div>
                       </td>
                     </tr>
@@ -530,10 +430,10 @@ export const AuditPage: React.FC = () => {
 
             {filteredLogs.length === 0 && (
               <div className="flex flex-col items-center justify-center p-12 text-center text-slate-500">
-                <Search className="h-8 w-8 text-slate-300 mb-2" />
-                <p className="font-semibold text-slate-800">No se encontraron eventos</p>
-                <p className="text-xs text-slate-500 max-w-sm mt-1">
-                  Ningún registro coincide con el término de búsqueda o filtros seleccionados.
+                <Search className="w-8 h-8 text-slate-300 mb-2" />
+                <p className="font-medium text-slate-800">No se encontraron eventos</p>
+                <p className="text-sm text-slate-500 max-w-sm mt-1">
+                  Ningún registro coincide con la búsqueda o filtros.
                 </p>
                 {(searchTerm || actionFilter !== 'ALL' || entityFilter !== 'ALL') && (
                   <Button
@@ -544,7 +444,7 @@ export const AuditPage: React.FC = () => {
                       setActionFilter('ALL');
                       setEntityFilter('ALL');
                     }}
-                    className="mt-3 text-xs"
+                    className="mt-3 text-sm"
                   >
                     Restablecer filtros
                   </Button>
@@ -554,172 +454,139 @@ export const AuditPage: React.FC = () => {
           </div>
         )}
 
-        {/* Footer with counts */}
-        <div className="flex items-center justify-between border-t border-border bg-slate-50/60 px-5 py-3 text-xs text-slate-500">
+        <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-5 py-3 text-sm text-slate-500">
           <span>
             Mostrando <strong className="font-semibold text-slate-800">{filteredLogs.length}</strong> de{' '}
-            <strong className="font-semibold text-slate-800">{logs.length}</strong> eventos registrados
-          </span>
-          <span className="font-mono text-[11px] text-slate-400">
-            ISO/IEC 27001 Audit Ready
+            <strong className="font-semibold text-slate-800">{logs.length}</strong> eventos
           </span>
         </div>
       </div>
 
-      {/* Inspector Modal (JSON Diff Viewer) */}
+      {/* Detail Modal */}
       {selectedLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl border border-border bg-white shadow-xl overflow-hidden">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-border bg-slate-50/80 px-6 py-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-crimson/10 text-brand-crimson">
-                  <FileCode className="h-5 w-5" />
+                <div className="w-9 h-9 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
+                  <FileCode className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-slate-900 font-display flex items-center gap-2">
+                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     Inspección de Transacción
                     {renderActionBadge(selectedLog.action)}
                   </h2>
                   <p className="text-xs font-mono text-slate-500">
-                    ID Transacción: {selectedLog.id}
+                    ID: {selectedLog.id}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedLog(null)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
-                <X className="h-5 w-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Metadata Cards */}
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 rounded-xl border border-border bg-slate-50/60 p-3.5 text-xs">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm">
                 <div>
-                  <span className="text-slate-400 block font-medium">Entidad</span>
-                  <span className="font-semibold text-slate-800 mt-0.5 block">{selectedLog.entity}</span>
+                  <span className="text-slate-400 block text-xs">Entidad</span>
+                  <span className="font-medium text-slate-800 mt-0.5 block">{selectedLog.entity}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block font-medium">ID del Recurso</span>
-                  <span className="font-mono text-slate-700 mt-0.5 block truncate" title={selectedLog.entityId}>
-                    {selectedLog.entityId}
-                  </span>
+                  <span className="text-slate-400 block text-xs">ID Recurso</span>
+                  <span className="font-mono text-slate-700 mt-0.5 block truncate">{selectedLog.entityId}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block font-medium">Operador</span>
+                  <span className="text-slate-400 block text-xs">Operador</span>
                   <span className="font-mono text-slate-700 mt-0.5 block truncate">
-                    {selectedLog.userId ?? 'Sistema (Automático)'}
+                    {selectedLog.userId ?? 'Sistema'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block font-medium">Fecha y Hora</span>
-                  <span className="font-mono text-slate-700 mt-0.5 block tabular-nums">
+                  <span className="text-slate-400 block text-xs">Fecha</span>
+                  <span className="font-mono text-slate-700 mt-0.5 block">
                     {new Date(selectedLog.createdAt).toLocaleString('es-BO')}
                   </span>
                 </div>
               </div>
 
-              {/* Diff View */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <span>Comparativa de Carga Útil (Diff)</span>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Comparativa de Carga Útil
                   </h3>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        handleCopy(
-                          JSON.stringify(
-                            {
-                              previous: selectedLog.previousValue,
-                              new: selectedLog.newValue,
-                            },
-                            null,
-                            2
-                          ),
-                          'full-diff'
-                        )
-                      }
-                      className="h-7 text-xs gap-1.5 font-mono"
-                    >
-                      {copiedId === 'full-diff' ? (
-                        <Check className="h-3 w-3 text-emerald-600" />
-                      ) : (
-                        <Copy className="h-3 w-3" />
-                      )}
-                      <span>Copiar JSON</span>
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      handleCopy(
+                        JSON.stringify(
+                          {
+                            previous: selectedLog.previousValue,
+                            new: selectedLog.newValue,
+                          },
+                          null,
+                          2
+                        ),
+                        'full-diff'
+                      )
+                    }
+                    className="h-7 text-xs gap-1.5 font-mono"
+                  >
+                    {copiedId === 'full-diff' ? (
+                      <Check className="w-3 h-3 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                    Copiar JSON
+                  </Button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Previous State */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-semibold text-rose-700 flex items-center gap-1">
-                        <span className="h-2 w-2 rounded-full bg-rose-500" />
-                        Estado Anterior (Previous)
+                        <span className="w-2 h-2 rounded-full bg-rose-500" />
+                        Estado Anterior
                       </span>
-                      {selectedLog.previousValue ? (
-                        <span className="text-[11px] text-slate-400 font-mono">Modificado</span>
-                      ) : (
-                        <span className="text-[11px] text-slate-400 font-mono">Nulo / Creación</span>
-                      )}
                     </div>
-                    <div className="rounded-xl border border-rose-200/80 bg-rose-50/30 p-3.5 max-h-64 overflow-y-auto font-mono text-xs text-rose-950">
+                    <div className="rounded-xl border border-rose-200 bg-rose-50/30 p-3.5 max-h-64 overflow-y-auto font-mono text-xs text-rose-950">
                       {selectedLog.previousValue ? (
                         <pre className="whitespace-pre-wrap break-all leading-relaxed">
                           {JSON.stringify(selectedLog.previousValue, null, 2)}
                         </pre>
                       ) : (
-                        <span className="text-slate-400 italic">No había estado previo registrado.</span>
+                        <span className="text-slate-400 italic">No había estado previo.</span>
                       )}
                     </div>
                   </div>
 
-                  {/* New State */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-semibold text-emerald-700 flex items-center gap-1">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                        Nuevo Estado (New Value)
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        Nuevo Estado
                       </span>
-                      {selectedLog.newValue ? (
-                        <span className="text-[11px] text-emerald-600 font-mono">Aplicado</span>
-                      ) : (
-                        <span className="text-[11px] text-rose-500 font-mono">Eliminado</span>
-                      )}
                     </div>
-                    <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/30 p-3.5 max-h-64 overflow-y-auto font-mono text-xs text-emerald-950">
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50/30 p-3.5 max-h-64 overflow-y-auto font-mono text-xs text-emerald-950">
                       {selectedLog.newValue ? (
                         <pre className="whitespace-pre-wrap break-all leading-relaxed">
                           {JSON.stringify(selectedLog.newValue, null, 2)}
                         </pre>
                       ) : (
-                        <span className="text-slate-400 italic">El recurso fue dado de baja.</span>
+                        <span className="text-slate-400 italic">El recurso fue eliminado.</span>
                       )}
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Informative Security Stamp */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600 flex items-center gap-2 font-mono">
-                <Shield className="h-4 w-4 text-brand-crimson shrink-0" />
-                <span>
-                  Registro criptográficamente indexado en el clúster de base de datos de SIGCE con aislamiento multi-inquilino.
-                </span>
-              </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-2 border-t border-border bg-slate-50/80 px-6 py-3.5">
+            <div className="flex items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 px-6 py-3.5">
               <Button
                 variant="outline"
                 size="sm"

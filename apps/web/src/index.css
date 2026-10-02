@@ -13,7 +13,6 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 47% 11%;
 
-    /* Official School Crimson (#b91329) */
     --primary: 352 81% 40%;
     --primary-foreground: 0 0% 100%;
 
@@ -23,7 +22,6 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Official School Orange (#f37022) */
     --accent: 22 90% 54%;
     --accent-foreground: 0 0% 100%;
 
@@ -34,7 +32,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 352 81% 40%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     --font-display: 'Plus Jakarta Sans', 'Outfit', sans-serif;
@@ -63,54 +61,15 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
   }
 
-  /* Optical alignment for tables and numeric figures */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
 }
 
-/* Institutional Design System Utilities */
-.surface-card {
-  background-color: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 1px 2px -1px rgba(15, 23, 42, 0.02);
-}
-
-.surface-double-bezel {
-  background: #f8fafc;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: 1.25rem;
-  padding: 0.375rem;
-}
-
-.surface-double-bezel-inner {
-  background: #ffffff;
-  border: 1px solid rgba(241, 245, 249, 1);
-  border-radius: calc(1.25rem - 0.375rem);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
-}
-
-.glass-panel {
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.03);
-}
-
-.glass-panel-hover {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-panel-hover:hover {
-  border-color: rgba(185, 28, 28, 0.25);
-  box-shadow: 0 4px 12px -2px rgba(185, 28, 28, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
-}
-
-/* Refined Subtle Scrollbar */
+/* Clean scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -128,64 +87,3 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
-
-/* ==========================================================================
-   Signature Institutional Design Utilities (U.E. Comunidad Cristiana B)
-   Colors: Carmine #b91329 | Orange #f37022 | Gold #ffc54c
-   ========================================================================== */
-.bg-institutional-radial {
-  background-image: radial-gradient(circle at 100% 0%, #ffc54c 0%, #ffb946 12.5%, #ffa93d 25%, #fe9430 37.5%, #f37b1f 50%, #e76010 62.5%, #df470c 75%, #da2e11 87.5%, #d8091a 100%);
-  background-repeat: no-repeat;
-}
-
-.bg-institutional-linear {
-  background-image: linear-gradient(135deg, #ffc54c 0%, #f37022 50%, #b91329 100%);
-}
-
-.bg-institutional-subtle {
-  background-image: linear-gradient(135deg, #fffbf0 0%, #fff7ed 50%, #fff1f2 100%);
-}
-
-.text-gradient-institutional {
-  background-image: linear-gradient(135deg, #b91329 0%, #f37022 50%, #b91329 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.border-institutional-gradient {
-  border-image: linear-gradient(135deg, #ffc54c, #f37022, #b91329) 1;
-}
-
-.ribbon-institutional {
-  height: 3px;
-  width: 100%;
-  background: linear-gradient(90deg, #ffc54c 0%, #f37022 50%, #b91329 100%);
-}
-
-/* Haptic Micro-Interactions */
-.haptic-press {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.haptic-press:active {
-  transform: scale(0.98);
-}
-
-/* Executive Obsidian Surface for High-End Academic Shell */
-.obsidian-surface {
-  background: radial-gradient(circle at 50% 0%, rgba(30, 41, 59, 0.45) 0%, rgba(8, 12, 20, 0.98) 100%), #080c14;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.hairline-pattern {
-  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-.navbar-glass {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
-}
-

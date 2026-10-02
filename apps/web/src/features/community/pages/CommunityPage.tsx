@@ -11,13 +11,11 @@ import {
   Phone,
   Plus,
   Search,
-  UserCheck,
   UsersRound,
   X,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
-import { Badge } from '../../../components/ui/badge';
 import { academicApi } from '../../../lib/academic-api';
 import { authService } from '../../auth/services/auth.service';
 
@@ -115,40 +113,25 @@ export function CommunityPage({ mode }: { mode: 'teachers' | 'parents' }) {
     },
   });
 
-  const title = mode === 'teachers' ? 'Plantel Docente' : 'Padres y Tutores de Familia';
+  const title = mode === 'teachers' ? 'Docentes' : 'Padres y Tutores';
   const Icon = mode === 'teachers' ? ContactRound : UsersRound;
   const isLoading = mode === 'teachers' ? teachersQuery.isLoading : parentsQuery.isLoading;
   const isError = mode === 'teachers' ? teachersQuery.isError : parentsQuery.isError;
   const dataCount = mode === 'teachers' ? teachersQuery.data?.total ?? teachersQuery.data?.data?.length ?? 0 : parentsQuery.data?.total ?? parentsQuery.data?.data?.length ?? 0;
 
   return (
-    <div className="space-y-6">
-      {/* Header Institucional */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/90">
+    <div className="space-y-5">
+      {/* Header - Clean */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
-              <Icon className="w-3.5 h-3.5 text-brand-700" />
-              <span>Comunidad Educativa</span>
-            </span>
-            <Badge variant="outline" className="font-mono">
-              {dataCount} registros
-            </Badge>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 font-display">
-            {title}
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-            {mode === 'teachers'
-              ? 'Administración de credenciales docentes, especialidades e ítems pedagógicos.'
-              : 'Directorio de representantes legales, datos de contacto y vinculación con estudiantes.'}
-          </p>
+          <h1 className="text-xl font-bold text-slate-900">{title}</h1>
+          <p className="text-sm text-slate-500 mt-0.5">{dataCount} registros</p>
         </div>
 
         {canManage && (
           <Button
             onClick={() => setShowForm((prev) => !prev)}
-            className="h-9 bg-slate-900 hover:bg-slate-800 text-white gap-1.5 shadow-xs"
+            className="h-9 bg-slate-900 hover:bg-slate-800 text-white gap-1.5"
           >
             {showForm ? (
               <>
@@ -157,68 +140,61 @@ export function CommunityPage({ mode }: { mode: 'teachers' | 'parents' }) {
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4 text-amber-400" />
-                <span>{mode === 'teachers' ? 'Nuevo Docente' : 'Nuevo Familiar'}</span>
+                <Plus className="w-4 h-4" />
+                <span>Nuevo</span>
               </>
             )}
           </Button>
         )}
       </div>
 
-      {/* Formulario de Alta de Docente */}
+      {/* Form - Simplified */}
       {showForm && canManage && mode === 'teachers' && (
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-[0_1px_3px_0_rgba(15,23,42,0.03)] space-y-4">
-          <div className="pb-3 border-b border-slate-100">
-            <h2 className="text-base font-bold text-slate-900 font-display">
-              Alta de Docente en el Sistema
-            </h2>
-            <p className="text-xs text-slate-500">
-              Crea la cuenta de acceso institucional y asocia la especialidad pedagógica.
-            </p>
-          </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <h2 className="text-sm font-semibold text-slate-900 mb-4">Registrar Docente</h2>
 
           <form onSubmit={teacherForm.handleSubmit((data) => createTeacher.mutate(data))} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Field label="Correo Institucional" error={teacherForm.formState.errors.email?.message}>
-                <Input type="email" {...teacherForm.register('email')} placeholder="docente@ue-cristiana.edu.bo" className="text-xs" />
+              <Field label="Correo" error={teacherForm.formState.errors.email?.message}>
+                <Input type="email" {...teacherForm.register('email')} placeholder="docente@ue.edu.bo" />
               </Field>
 
-              <Field label="Contraseña Temporal" error={teacherForm.formState.errors.password?.message}>
-                <Input type="password" {...teacherForm.register('password')} placeholder="Mínimo 6 caracteres" className="text-xs font-mono" />
+              <Field label="Contraseña" error={teacherForm.formState.errors.password?.message}>
+                <Input type="password" {...teacherForm.register('password')} placeholder="Mínimo 6 caracteres" />
               </Field>
 
-              <Field label="Cédula de Identidad (C.I.)" error={teacherForm.formState.errors.ci?.message}>
-                <Input {...teacherForm.register('ci')} placeholder="Ej. 4589210" className="text-xs font-mono" />
+              <Field label="C.I." error={teacherForm.formState.errors.ci?.message}>
+                <Input {...teacherForm.register('ci')} placeholder="12345678" />
               </Field>
 
-              <Field label="Código / Ítem Docente">
-                <Input {...teacherForm.register('itemNumber')} placeholder="Ej. ITEM-012" className="text-xs font-mono" />
+              <Field label="Ítem">
+                <Input {...teacherForm.register('itemNumber')} placeholder="ITEM-012" />
               </Field>
 
               <Field label="Nombres" error={teacherForm.formState.errors.firstName?.message}>
-                <Input {...teacherForm.register('firstName')} placeholder="Nombres" className="text-xs" />
+                <Input {...teacherForm.register('firstName')} placeholder="Nombres" />
               </Field>
 
               <Field label="Apellidos" error={teacherForm.formState.errors.lastName?.message}>
-                <Input {...teacherForm.register('lastName')} placeholder="Apellidos" className="text-xs" />
+                <Input {...teacherForm.register('lastName')} placeholder="Apellidos" />
               </Field>
 
-              <Field label="Especialidad / Asignatura" error={teacherForm.formState.errors.specialty?.message}>
-                <Input {...teacherForm.register('specialty')} placeholder="Ej. Matemáticas, Lenguaje..." className="text-xs" />
+              <Field label="Especialidad" error={teacherForm.formState.errors.specialty?.message}>
+                <Input {...teacherForm.register('specialty')} placeholder="Matemáticas, Lenguaje..." />
               </Field>
 
-              <Field label="Teléfono Celular">
-                <Input {...teacherForm.register('phone')} placeholder="Ej. 70012345" className="text-xs font-mono" />
+              <Field label="Teléfono">
+                <Input {...teacherForm.register('phone')} placeholder="70012345" />
               </Field>
 
               <div className="sm:col-span-2 lg:col-span-4 flex justify-end">
                 <Button
                   disabled={createTeacher.isPending}
                   type="submit"
-                  className="h-10 bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold gap-1.5 shadow-xs"
+                  className="h-10 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium gap-1.5"
                 >
-                  {createTeacher.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Registrar Docente</span>
+                  {createTeacher.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Guardar
                 </Button>
               </div>
             </div>
@@ -226,60 +202,52 @@ export function CommunityPage({ mode }: { mode: 'teachers' | 'parents' }) {
         </div>
       )}
 
-      {/* Formulario de Alta de Familiar */}
       {showForm && canManage && mode === 'parents' && (
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-[0_1px_3px_0_rgba(15,23,42,0.03)] space-y-4">
-          <div className="pb-3 border-b border-slate-100">
-            <h2 className="text-base font-bold text-slate-900 font-display">
-              Alta de Representante / Tutor
-            </h2>
-            <p className="text-xs text-slate-500">
-              Registra los datos del tutor responsable de los estudiantes matriculados.
-            </p>
-          </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <h2 className="text-sm font-semibold text-slate-900 mb-4">Registrar Familiar</h2>
 
           <form onSubmit={parentForm.handleSubmit((data) => createParent.mutate(data))} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Field label="Correo de Notificaciones" error={parentForm.formState.errors.email?.message}>
-                <Input type="email" {...parentForm.register('email')} placeholder="tutor@gmail.com" className="text-xs" />
+              <Field label="Correo" error={parentForm.formState.errors.email?.message}>
+                <Input type="email" {...parentForm.register('email')} placeholder="tutor@gmail.com" />
               </Field>
 
-              <Field label="Contraseña de Acceso" error={parentForm.formState.errors.password?.message}>
-                <Input type="password" {...parentForm.register('password')} placeholder="Mínimo 6 caracteres" className="text-xs font-mono" />
+              <Field label="Contraseña" error={parentForm.formState.errors.password?.message}>
+                <Input type="password" {...parentForm.register('password')} placeholder="Mínimo 6 caracteres" />
               </Field>
 
-              <Field label="Cédula de Identidad (C.I.)" error={parentForm.formState.errors.ci?.message}>
-                <Input {...parentForm.register('ci')} placeholder="Ej. 7845120" className="text-xs font-mono" />
+              <Field label="C.I." error={parentForm.formState.errors.ci?.message}>
+                <Input {...parentForm.register('ci')} placeholder="12345678" />
               </Field>
 
-              <Field label="Teléfono Celular" error={parentForm.formState.errors.phone?.message}>
-                <Input {...parentForm.register('phone')} placeholder="Ej. 71234567" className="text-xs font-mono" />
+              <Field label="Teléfono" error={parentForm.formState.errors.phone?.message}>
+                <Input {...parentForm.register('phone')} placeholder="70012345" />
               </Field>
 
               <Field label="Nombres" error={parentForm.formState.errors.firstName?.message}>
-                <Input {...parentForm.register('firstName')} placeholder="Nombres" className="text-xs" />
+                <Input {...parentForm.register('firstName')} placeholder="Nombres" />
               </Field>
 
               <Field label="Apellidos" error={parentForm.formState.errors.lastName?.message}>
-                <Input {...parentForm.register('lastName')} placeholder="Apellidos" className="text-xs" />
+                <Input {...parentForm.register('lastName')} placeholder="Apellidos" />
               </Field>
 
-              <Field label="Dirección de Domicilio">
-                <Input {...parentForm.register('address')} placeholder="Zona / Calle" className="text-xs" />
+              <Field label="Dirección">
+                <Input {...parentForm.register('address')} placeholder="Zona / Calle" />
               </Field>
 
-              <Field label="Ocupación / Profesión">
-                <Input {...parentForm.register('occupation')} placeholder="Opcional" className="text-xs" />
+              <Field label="Ocupación">
+                <Input {...parentForm.register('occupation')} placeholder="Opcional" />
               </Field>
 
               <div className="sm:col-span-2 lg:col-span-4 flex justify-end">
                 <Button
                   disabled={createParent.isPending}
                   type="submit"
-                  className="h-10 bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold gap-1.5 shadow-xs"
+                  className="h-10 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium gap-1.5"
                 >
-                  {createParent.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Registrar Familiar</span>
+                  {createParent.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Guardar
                 </Button>
               </div>
             </div>
@@ -287,14 +255,14 @@ export function CommunityPage({ mode }: { mode: 'teachers' | 'parents' }) {
         </div>
       )}
 
-      {/* Buscador */}
+      {/* Search - Single row */}
       <div className="relative max-w-md">
-        <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <Input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder={`Buscar ${mode === 'teachers' ? 'docente por nombre o especialidad' : 'familiar por nombre o C.I.'}...`}
-          className="pl-9 h-10 text-xs bg-white"
+          placeholder={`Buscar ${mode === 'teachers' ? 'docente' : 'familiar'}...`}
+          className="pl-9 h-10 text-sm"
         />
         {search && (
           <button
@@ -307,16 +275,16 @@ export function CommunityPage({ mode }: { mode: 'teachers' | 'parents' }) {
         )}
       </div>
 
-      {/* Tabla de Datos */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_0_rgba(15,23,42,0.03)]">
+      {/* Table - Clean */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center p-12 text-slate-500">
-            <Loader2 className="w-5 h-5 animate-spin mr-2 text-slate-400" />
-            <span className="text-xs font-medium">Cargando {title.toLowerCase()}...</span>
+            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+            <span className="text-sm">Cargando...</span>
           </div>
         ) : isError ? (
-          <div className="p-12 text-center text-xs text-red-600">
-            No se pudo obtener la información de la comunidad educativa.
+          <div className="p-12 text-center text-sm text-rose-600">
+            No se pudo obtener la información.
           </div>
         ) : mode === 'teachers' ? (
           <TeacherTable data={teachersQuery.data?.data ?? []} />
@@ -344,63 +312,50 @@ function TeacherTable({
     return (
       <div className="p-12 text-center text-slate-500">
         <GraduationCap className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-        <p className="font-semibold text-slate-700 text-sm">No se encontraron docentes</p>
-        <p className="text-xs text-slate-400">Verifique los filtros o registre un nuevo docente.</p>
+        <p className="font-medium text-slate-700">No se encontraron docentes</p>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left text-xs">
+      <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-            <th className="py-3 pl-5 pr-3">Docente Titular</th>
-            <th className="px-3 py-3">Código / Ítem</th>
-            <th className="px-3 py-3">Especialidad Curricular</th>
-            <th className="py-3 pl-3 pr-5 text-right">Correo Electrónico</th>
+          <tr className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <th className="py-3 pl-5 pr-3">Docente</th>
+            <th className="px-3 py-3">Ítem</th>
+            <th className="px-3 py-3">Especialidad</th>
+            <th className="py-3 pl-3 pr-5 text-right">Correo</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
           {data.map((item) => {
             const initials = `${item.firstName[0] ?? ''}${item.lastName[0] ?? ''}`.toUpperCase();
             return (
-              <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
-                <td className="py-3.5 pl-5 pr-3">
+              <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                <td className="py-3 pl-5 pr-3">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] font-mono shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center">
                       {initials}
                     </div>
-                    <div>
-                      <p className="font-semibold text-slate-900 leading-tight">
-                        {item.firstName} {item.lastName}
-                      </p>
-                      <span className="text-[10px] text-slate-400">Docente</span>
-                    </div>
+                    <span className="font-medium text-slate-900">
+                      {item.firstName} {item.lastName}
+                    </span>
                   </div>
                 </td>
 
-                <td className="px-3 py-3.5 font-mono text-slate-700">
-                  {item.itemNumber ? (
-                    <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-bold">
-                      {item.itemNumber}
-                    </span>
-                  ) : (
-                    <span className="text-slate-400">—</span>
-                  )}
+                <td className="px-3 py-3 font-mono text-slate-700">
+                  {item.itemNumber || <span className="text-slate-400">—</span>}
                 </td>
 
-                <td className="px-3 py-3.5">
-                  <Badge variant="brand" className="font-medium">
+                <td className="px-3 py-3">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">
                     {item.specialty}
-                  </Badge>
+                  </span>
                 </td>
 
-                <td className="py-3.5 pl-3 pr-5 text-right font-mono text-slate-600">
-                  <span className="inline-flex items-center gap-1.5 text-[11px]">
-                    <Mail className="w-3 h-3 text-slate-400" />
-                    {item.email}
-                  </span>
+                <td className="py-3 pl-3 pr-5 text-right font-mono text-slate-600 text-xs">
+                  {item.email}
                 </td>
               </tr>
             );
@@ -427,68 +382,60 @@ function ParentTable({
     return (
       <div className="p-12 text-center text-slate-500">
         <UsersRound className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-        <p className="font-semibold text-slate-700 text-sm">No se encontraron tutores o familiares</p>
-        <p className="text-xs text-slate-400">Verifique los filtros o registre un nuevo tutor.</p>
+        <p className="font-medium text-slate-700">No se encontraron familiares</p>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left text-xs">
+      <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-            <th className="py-3 pl-5 pr-3">Familiar / Tutor</th>
-            <th className="px-3 py-3">Cédula (C.I.)</th>
-            <th className="px-3 py-3">Teléfono Celular</th>
-            <th className="py-3 pl-3 pr-5 text-right">Estudiantes a su Cargo</th>
+          <tr className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <th className="py-3 pl-5 pr-3">Familiar</th>
+            <th className="px-3 py-3">C.I.</th>
+            <th className="px-3 py-3">Teléfono</th>
+            <th className="py-3 pl-3 pr-5 text-right">Estudiantes</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
           {data.map((item) => {
             const initials = `${item.firstName[0] ?? ''}${item.lastName[0] ?? ''}`.toUpperCase();
             return (
-              <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
-                <td className="py-3.5 pl-5 pr-3">
+              <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                <td className="py-3 pl-5 pr-3">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] font-mono shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center">
                       {initials}
                     </div>
-                    <div>
-                      <p className="font-semibold text-slate-900 leading-tight">
-                        {item.firstName} {item.lastName}
-                      </p>
-                      <span className="text-[10px] text-slate-400">Representante Legal</span>
-                    </div>
+                    <span className="font-medium text-slate-900">
+                      {item.firstName} {item.lastName}
+                    </span>
                   </div>
                 </td>
 
-                <td className="px-3 py-3.5 font-mono text-slate-700">
+                <td className="px-3 py-3 font-mono text-slate-700">
                   {item.ci}
                 </td>
 
-                <td className="px-3 py-3.5 font-mono text-slate-600">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Phone className="w-3 h-3 text-slate-400" />
-                    {item.phone}
-                  </span>
+                <td className="px-3 py-3 font-mono text-slate-600 text-xs">
+                  {item.phone}
                 </td>
 
-                <td className="py-3.5 pl-3 pr-5 text-right">
+                <td className="py-3 pl-3 pr-5 text-right">
                   {item.students && item.students.length > 0 ? (
-                    <div className="flex flex-wrap justify-end gap-1.5">
+                    <div className="flex flex-wrap justify-end gap-1">
                       {item.students.map((st, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-medium"
+                          className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-medium"
                         >
-                          <UserCheck className="w-3 h-3 text-slate-400" />
                           {st.firstName} {st.lastName}
                         </span>
                       ))}
                     </div>
                   ) : (
-                    <span className="text-slate-400 italic text-[11px]">Sin estudiantes asociados</span>
+                    <span className="text-slate-400 text-xs">Sin estudiantes</span>
                   )}
                 </td>
               </tr>
@@ -502,10 +449,10 @@ function ParentTable({
 
 function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
-    <label className="grid gap-1.5 text-xs font-semibold text-slate-700">
+    <label className="grid gap-1.5 text-sm font-medium text-slate-700">
       <span>{label}</span>
       {children}
-      {error && <span className="text-[10px] font-normal text-red-600">{error}</span>}
+      {error && <span className="text-xs text-rose-600">{error}</span>}
     </label>
   );
 }

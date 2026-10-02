@@ -6,15 +6,10 @@ import {
   GraduationCap,
   User,
   BookOpen,
-  MapPin,
-  Sparkles,
-  Filter,
   Printer,
-  Users,
 } from 'lucide-react';
 import { academicApi, ClassScheduleItem } from '../../../lib/academic-api';
 import { authService } from '../../auth/services/auth.service';
-import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 
 const DAYS = [
@@ -26,14 +21,14 @@ const DAYS = [
 ];
 
 const PERIODS = [
-  { index: 1, start: '08:00', end: '08:45', label: '1º Período' },
-  { index: 2, start: '08:45', end: '09:30', label: '2º Período' },
-  { index: 'break1', isBreak: true, start: '09:30', end: '09:50', label: 'Recreo Matinal (20 min)' },
-  { index: 3, start: '09:50', end: '10:35', label: '3º Período' },
-  { index: 4, start: '10:35', end: '11:20', label: '4º Período' },
-  { index: 'break2', isBreak: true, start: '11:20', end: '11:35', label: 'Recreo Breve (15 min)' },
-  { index: 5, start: '11:35', end: '12:20', label: '5º Período' },
-  { index: 6, start: '12:20', end: '13:05', label: '6º Período' },
+  { index: 1, start: '08:00', end: '08:45', label: '1º' },
+  { index: 2, start: '08:45', end: '09:30', label: '2º' },
+  { index: 'break1', isBreak: true, start: '09:30', end: '09:50', label: 'Recreo' },
+  { index: 3, start: '09:50', end: '10:35', label: '3º' },
+  { index: 4, start: '10:35', end: '11:20', label: '4º' },
+  { index: 'break2', isBreak: true, start: '11:20', end: '11:35', label: 'Recreo' },
+  { index: 5, start: '11:35', end: '12:20', label: '5º' },
+  { index: 6, start: '12:20', end: '13:05', label: '6º' },
 ];
 
 const SUBJECT_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -64,14 +59,12 @@ export const SchedulesPage: React.FC = () => {
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [selectedChildIndex, setSelectedChildIndex] = useState<number>(0);
 
-  // 1. Fetch personal schedule if user is student or parent
   const { data: myScheduleData, isLoading: loadingMySchedule } = useQuery({
     queryKey: ['schedules', 'my-schedule'],
     queryFn: () => academicApi.getMySchedule(),
     enabled: isParentOrStudent,
   });
 
-  // 2. Fetch courses (only for administrative and teaching staff)
   const { data: coursesData } = useQuery({
     queryKey: ['courses'],
     queryFn: () => academicApi.listCourses(),
@@ -79,7 +72,6 @@ export const SchedulesPage: React.FC = () => {
   });
   const courses = coursesData?.data ?? [];
 
-  // Set default selected course when loaded
   React.useEffect(() => {
     if (courses.length > 0 && !selectedCourseId) {
       const defaultCourse = courses.find((c) => c.gradeLevel === 11) || courses[0];
@@ -87,7 +79,6 @@ export const SchedulesPage: React.FC = () => {
     }
   }, [courses, selectedCourseId]);
 
-  // 3. Fetch teachers (only for administrative and teaching staff)
   const { data: teachersData } = useQuery({
     queryKey: ['teachers'],
     queryFn: () => academicApi.listTeachers(),
@@ -95,28 +86,24 @@ export const SchedulesPage: React.FC = () => {
   });
   const teachers = teachersData?.data ?? [];
 
-  // Set default selected teacher when loaded
   React.useEffect(() => {
     if (teachers.length > 0 && !selectedTeacherId) {
       setSelectedTeacherId(teachers[0].id);
     }
   }, [teachers, selectedTeacherId]);
 
-  // 4. Fetch Course Schedule for admin view
   const { data: courseScheduleData, isLoading: loadingCourse } = useQuery({
     queryKey: ['schedules', 'course', selectedCourseId],
     queryFn: () => academicApi.getCourseSchedule(selectedCourseId),
     enabled: !isParentOrStudent && viewMode === 'course' && !!selectedCourseId,
   });
 
-  // 5. Fetch Teacher Schedule for admin view
   const { data: teacherScheduleData, isLoading: loadingTeacher } = useQuery({
     queryKey: ['schedules', 'teacher', selectedTeacherId],
     queryFn: () => academicApi.getTeacherSchedule(selectedTeacherId),
     enabled: !isParentOrStudent && viewMode === 'teacher' && !!selectedTeacherId,
   });
 
-  // Determine active schedules and contextual info
   const myData = myScheduleData?.data;
   const children = myData?.children ?? [];
   const currentChild = children[selectedChildIndex] || children[0];
@@ -135,7 +122,6 @@ export const SchedulesPage: React.FC = () => {
     ? (currentChild?.student || myData?.student)
     : null;
 
-  // Create cell lookup: `${day}_${periodIndex}` -> scheduleItem
   const scheduleMatrix = new Map<string, ClassScheduleItem>();
   for (const s of activeSchedules) {
     scheduleMatrix.set(`${s.dayOfWeek}_${s.periodIndex}`, s);
@@ -143,7 +129,6 @@ export const SchedulesPage: React.FC = () => {
 
   const selectedTeacher = teachers.find((t) => t.id === selectedTeacherId);
 
-  // Group courses by level for admin dropdown
   const inicialCourses = courses.filter((c) => c.gradeLevel <= 4);
   const primariaCourses = courses.filter((c) => c.gradeLevel >= 5 && c.gradeLevel <= 10);
   const secundariaCourses = courses.filter((c) => c.gradeLevel >= 11);
@@ -155,258 +140,182 @@ export const SchedulesPage: React.FC = () => {
       : loadingTeacher;
 
   return (
-    <div className="space-y-6">
-      {/* Header Institucional */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/90">
+    <div className="space-y-5">
+      {/* Header - Clean */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-50 text-brand-800 border border-brand-200">
-              <Calendar className="w-3.5 h-3.5 text-brand-600" />
-              <span>
-                {isParentOrStudent
-                  ? myData?.type === 'parent'
-                    ? 'Horario Escolar Oficial — Familiares'
-                    : 'Horario Escolar Oficial — Estudiante'
-                  : 'Carga Horaria y Pedagógica'}
-              </span>
-            </span>
-            <Badge variant="outline" className="font-mono text-slate-700 bg-white">
-              Turno Mañana (08:00 - 13:05)
-            </Badge>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 font-display">
+          <h1 className="text-xl font-bold text-slate-900">
             {isParentOrStudent
-              ? `Horario de Clases — ${activeCourse?.name || 'Gestión 2026'}`
-              : 'Horarios Oficiales de Clases'}
+              ? `Horario — ${activeCourse?.name || 'Gestión 2026'}`
+              : 'Horarios de Clases'}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+          <p className="text-sm text-slate-500 mt-0.5">
             {isParentOrStudent
-              ? 'Malla horaria semanal asignada para el período lectivo oficial 2026.'
-              : 'Malla semanal sincronizada entre los 16 cursos oficiales y los 34 docentes de la institución.'}
+              ? 'Malla horaria semanal'
+              : 'Malla semanal por curso o docente'}
           </p>
         </div>
 
-        {/* Action / Mode Selector */}
         <div className="flex items-center gap-2">
           <Button
             size="sm"
             variant="outline"
             onClick={() => window.print()}
-            className="gap-1.5 text-xs font-semibold text-slate-700 border-slate-200 bg-white hover:bg-slate-50 shadow-xs"
+            className="gap-1.5 text-sm text-slate-700"
           >
-            <Printer className="w-3.5 h-3.5 text-slate-600" />
-            Imprimir Horario
+            <Printer className="w-4 h-4" />
+            Imprimir
           </Button>
 
           {!isParentOrStudent && (
-            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
+            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
               <Button
                 size="sm"
                 variant={viewMode === 'course' ? 'default' : 'ghost'}
                 onClick={() => setViewMode('course')}
-                className={`gap-1.5 text-xs font-semibold rounded-lg ${
-                  viewMode === 'course' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600'
-                }`}
+                className={`gap-1.5 text-sm ${viewMode === 'course' ? 'bg-slate-900 text-white' : 'text-slate-600'}`}
               >
-                <GraduationCap className="w-3.5 h-3.5 text-amber-400" />
-                Por Curso (16)
+                <GraduationCap className="w-4 h-4" />
+                Por Curso
               </Button>
               <Button
                 size="sm"
                 variant={viewMode === 'teacher' ? 'default' : 'ghost'}
                 onClick={() => setViewMode('teacher')}
-                className={`gap-1.5 text-xs font-semibold rounded-lg ${
-                  viewMode === 'teacher' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600'
-                }`}
+                className={`gap-1.5 text-sm ${viewMode === 'teacher' ? 'bg-slate-900 text-white' : 'text-slate-600'}`}
               >
-                <User className="w-3.5 h-3.5 text-amber-400" />
-                Por Docente (34)
+                <User className="w-4 h-4" />
+                Por Docente
               </Button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Student / Parent Context Toolbar (Double-Bezel Hardware Architecture) */}
+      {/* Context Toolbar - Simplified */}
       {isParentOrStudent ? (
-        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
-          <div className="bg-white p-4 rounded-[calc(1rem-0.25rem)] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-3">
-              {activeCourse && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-xl text-xs font-bold shadow-xs">
-                  <GraduationCap className="w-4 h-4 text-amber-400" />
-                  <span>Curso: {activeCourse.name}</span>
-                </div>
-              )}
+        <div className="bg-white rounded-xl border border-slate-200 p-4">
+          <div className="flex flex-wrap items-center gap-3">
+            {activeCourse && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 text-white text-sm font-medium">
+                <GraduationCap className="w-4 h-4" />
+                {activeCourse.name}
+              </span>
+            )}
 
-              {activeStudent && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-900 border border-brand-200/80 rounded-xl text-xs font-semibold">
-                  <User className="w-3.5 h-3.5 text-brand-700" />
-                  <span>
-                    Estudiante: {activeStudent.firstName} {activeStudent.lastName}
-                  </span>
-                </div>
-              )}
+            {activeStudent && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium">
+                <User className="w-4 h-4" />
+                {activeStudent.firstName} {activeStudent.lastName}
+              </span>
+            )}
 
-              {activeStudent?.rude && (
-                <Badge variant="outline" className="font-mono text-xs text-slate-700 bg-white">
-                  RUDE: {activeStudent.rude}
-                </Badge>
-              )}
-
-              {myData?.type === 'parent' && children.length > 1 && (
-                <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Hijos:</span>
-                  {children.map((child, idx) => (
-                    <Button
-                      key={child.student.id}
-                      size="sm"
-                      variant={selectedChildIndex === idx ? 'default' : 'outline'}
-                      onClick={() => setSelectedChildIndex(idx)}
-                      className="text-xs font-semibold h-8 rounded-lg haptic-press"
-                    >
-                      <Users className="w-3 h-3" />
-                      {child.student.firstName}
-                    </Button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="text-xs text-slate-500 flex items-center gap-2 self-end md:self-center font-medium font-mono">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              6 períodos pedagógicos diarios / 30 por semana
-            </div>
+            {myData?.type === 'parent' && children.length > 1 && (
+              <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200">
+                <span className="text-xs font-medium text-slate-500">Hijos:</span>
+                {children.map((child, idx) => (
+                  <Button
+                    key={child.student.id}
+                    size="sm"
+                    variant={selectedChildIndex === idx ? 'default' : 'outline'}
+                    onClick={() => setSelectedChildIndex(idx)}
+                    className="text-sm h-8"
+                  >
+                    {child.student.firstName}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       ) : (
-        /* Staff Admin Toolbar */
-        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
-          <div className="bg-white p-4 rounded-[calc(1rem-0.25rem)] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-            {viewMode === 'course' ? (
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
-                  <Filter className="w-3.5 h-3.5 text-brand-600" />
-                  Seleccionar Curso:
-                </label>
-                <select
-                  value={selectedCourseId}
-                  onChange={(e) => setSelectedCourseId(e.target.value)}
-                  className="flex-1 max-w-md h-10 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                >
-                  <optgroup label="Nivel Inicial (4 Cursos)">
-                    {inicialCourses.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} ({c.enrollmentCount} estudiantes)
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Nivel Primaria (6 Cursos)">
-                    {primariaCourses.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} ({c.enrollmentCount} estudiantes)
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Nivel Secundaria (6 Cursos)">
-                    {secundariaCourses.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} ({c.enrollmentCount} estudiantes)
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-
-                {activeCourse && (
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-slate-900 text-amber-400 text-xs py-1 px-2.5">
-                      Capacidad: {activeCourse.enrollmentCount} / {activeCourse.maxCapacity}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs text-slate-600">
-                      Aula Oficial
-                    </Badge>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
-                  <Filter className="w-3.5 h-3.5 text-brand-600" />
-                  Seleccionar Docente:
-                </label>
-                <select
-                  value={selectedTeacherId}
-                  onChange={(e) => setSelectedTeacherId(e.target.value)}
-                  className="flex-1 max-w-md h-10 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                >
-                  {teachers.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.lastName} {t.firstName} — {t.specialty}
-                    </option>
+        <div className="bg-white rounded-xl border border-slate-200 p-4">
+          {viewMode === 'course' ? (
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <label className="text-sm font-medium text-slate-700 shrink-0">Curso:</label>
+              <select
+                value={selectedCourseId}
+                onChange={(e) => setSelectedCourseId(e.target.value)}
+                className="flex-1 max-w-md h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              >
+                <optgroup label="Inicial">
+                  {inicialCourses.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
-                </select>
-
-                {selectedTeacher && (
-                  <Badge className="bg-slate-900 text-white text-xs py-1 px-2.5">
-                    Ítem: {selectedTeacher.itemNumber || 'N/A'}
-                  </Badge>
-                )}
-              </div>
-            )}
-
-            <div className="text-xs text-slate-500 flex items-center gap-2 self-end md:self-center font-medium font-mono">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              6 períodos pedagógicos / 30 sesiones por curso
+                </optgroup>
+                <optgroup label="Primaria">
+                  {primariaCourses.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Secundaria">
+                  {secundariaCourses.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </optgroup>
+              </select>
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <label className="text-sm font-medium text-slate-700 shrink-0">Docente:</label>
+              <select
+                value={selectedTeacherId}
+                onChange={(e) => setSelectedTeacherId(e.target.value)}
+                className="flex-1 max-w-md h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              >
+                {teachers.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.lastName} {t.firstName} — {t.specialty}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Loading Indicator */}
+      {/* Loading / Empty / Timetable */}
       {isLoading ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="animate-spin w-8 h-8 border-3 border-brand-600 border-t-transparent rounded-full mx-auto mb-3" />
-          <p className="text-sm font-semibold text-slate-700">Cargando horario oficial...</p>
+          <p className="text-sm font-medium text-slate-700">Cargando horario...</p>
         </div>
       ) : activeSchedules.length === 0 ? (
-        /* Empty State */
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <Clock className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-slate-800">No hay horarios registrados</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-            {myData?.message || 'Actualmente no se han programado sesiones lectivas para el curso asignado.'}
+          <h3 className="text-base font-semibold text-slate-800">No hay horarios registrados</h3>
+          <p className="text-sm text-slate-500 mt-1">
+            {myData?.message || 'No se han programado sesiones para este curso.'}
           </p>
         </div>
       ) : (
-        /* Timetable Grid with Double-Bezel Architecture */
-        <div className="p-1 rounded-3xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
-          <div className="bg-white rounded-[calc(1.5rem-0.25rem)] overflow-hidden shadow-doppelrand-inner">
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse min-w-[760px]">
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse min-w-[760px]">
               <thead>
                 <tr className="bg-slate-900 text-white text-xs">
-                  <th className="py-3 px-4 text-left font-bold w-36 uppercase tracking-wider border-r border-slate-800">
-                    Período / Hora
+                  <th className="py-3 px-4 text-left font-semibold w-32 border-r border-slate-800">
+                    Hora
                   </th>
                   {DAYS.map((d) => (
                     <th
                       key={d.key}
-                      className="py-3 px-4 text-center font-bold uppercase tracking-wider border-r border-slate-800 last:border-r-0"
+                      className="py-3 px-4 text-center font-semibold border-r border-slate-800 last:border-r-0"
                     >
                       {d.label}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-slate-100 text-sm">
                 {PERIODS.map((period, idx) => {
                   if (period.isBreak) {
                     return (
-                      <tr key={`break-${idx}`} className="bg-amber-50/70 border-y border-amber-200/70">
-                        <td className="py-2 px-4 font-mono font-bold text-amber-800 border-r border-amber-200/70">
+                      <tr key={`break-${idx}`} className="bg-amber-50">
+                        <td className="py-2 px-4 font-mono text-xs text-amber-700 border-r border-amber-200">
                           {period.start} - {period.end}
                         </td>
-                        <td colSpan={5} className="py-2 px-4 text-center font-semibold text-amber-900 tracking-wide">
+                        <td colSpan={5} className="py-2 px-4 text-center text-xs font-medium text-amber-700">
                           {period.label}
                         </td>
                       </tr>
@@ -414,25 +323,23 @@ export const SchedulesPage: React.FC = () => {
                   }
 
                   return (
-                    <tr key={`period-${period.index}`} className="hover:bg-slate-50/50 transition-colors">
-                      {/* Period header */}
-                      <td className="py-3 px-4 border-r border-slate-200 bg-slate-50/60">
-                        <div className="font-bold text-slate-900">{period.label}</div>
-                        <div className="font-mono text-[11px] text-slate-500">
+                    <tr key={`period-${period.index}`} className="hover:bg-slate-50">
+                      <td className="py-3 px-4 border-r border-slate-200 bg-slate-50">
+                        <div className="font-semibold text-slate-900">{period.label}</div>
+                        <div className="font-mono text-xs text-slate-500">
                           {period.start} - {period.end}
                         </div>
                       </td>
 
-                      {/* Day Cells */}
                       {DAYS.map((day) => {
                         const session = scheduleMatrix.get(`${day.key}_${period.index}`);
                         if (!session) {
                           return (
                             <td
                               key={day.key}
-                              className="py-3 px-3 text-center border-r border-slate-200 last:border-r-0 bg-slate-50/30"
+                              className="py-3 px-3 text-center border-r border-slate-200 last:border-r-0 bg-slate-50/50"
                             >
-                              <span className="text-slate-300 italic text-[11px]">— Libre —</span>
+                              <span className="text-slate-300 text-xs">—</span>
                             </td>
                           );
                         }
@@ -450,38 +357,28 @@ export const SchedulesPage: React.FC = () => {
                             className="p-2 border-r border-slate-200 last:border-r-0 align-top"
                           >
                             <div
-                              className={`p-2.5 rounded-xl border ${color.bg} ${color.border} shadow-2xs hover:shadow-xs transition-shadow flex flex-col justify-between h-full min-h-[72px]`}
+                              className={`p-2 rounded-lg border ${color.bg} ${color.border} min-h-[60px]`}
                             >
-                              <div>
-                                <div className="flex items-center justify-between gap-1 mb-1">
-                                  <span
-                                    className={`font-mono text-[10px] font-bold px-1.5 py-0.2 rounded bg-white/80 border ${color.border} ${color.text}`}
-                                  >
-                                    {session.subject?.code}
+                              <div className="flex items-center justify-between gap-1 mb-1">
+                                <span
+                                  className={`font-mono text-[10px] font-semibold px-1 py-0.2 rounded bg-white/80 border ${color.border} ${color.text}`}
+                                >
+                                  {session.subject?.code}
+                                </span>
+                                {session.classroom && (
+                                  <span className="text-[10px] text-slate-500">
+                                    {session.classroom}
                                   </span>
-                                  {session.classroom && (
-                                    <span className="text-[10px] text-slate-500 font-medium flex items-center gap-0.5">
-                                      <MapPin className="w-2.5 h-2.5" />
-                                      {session.classroom}
-                                    </span>
-                                  )}
-                                </div>
-                                <div className={`font-bold leading-tight line-clamp-2 ${color.text}`}>
-                                  {session.subject?.name}
-                                </div>
+                                )}
                               </div>
-
-                              <div className="mt-2 pt-1.5 border-t border-black/5 flex items-center justify-between text-[11px] text-slate-600">
+                              <div className={`font-medium text-xs leading-tight ${color.text}`}>
+                                {session.subject?.name}
+                              </div>
+                              <div className="mt-1.5 pt-1 border-t border-black/5 text-[11px] text-slate-600">
                                 {isParentOrStudent || viewMode === 'course' ? (
-                                  <span className="font-medium truncate flex items-center gap-1">
-                                    <User className="w-3 h-3 text-slate-400 shrink-0" />
-                                    Prof. {session.teacher?.lastName}
-                                  </span>
+                                  <span>Prof. {session.teacher?.lastName}</span>
                                 ) : (
-                                  <span className="font-medium truncate flex items-center gap-1 text-slate-900 font-semibold">
-                                    <GraduationCap className="w-3 h-3 text-slate-500 shrink-0" />
-                                    {session.course?.name}
-                                  </span>
+                                  <span>{session.course?.name}</span>
                                 )}
                               </div>
                             </div>
@@ -495,50 +392,43 @@ export const SchedulesPage: React.FC = () => {
             </table>
           </div>
         </div>
-      </div>
       )}
 
-      {/* Footer Info Cards (Double-Bezel Architecture) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
-          <div className="bg-white p-5 rounded-[calc(1rem-0.25rem)] flex items-center gap-3.5 h-full">
-            <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-200/60 flex items-center justify-center text-blue-700 shadow-2xs shrink-0">
-              <BookOpen className="w-5 h-5 stroke-[1.75]" />
-            </div>
-            <div>
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-sans">Asignaturas Programadas</div>
-              <div className="text-lg font-black text-slate-900 font-display">
-                {isParentOrStudent || viewMode === 'course'
-                  ? `${new Set(activeSchedules.map((s) => s.subjectId)).size} Materias Oficiales`
-                  : `${new Set(activeSchedules.map((s) => s.courseId)).size} Cursos Asignados`}
-              </div>
-            </div>
+      {/* Footer Stats - Compact */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
+            <BookOpen className="w-4 h-4 text-blue-600" />
+          </div>
+          <div>
+            <span className="text-xs text-slate-500">Asignaturas</span>
+            <p className="text-lg font-bold text-slate-900">
+              {isParentOrStudent || viewMode === 'course'
+                ? `${new Set(activeSchedules.map((s) => s.subjectId)).size} materias`
+                : `${new Set(activeSchedules.map((s) => s.courseId)).size} cursos`}
+            </p>
           </div>
         </div>
 
-        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
-          <div className="bg-white p-5 rounded-[calc(1rem-0.25rem)] flex items-center gap-3.5 h-full">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-700 shadow-2xs shrink-0">
-              <Clock className="w-5 h-5 stroke-[1.75]" />
-            </div>
-            <div>
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-sans">Carga Semanal Total</div>
-              <div className="text-lg font-black text-slate-900 font-display">
-                {activeSchedules.length} Períodos ({activeSchedules.length * 45} min/sem)
-              </div>
-            </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <Clock className="w-4 h-4 text-emerald-600" />
+          </div>
+          <div>
+            <span className="text-xs text-slate-500">Carga Semanal</span>
+            <p className="text-lg font-bold text-slate-900">
+              {activeSchedules.length} períodos
+            </p>
           </div>
         </div>
 
-        <div className="p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80 shadow-subtle">
-          <div className="bg-white p-5 rounded-[calc(1rem-0.25rem)] flex items-center gap-3.5 h-full">
-            <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-700 shadow-2xs shrink-0">
-              <Sparkles className="w-5 h-5 stroke-[1.75]" />
-            </div>
-            <div>
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-sans">Normativa Curricular</div>
-              <div className="text-lg font-black text-slate-900 font-display">R.M. 1040/2022 Aprobada</div>
-            </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center">
+            <Calendar className="w-4 h-4 text-amber-600" />
+          </div>
+          <div>
+            <span className="text-xs text-slate-500">Normativa</span>
+            <p className="text-lg font-bold text-slate-900">R.M. 1040/2022</p>
           </div>
         </div>
       </div>
