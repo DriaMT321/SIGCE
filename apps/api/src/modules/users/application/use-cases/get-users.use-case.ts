@@ -14,6 +14,7 @@ export class GetUsersUseCase {
 
   async execute(params?: {
     role?: string;
+    search?: string;
     limit?: number;
     offset?: number;
   }): Promise<{ items: UserEntity[]; total: number }> {

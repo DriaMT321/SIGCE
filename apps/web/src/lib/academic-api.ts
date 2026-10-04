@@ -314,4 +314,28 @@ export const academicApi = {
     const response = await apiClient.patch(`/curriculum/${id}/progress`, data);
     return response.data as { statusCode: number; data: CurriculumTopicItem };
   },
+
+  // Gestión de Usuarios Institucionales
+  async listUsers(params?: { role?: string; search?: string; limit?: number; offset?: number }) {
+    const response = await apiClient.get('/users', { params });
+    return response.data as { statusCode: number; message: string; data: Array<{
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      role: 'ADMIN' | 'DIRECTOR' | 'SECRETARY' | 'TEACHER' | 'PARENT';
+      isActive: boolean;
+      createdAt: string;
+      updatedAt?: string;
+    }>; total: number };
+  },
+  async createUser(data: unknown) {
+    const response = await apiClient.post('/users', data);
+    return response.data as { statusCode: number; message: string; data: any };
+  },
+  async updateUser(id: string, data: unknown) {
+    const response = await apiClient.patch(`/users/${id}`, data);
+    return response.data as { statusCode: number; message: string; data: any };
+  },
 };
+

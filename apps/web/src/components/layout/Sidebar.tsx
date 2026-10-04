@@ -17,6 +17,7 @@ import {
   Clock,
   BookMarked,
   LogOut,
+  ShieldCheck,
 } from 'lucide-react';
 import { authService } from '../../features/auth/services/auth.service';
 
@@ -63,6 +64,7 @@ const navSections: NavSection[] = [
   {
     title: 'Supervisión',
     items: [
+      { name: 'Personal y Roles', href: '/dashboard/users', icon: ShieldCheck, roles: ['ADMIN', 'DIRECTOR'] },
       { name: 'Auditoría', href: '/dashboard/audit', icon: History, roles: ['ADMIN', 'DIRECTOR'] },
       { name: 'Reportes', href: '/dashboard/reports', icon: FileSpreadsheet, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER'] },
     ],

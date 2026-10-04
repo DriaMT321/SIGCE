@@ -14,6 +14,7 @@ import { SchedulesPage } from '../features/schedules/pages/SchedulesPage';
 import { CurriculumPage } from '../features/curriculum/pages/CurriculumPage';
 import { CommunityPage } from '../features/community/pages/CommunityPage';
 import { AlertsPage } from '../features/alerts/pages/AlertsPage';
+import { UsersPage } from '../features/users/pages/UsersPage';
 
 export const router = createBrowserRouter([
   {
@@ -79,6 +80,10 @@ export const router = createBrowserRouter([
       {
         path: 'reports',
         element: <ReportsPage />,
+      },
+      {
+        path: 'users',
+        element: <UsersPage />,
       },
     ],
   },

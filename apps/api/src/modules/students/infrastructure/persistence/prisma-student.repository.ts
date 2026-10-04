@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { UserRole } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../../../../common/database/prisma.service';
 import { StudentEntity } from '../../domain/entities/student.entity';
 import { StudentCreateData, StudentRepository, StudentUpdateData } from '../../domain/repositories/student.repository.interface';
@@ -74,13 +76,34 @@ export class PrismaStudentRepository implements StudentRepository {
   }
 
   async create(data: StudentCreateData) {
-    const student = await this.prisma.student.create({
-      data: {
-        ...data,
-        gender: data.gender as 'MALE' | 'FEMALE',
-      },
-      include: { enrollments: { include: { course: true, academicYear: true } } },
+    const passwordHash = await bcrypt.hash('123456', 10);
+    const identifier = (data.ci || data.rude).toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+    const email = `estudiante.${identifier}@sigce.edu.bo`;
+
+    const student = await this.prisma.$transaction(async (tx) => {
+      let user = await tx.user.findUnique({ where: { email } });
+      if (!user) {
+        user = await tx.user.create({
+          data: {
+            email,
+            passwordHash,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            role: UserRole.PARENT,
+          },
+        });
+      }
+
+      return tx.student.create({
+        data: {
+          ...data,
+          userId: user.id,
+          gender: data.gender as 'MALE' | 'FEMALE',
+        },
+        include: { enrollments: { include: { course: true, academicYear: true } } },
+      });
     });
+
     return this.map(student);
   }
 
