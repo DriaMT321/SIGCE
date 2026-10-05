@@ -7,7 +7,6 @@ import {
   IconKey,
   IconSchool,
   IconUsersGroup,
-  IconShieldCheck,
 } from '@tabler/icons-react';
 import { AlertCircle, Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -69,9 +68,6 @@ export function Login04Form({
     <div className="w-full max-w-md mx-auto space-y-6">
       {/* Form Header */}
       <div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-rose-50 text-[#b91329] border border-rose-200/80 mb-2">
-          <span>Acceso Institucional</span>
-        </div>
         <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 font-display">
           Ingreso al Sistema
         </h2>
@@ -225,12 +221,8 @@ export function Login04Form({
         </Button>
 
         {/* Footer Institucional */}
-        <div className="pt-2 flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-100 font-medium">
+        <div className="pt-2 text-center text-[11px] text-slate-400 border-t border-slate-100 font-medium">
           <span>U.E. Comunidad Cristiana B</span>
-          <span className="inline-flex items-center gap-1 text-emerald-700">
-            <IconShieldCheck className="w-3.5 h-3.5" />
-            <span>Conexión Segura</span>
-          </span>
         </div>
       </form>
     </div>

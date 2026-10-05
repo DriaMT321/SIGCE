@@ -50,8 +50,8 @@ export const LoginPage = () => {
       const response = axios.isAxiosError(err) ? err.response : undefined;
       setErrorMessage(
         response?.data?.details?.message ||
-          response?.data?.message ||
-          'Las credenciales no son válidas o no se pudo conectar con el servidor',
+        response?.data?.message ||
+        'Las credenciales no son válidas o no se pudo conectar con el servidor',
       );
     } finally {
       setIsLoading(false);
@@ -83,7 +83,7 @@ export const LoginPage = () => {
         </div>
 
         {/* Center Content */}
-        <div className="relative z-10 py-12 lg:py-16 space-y-4 max-w-md">
+        <div className="relative z-10 py-12 lg:py-16 space-y-4 max-w-md my-auto">
           <h2 className="text-3xl sm:text-4xl xl:text-5xl font-bold tracking-tight text-white leading-tight">
             Sistema Integrado de Gestión Educativa
           </h2>
@@ -91,12 +91,6 @@ export const LoginPage = () => {
           <p className="text-base text-slate-400 leading-relaxed">
             Plataforma unificada para el seguimiento pedagógico, evaluación académica y gestión integral.
           </p>
-        </div>
-
-        {/* Footer */}
-        <div className="relative z-10 pt-6 border-t border-white/10 text-sm text-slate-500 flex items-center justify-between">
-          <span>Portal Oficial de Gestión Académica</span>
-          <span className="font-medium text-slate-400">Cochabamba, Bolivia</span>
         </div>
       </div>
 
@@ -128,11 +122,6 @@ export const LoginPage = () => {
             isLoading={isLoading}
             errorMessage={errorMessage}
           />
-        </div>
-
-        {/* Footer */}
-        <div className="pt-6 text-center text-sm text-slate-400 border-t border-slate-100 mt-6 lg:mt-0">
-          <span>© 2026 SIGCE · Plataforma Oficial de Gestión Académica</span>
         </div>
       </div>
     </div>
