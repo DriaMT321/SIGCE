@@ -1,5 +1,5 @@
 import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
-import { Gender } from '@academic/shared-types';
+import { Gender, RelationshipType } from '@academic/shared-types';
 
 export class CreateStudentDto {
   @IsString()
@@ -35,6 +35,14 @@ export class CreateStudentDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @IsOptional()
+  @IsString()
+  parentId?: string;
+
+  @IsOptional()
+  @IsEnum(RelationshipType)
+  relationship?: RelationshipType;
 }
 
 export class UpdateStudentDto {

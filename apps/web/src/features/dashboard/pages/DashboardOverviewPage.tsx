@@ -12,11 +12,9 @@ import {
   FileSpreadsheet,
   BarChart3,
   Layers,
-  CheckCircle2,
 } from 'lucide-react';
 import { academicApi } from '../../../lib/academic-api';
 import { authService } from '../../auth/services/auth.service';
-import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 
 export const DashboardOverviewPage: React.FC = () => {

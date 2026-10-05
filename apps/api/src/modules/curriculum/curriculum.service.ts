@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/database/prisma.service';
-import { CurriculumStatus } from '@prisma/client';
+import { CurriculumStatus, Prisma } from '@prisma/client';
 
 export interface UpdateCurriculumProgressInput {
   status?: CurriculumStatus;
@@ -28,7 +28,7 @@ export class CurriculumService {
       yearId = activeYear?.id;
     }
 
-    const where: any = {};
+    const where: Prisma.CurriculumTopicWhereInput = {};
     if (yearId) where.academicYearId = yearId;
     if (filters.courseId) where.courseId = filters.courseId;
     if (filters.gradeLevel) where.gradeLevel = Number(filters.gradeLevel);

@@ -162,7 +162,7 @@ export const CoursesPage = () => {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setLevelFilter(tab.id as any)}
+              onClick={() => setLevelFilter(tab.id as 'ALL' | 'INICIAL' | 'PRIMARIA' | 'SECUNDARIA')}
               className={`px-3.5 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
                 levelFilter === tab.id
                   ? 'bg-white text-slate-900 font-semibold shadow-sm'

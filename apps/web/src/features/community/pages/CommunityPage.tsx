@@ -7,8 +7,6 @@ import {
   ContactRound,
   GraduationCap,
   Loader2,
-  Mail,
-  Phone,
   Plus,
   Search,
   UsersRound,
@@ -114,7 +112,7 @@ export function CommunityPage({ mode }: { mode: 'teachers' | 'parents' }) {
   });
 
   const title = mode === 'teachers' ? 'Docentes' : 'Padres y Tutores';
-  const Icon = mode === 'teachers' ? ContactRound : UsersRound;
+  const _Icon = mode === 'teachers' ? ContactRound : UsersRound;
   const isLoading = mode === 'teachers' ? teachersQuery.isLoading : parentsQuery.isLoading;
   const isError = mode === 'teachers' ? teachersQuery.isError : parentsQuery.isError;
   const dataCount = mode === 'teachers' ? teachersQuery.data?.total ?? teachersQuery.data?.data?.length ?? 0 : parentsQuery.data?.total ?? parentsQuery.data?.data?.length ?? 0;

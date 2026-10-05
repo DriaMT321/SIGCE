@@ -128,7 +128,7 @@ export class CheckSieLoginUseCase {
       const page = pages[0] || (await browser.newPage());
 
       // Exponer función de verificación y sincronización de calificaciones
-      await page.exposeFunction('verifyCourseWithSigce', async (courseInfoStr: string, studentsData: any[]) => {
+      await page.exposeFunction('verifyCourseWithSigce', async (courseInfoStr: string, studentsData: Record<string, unknown>[]) => {
         try {
           const nivelMatch = courseInfoStr.match(/nivel";s:\d+:"([^"]+)"/);
           const gradoMatch = courseInfoStr.match(/grado";s:\d+:"([^"]+)"/);
@@ -172,8 +172,17 @@ export class CheckSieLoginUseCase {
             };
           }
 
+          interface SigceStudentGradeInfo {
+            rude: string | null;
+            ci: string | null;
+            nombre: string;
+            grade: number;
+            status: string;
+            remark: string;
+          }
+
           const sigceStudents = course.enrollments.map((e) => e.student);
-          const sigceStudentsMap = new Map<string, any>();
+          const sigceStudentsMap = new Map<string, SigceStudentGradeInfo>();
 
           sigceStudents.forEach((s) => {
             const gradesList = s.grades || [];
@@ -205,12 +214,12 @@ export class CheckSieLoginUseCase {
           let matches = 0;
           let totalScore = 0;
           let passedCount = 0;
-          const studentsResultMap: Record<string, any> = {};
+          const studentsResultMap: Record<string, SigceStudentGradeInfo> = {};
 
-          studentsData.forEach((sieSt) => {
-            const rudeKey = (sieSt.rude || '').toUpperCase().trim();
+          studentsData.forEach((sieSt: { rude?: string }) => {
+            const rudeKey = (sieSt.rude ? String(sieSt.rude) : '').toUpperCase().trim();
             const found = sigceStudentsMap.get(rudeKey);
-            if (found) {
+            if (found && sieSt.rude) {
               matches++;
               totalScore += found.grade;
               if (found.grade >= 51) passedCount++;

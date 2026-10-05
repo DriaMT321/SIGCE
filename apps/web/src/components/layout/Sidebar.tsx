@@ -18,6 +18,7 @@ import {
   BookMarked,
   LogOut,
   ShieldCheck,
+  FileCheck,
 } from 'lucide-react';
 import { authService } from '../../features/auth/services/auth.service';
 
@@ -47,6 +48,7 @@ const navSections: NavSection[] = [
       { name: 'Estudiantes', href: '/dashboard/students', icon: Users, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY'] },
       { name: 'Cursos', href: '/dashboard/courses', icon: BookOpen, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY'] },
       { name: 'Horarios', href: '/dashboard/schedules', icon: Clock, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },
+      { name: 'Tareas y Exámenes', href: '/dashboard/assignments', icon: FileCheck, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },
       { name: 'Avance Curricular', href: '/dashboard/curriculum', icon: BookMarked, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER'] },
       { name: 'Matrículas', href: '/dashboard/enrollments', icon: ClipboardList, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY'] },
       { name: 'Notas', href: '/dashboard/grades', icon: Award, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },

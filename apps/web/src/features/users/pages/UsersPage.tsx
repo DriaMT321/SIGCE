@@ -5,18 +5,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import {
   AlertCircle,
-  CheckCircle2,
   ContactRound,
   GraduationCap,
   Loader2,
-  Lock,
-  Mail,
-  Phone,
   Plus,
   Search,
-  ShieldAlert,
   ShieldCheck,
-  UserCheck,
   UserPlus,
   Users,
   UsersRound,
@@ -102,8 +96,9 @@ export const UsersPage = () => {
       void queryClient.invalidateQueries({ queryKey: ['teachers'] });
       void queryClient.invalidateQueries({ queryKey: ['parents'] });
     },
-    onError: (err: any) => {
-      const msg = err.response?.data?.message || err.message || 'No se pudo crear el usuario';
+    onError: (err: unknown) => {
+      const errObj = err as { response?: { data?: { message?: string } }; message?: string };
+      const msg = errObj.response?.data?.message || errObj.message || 'No se pudo crear el usuario';
       setErrorMessage(msg);
     },
   });
@@ -219,7 +214,7 @@ export const UsersPage = () => {
                       <button
                         key={item.id}
                         type="button"
-                        onClick={() => form.setValue('role', item.id as any)}
+                        onClick={() => form.setValue('role', item.id as UserFormData['role'])}
                         className={`p-3 rounded-xl border text-left transition-all haptic-press cursor-pointer flex flex-col justify-between ${
                           isSelected
                             ? 'bg-slate-950 text-white border-slate-950 shadow-md ring-2 ring-[#f37022]/40'

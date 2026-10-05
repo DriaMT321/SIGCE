@@ -97,6 +97,21 @@ enum CurriculumStatus {
   COMPLETADO
 }
 
+enum AssignmentType {
+  TAREA
+  EXAMEN
+  TRABAJO_PRACTICO
+  PROYECTO
+  CONTROL_LECTURA
+}
+
+enum AssignmentStatus {
+  PENDIENTE
+  EN_PROGRESO
+  FINALIZADO
+  CANCELADO
+}
+
 // ==============================================================================
 // AUTENTICACIÓN Y USUARIOS
 // ==============================================================================
@@ -262,6 +277,7 @@ model Teacher {
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   teacherSubjects TeacherSubject[]
   schedules       ClassSchedule[]
+  assignments     Assignment[]
 
   @@index([ci])
   @@index([userId])
@@ -332,6 +348,7 @@ model Course {
   attendances      Attendance[]
   schedules        ClassSchedule[]
   curriculumTopics CurriculumTopic[]
+  assignments      Assignment[]
 
   @@unique([academicYearId, gradeLevel, section, shift])
   @@index([academicYearId])
@@ -352,6 +369,7 @@ model Subject {
   syncItems        SieSynchronizationItem[]
   schedules        ClassSchedule[]
   curriculumTopics CurriculumTopic[]
+  assignments      Assignment[]
 
   @@index([code])
   @@map("subjects")
@@ -427,6 +445,38 @@ model CurriculumTopic {
   @@index([gradeLevel])
   @@index([periodNumber])
   @@map("curriculum_topics")
+}
+
+// ==============================================================================
+// TAREAS, EXÁMENES Y ACTIVIDADES ACADÉMICAS
+// ==============================================================================
+
+model Assignment {
+  id          String           @id @default(uuid())
+  title       String           // Nombre o tema de la tarea/examen
+  type        AssignmentType   @default(TAREA)
+  description String?          // Instrucciones, temario o detalles
+  dueDate     DateTime         @map("due_date") // Fecha límite de entrega o fecha del examen
+  maxScore    Float?           @default(100) @map("max_score") // Ponderación o puntaje máximo
+  status      AssignmentStatus @default(PENDIENTE)
+
+  courseId    String           @map("course_id")
+  subjectId   String           @map("subject_id")
+  teacherId   String           @map("teacher_id")
+
+  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subject     Subject          @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher     Teacher          @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  deletedAt   DateTime?        @map("deleted_at")
+
+  @@index([courseId])
+  @@index([subjectId])
+  @@index([teacherId])
+  @@index([dueDate])
+  @@map("assignments")
 }
 
 // ==============================================================================

@@ -7,7 +7,6 @@ import {
   FileText,
   Award,
   Calendar,
-  Building2,
   QrCode,
   Search,
 } from 'lucide-react';
@@ -82,7 +81,7 @@ export const ReportsPage: React.FC = () => {
     );
   }, [courseStudents, filterQuery]);
 
-  const studentGrades = useMemo(() => {
+  const _studentGrades = useMemo(() => {
     if (!activeStudent) return [];
     return grades.filter((g) => g.studentId === activeStudent.id);
   }, [grades, activeStudent]);

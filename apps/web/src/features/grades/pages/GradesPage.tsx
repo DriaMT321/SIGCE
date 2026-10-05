@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
-import { Award, BookOpen, Loader2, Plus, Search, X } from 'lucide-react';
+import { BookOpen, Loader2, Plus, Search, X } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { academicApi } from '../../../lib/academic-api';
 import { authService } from '../../auth/services/auth.service';

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { AuthenticatedUser, UserRole } from '@academic/shared-types';
 import { PrismaService } from '../../common/database/prisma.service';
-import { DayOfWeek } from '@prisma/client';
+import { DayOfWeek, Prisma } from '@prisma/client';
 
 export interface CreateScheduleInput {
   courseId: string;
@@ -34,7 +34,7 @@ export class SchedulesService {
       yearId = activeYear?.id;
     }
 
-    const where: any = {};
+    const where: Prisma.ClassScheduleWhereInput = {};
     if (yearId) where.academicYearId = yearId;
     if (filters.courseId) where.courseId = filters.courseId;
     if (filters.teacherId) where.teacherId = filters.teacherId;
@@ -230,7 +230,7 @@ export class SchedulesService {
         parent.studentParents.map(async (sp) => {
           const child = sp.student;
           const enrollment = child.enrollments[0];
-          let scheduleData: any = null;
+          let scheduleData: Awaited<ReturnType<SchedulesService['getCourseSchedule']>> | null = null;
           if (enrollment?.courseId) {
             scheduleData = await this.getCourseSchedule(enrollment.courseId);
           }

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
+import { RelationshipType, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../../../../common/database/prisma.service';
 import { StudentEntity } from '../../domain/entities/student.entity';
@@ -46,6 +46,9 @@ export class PrismaStudentRepository implements StudentRepository {
             where: { status: 'ACTIVE' },
             include: { course: true, academicYear: true },
           },
+          studentParents: {
+            include: { parent: true },
+          },
         },
       }),
       this.prisma.student.count({ where }),
@@ -70,14 +73,16 @@ export class PrismaStudentRepository implements StudentRepository {
       where,
       include: {
         enrollments: { include: { course: true, academicYear: true } },
+        studentParents: { include: { parent: true } },
       },
     });
     return student ? this.map(student) : null;
   }
 
   async create(data: StudentCreateData) {
+    const { parentId, relationship, ...studentFields } = data;
     const passwordHash = await bcrypt.hash('123456', 10);
-    const identifier = (data.ci || data.rude).toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+    const identifier = (studentFields.ci || studentFields.rude).toLowerCase().trim().replace(/[^a-z0-9]/g, '');
     const email = `estudiante.${identifier}@sigce.edu.bo`;
 
     const student = await this.prisma.$transaction(async (tx) => {
@@ -87,20 +92,46 @@ export class PrismaStudentRepository implements StudentRepository {
           data: {
             email,
             passwordHash,
-            firstName: data.firstName,
-            lastName: data.lastName,
+            firstName: studentFields.firstName,
+            lastName: studentFields.lastName,
             role: UserRole.PARENT,
           },
         });
       }
 
-      return tx.student.create({
+      const created = await tx.student.create({
         data: {
-          ...data,
+          ...studentFields,
           userId: user.id,
-          gender: data.gender as 'MALE' | 'FEMALE',
+          gender: studentFields.gender as 'MALE' | 'FEMALE',
         },
-        include: { enrollments: { include: { course: true, academicYear: true } } },
+      });
+
+      if (parentId) {
+        const parent = await tx.parent.findUnique({ where: { id: parentId } });
+        if (parent) {
+          const rel = (relationship && Object.values(RelationshipType).includes(relationship as RelationshipType))
+            ? (relationship as RelationshipType)
+            : RelationshipType.TUTOR;
+
+          await tx.studentParent.create({
+            data: {
+              studentId: created.id,
+              parentId: parent.id,
+              relationship: rel,
+              isPrimary: true,
+              canPickup: true,
+            },
+          });
+        }
+      }
+
+      return tx.student.findUniqueOrThrow({
+        where: { id: created.id },
+        include: {
+          enrollments: { include: { course: true, academicYear: true } },
+          studentParents: { include: { parent: true } },
+        },
       });
     });
 
@@ -109,14 +140,17 @@ export class PrismaStudentRepository implements StudentRepository {
 
   async update(id: string, data: StudentUpdateData) {
     try {
-      const { gender, ...fields } = data;
+      const { parentId: _parentId, relationship: _rel, gender, ...fields } = data;
       const student = await this.prisma.student.update({
         where: { id },
         data: {
           ...fields,
           ...(gender ? { gender: gender as 'MALE' | 'FEMALE' } : {}),
         },
-        include: { enrollments: { include: { course: true, academicYear: true } } },
+        include: {
+          enrollments: { include: { course: true, academicYear: true } },
+          studentParents: { include: { parent: true } },
+        },
       });
       return this.map(student);
     } catch {
@@ -132,13 +166,31 @@ export class PrismaStudentRepository implements StudentRepository {
     }
   }
 
-  private map(student: Awaited<ReturnType<PrismaService['student']['findFirst']>> & { enrollments?: unknown }): StudentEntity {
+  private map(
+    student: Awaited<ReturnType<PrismaService['student']['findFirst']>> & {
+      enrollments?: unknown;
+      studentParents?: unknown;
+    },
+  ): StudentEntity {
     const value = student as NonNullable<Awaited<ReturnType<PrismaService['student']['findFirst']>>> & {
       enrollments?: Array<{
         id: string;
         status: string;
         course: { id: string; name: string; gradeLevel: number; section: string };
         academicYear: { id: string; year: number; name: string };
+      }>;
+      studentParents?: Array<{
+        id: string;
+        relationship: string;
+        isPrimary: boolean;
+        canPickup: boolean;
+        parent: {
+          id: string;
+          ci: string;
+          firstName: string;
+          lastName: string;
+          phone: string;
+        };
       }>;
     };
     return {
@@ -155,6 +207,19 @@ export class PrismaStudentRepository implements StudentRepository {
       createdAt: value.createdAt,
       updatedAt: value.updatedAt,
       enrollments: value.enrollments ?? [],
+      parents: (value.studentParents ?? []).map((sp) => ({
+        id: sp.id,
+        relationship: sp.relationship,
+        isPrimary: sp.isPrimary,
+        canPickup: sp.canPickup,
+        parent: {
+          id: sp.parent.id,
+          ci: sp.parent.ci,
+          firstName: sp.parent.firstName,
+          lastName: sp.parent.lastName,
+          phone: sp.parent.phone,
+        },
+      })),
     };
   }
 }

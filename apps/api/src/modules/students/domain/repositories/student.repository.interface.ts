@@ -11,6 +11,8 @@ export interface StudentCreateData {
   gender: string;
   address?: string;
   phone?: string;
+  parentId?: string;
+  relationship?: string;
 }
 
 export type StudentUpdateData = Partial<StudentCreateData>;

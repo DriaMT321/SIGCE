@@ -17,4 +17,17 @@ export interface StudentEntity {
     course: { id: string; name: string; gradeLevel: number; section: string };
     academicYear: { id: string; year: number; name: string };
   }>;
+  parents?: Array<{
+    id: string;
+    relationship: string;
+    isPrimary: boolean;
+    canPickup: boolean;
+    parent: {
+      id: string;
+      ci: string;
+      firstName: string;
+      lastName: string;
+      phone: string;
+    };
+  }>;
 }

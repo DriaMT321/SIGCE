@@ -19,6 +19,19 @@ const studentSchema = z.object({
     course: z.object({ id: z.string(), name: z.string(), gradeLevel: z.number(), section: z.string() }),
     academicYear: z.object({ id: z.string(), year: z.number(), name: z.string() }),
   })),
+  parents: z.array(z.object({
+    id: z.string(),
+    relationship: z.string(),
+    isPrimary: z.boolean().optional(),
+    canPickup: z.boolean().optional(),
+    parent: z.object({
+      id: z.string(),
+      ci: z.string(),
+      firstName: z.string(),
+      lastName: z.string(),
+      phone: z.string().nullable().optional(),
+    }),
+  })).optional(),
 });
 
 const courseSchema = z.object({
@@ -104,6 +117,24 @@ const parentSchema = z.object({
 const listResponse = <T extends z.ZodTypeAny>(itemSchema: T) => z.object({ statusCode: z.number(), message: z.string(), data: z.array(itemSchema), total: z.number() });
 const dataResponse = <T extends z.ZodTypeAny>(itemSchema: T) => z.object({ statusCode: z.number(), message: z.string(), data: itemSchema });
 
+const assignmentSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  type: z.enum(['TAREA', 'EXAMEN', 'TRABAJO_PRACTICO', 'PROYECTO', 'CONTROL_LECTURA']),
+  description: z.string().nullable().optional(),
+  dueDate: z.string(),
+  maxScore: z.number().nullable().optional(),
+  status: z.enum(['PENDIENTE', 'EN_PROGRESO', 'FINALIZADO', 'CANCELADO']),
+  courseId: z.string(),
+  subjectId: z.string(),
+  teacherId: z.string(),
+  course: z.object({ id: z.string(), name: z.string(), gradeLevel: z.number(), section: z.string() }).optional(),
+  subject: z.object({ id: z.string(), code: z.string(), name: z.string() }).optional(),
+  teacher: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).optional(),
+  student: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).optional(),
+  createdAt: z.string().optional(),
+});
+
 export type Student = z.infer<typeof studentSchema>;
 export type Course = z.infer<typeof courseSchema>;
 export type Enrollment = z.infer<typeof enrollmentSchema>;
@@ -111,6 +142,7 @@ export type Grade = z.infer<typeof gradeSchema>;
 export type Attendance = z.infer<typeof attendanceSchema>;
 export type Teacher = z.infer<typeof teacherSchema>;
 export type Parent = z.infer<typeof parentSchema>;
+export type Assignment = z.infer<typeof assignmentSchema>;
 export type AcademicYear = { id: string; year: number; name: string; isActive: boolean; isClosed: boolean };
 export type Period = { id: string; name: string; number: number; academicYearId: string; isClosed: boolean };
 export type Subject = { id: string; code: string; name: string };
@@ -155,7 +187,7 @@ export interface MyScheduleChildItem {
   relationship?: string;
   course: Course | null;
   schedules: ClassScheduleItem[];
-  teacherSubjects: any[];
+  teacherSubjects: Record<string, unknown>[];
 }
 
 export interface MyScheduleData {
@@ -165,9 +197,9 @@ export interface MyScheduleData {
   children?: MyScheduleChildItem[];
   course?: Course | null;
   schedules: ClassScheduleItem[];
-  teacherSubjects?: any[];
+  teacherSubjects?: Record<string, unknown>[];
   teacher?: Teacher;
-  assignments?: any[];
+  assignments?: Record<string, unknown>[];
   message?: string;
 }
 
@@ -196,8 +228,8 @@ export const academicApi = {
     const response = await apiClient.post('/teachers', data);
     return dataResponse(teacherSchema).parse(response.data).data;
   },
-  async listParents(search?: string) {
-    const response = await apiClient.get('/parents', { params: { search, limit: 100 } });
+  async listParents(search?: string, limit = 100, offset = 0) {
+    const response = await apiClient.get('/parents', { params: { search, limit, offset } });
     return listResponse(parentSchema).parse(response.data);
   },
   async createParent(data: unknown) {
@@ -280,11 +312,11 @@ export const academicApi = {
   },
   async getCourseSchedule(courseId: string) {
     const response = await apiClient.get(`/schedules/course/${courseId}`);
-    return response.data as { statusCode: number; data: { course: Course; schedules: ClassScheduleItem[]; teacherSubjects: any[] } };
+    return response.data as { statusCode: number; data: { course: Course; schedules: ClassScheduleItem[]; teacherSubjects: Record<string, unknown>[] } };
   },
   async getTeacherSchedule(teacherId: string) {
     const response = await apiClient.get(`/schedules/teacher/${teacherId}`);
-    return response.data as { statusCode: number; data: { teacher: Teacher; schedules: ClassScheduleItem[]; assignments: any[] } };
+    return response.data as { statusCode: number; data: { teacher: Teacher; schedules: ClassScheduleItem[]; assignments: Record<string, unknown>[] } };
   },
 
   // Avance Curricular
@@ -331,11 +363,36 @@ export const academicApi = {
   },
   async createUser(data: unknown) {
     const response = await apiClient.post('/users', data);
-    return response.data as { statusCode: number; message: string; data: any };
+    return response.data as { statusCode: number; message: string; data: Record<string, unknown> };
   },
   async updateUser(id: string, data: unknown) {
     const response = await apiClient.patch(`/users/${id}`, data);
-    return response.data as { statusCode: number; message: string; data: any };
+    return response.data as { statusCode: number; message: string; data: Record<string, unknown> };
+  },
+
+  // Tareas y Exámenes (Assignments)
+  async listAssignments(params?: {
+    courseId?: string;
+    subjectId?: string;
+    teacherId?: string;
+    type?: string;
+    status?: string;
+    search?: string;
+  }) {
+    const response = await apiClient.get('/assignments', { params });
+    return listResponse(assignmentSchema).parse(response.data);
+  },
+  async createAssignment(data: unknown) {
+    const response = await apiClient.post('/assignments', data);
+    return dataResponse(assignmentSchema).parse(response.data).data;
+  },
+  async updateAssignment(id: string, data: unknown) {
+    const response = await apiClient.patch(`/assignments/${id}`, data);
+    return dataResponse(assignmentSchema).parse(response.data).data;
+  },
+  async deleteAssignment(id: string) {
+    const response = await apiClient.delete(`/assignments/${id}`);
+    return response.data as { statusCode: number; message: string };
   },
 };
 

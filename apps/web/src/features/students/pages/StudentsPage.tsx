@@ -28,6 +28,8 @@ const studentFormSchema = z.object({
   birthDate: z.string().min(1, 'La fecha de nacimiento es obligatoria'),
   gender: z.enum(['MALE', 'FEMALE']),
   phone: z.string().optional(),
+  parentId: z.string().optional(),
+  relationship: z.enum(['FATHER', 'MOTHER', 'GUARDIAN', 'TUTOR', 'OTHER']).optional(),
 });
 
 type StudentFormData = z.infer<typeof studentFormSchema>;
@@ -48,6 +50,12 @@ export const StudentsPage = () => {
     queryFn: () => academicApi.listStudents(search, pageSize, (page - 1) * pageSize),
   });
 
+  const parentsQuery = useQuery({
+    queryKey: ['parents', 'lookup-options'],
+    queryFn: () => academicApi.listParents(undefined, 300),
+    enabled: canManage,
+  });
+
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentFormSchema),
     defaultValues: {
@@ -58,6 +66,8 @@ export const StudentsPage = () => {
       birthDate: '',
       gender: 'MALE',
       phone: '',
+      parentId: '',
+      relationship: 'TUTOR',
     },
   });
 
@@ -67,6 +77,7 @@ export const StudentsPage = () => {
       form.reset();
       setShowForm(false);
       void queryClient.invalidateQueries({ queryKey: ['students'] });
+      void queryClient.invalidateQueries({ queryKey: ['parents'] });
     },
   });
 
@@ -103,10 +114,35 @@ export const StudentsPage = () => {
 
       {/* Form - Simplified */}
       {showForm && canManage && (
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h2 className="text-sm font-semibold text-slate-900 mb-4">Registrar Estudiante</h2>
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-5">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-base font-semibold text-slate-900">Registrar Estudiante</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Complete los datos del alumno y, opcionalmente, vincúlelo a un familiar o tutor registrado.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              title="Cerrar formulario"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-          <form onSubmit={form.handleSubmit((data) => createMutation.mutate(data))} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit((data) => {
+              const payload = {
+                ...data,
+                parentId: data.parentId && data.parentId.trim() !== '' ? data.parentId : undefined,
+                relationship: data.parentId && data.parentId.trim() !== '' ? data.relationship || 'TUTOR' : undefined,
+              };
+              createMutation.mutate(payload);
+            })}
+            className="space-y-5"
+          >
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Field label="Código RUDE" error={form.formState.errors.rude?.message}>
                 <Input {...form.register('rude')} placeholder="819811912026..." className="font-mono text-sm" />
@@ -138,20 +174,82 @@ export const StudentsPage = () => {
                 </select>
               </Field>
 
-              <Field label="Teléfono" error={form.formState.errors.phone?.message}>
+              <Field label="Teléfono de Contacto" error={form.formState.errors.phone?.message}>
                 <Input {...form.register('phone')} placeholder="Opcional" />
               </Field>
+            </div>
 
-              <div className="flex items-end">
-                <Button
-                  disabled={createMutation.isPending}
-                  type="submit"
-                  className="w-full h-10 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium gap-2"
-                >
-                  {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Guardar
-                </Button>
+            {/* Parent Association Section */}
+            <div className="pt-2">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-brand-600" />
+                    <span className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
+                      Emparentar con Familiar / Tutor
+                    </span>
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 font-medium">
+                      Opcional
+                    </span>
+                  </div>
+                  <span className="text-xs text-slate-500">
+                    {parentsQuery.isLoading ? 'Cargando familiares...' : `${parentsQuery.data?.data?.length ?? 0} familiares disponibles`}
+                  </span>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+                  <Field label="Familiar / Tutor Registrado" error={form.formState.errors.parentId?.message}>
+                    <select
+                      {...form.register('parentId')}
+                      className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                    >
+                      <option value="">-- Sin vincular (registrar sin familiar por ahora) --</option>
+                      {(parentsQuery.data?.data ?? []).map((parent) => (
+                        <option key={parent.id} value={parent.id}>
+                          {parent.lastName} {parent.firstName} — C.I.: {parent.ci} {parent.phone ? `(${parent.phone})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field label="Parentesco con el Estudiante" error={form.formState.errors.relationship?.message}>
+                    <select
+                      {...form.register('relationship')}
+                      disabled={!form.watch('parentId')}
+                      className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 disabled:opacity-50 disabled:bg-slate-100"
+                    >
+                      <option value="TUTOR">Tutor / Apoderado General</option>
+                      <option value="PADRE">Padre</option>
+                      <option value="MADRE">Madre</option>
+                      <option value="GUARDIAN">Tutor Legal / Apoderado</option>
+                      <option value="OTHER">Otro Familiar</option>
+                    </select>
+                  </Field>
+                </div>
+
+                <p className="text-xs text-slate-500">
+                  Al asociar un familiar, este podrá consultar en tiempo real las calificaciones, el horario y la asistencia de su hijo desde su cuenta de familiar.
+                </p>
               </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowForm(false)}
+                className="h-10 text-sm"
+              >
+                Cancelar
+              </Button>
+              <Button
+                disabled={createMutation.isPending}
+                type="submit"
+                className="h-10 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium gap-2 px-6"
+              >
+                {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                Guardar Estudiante
+              </Button>
             </div>
 
             {createMutation.isError && (
@@ -227,13 +325,14 @@ export const StudentsPage = () => {
                     <th className="px-3 py-3">RUDE</th>
                     <th className="px-3 py-3">C.I.</th>
                     <th className="px-3 py-3">Curso</th>
+                    <th className="px-3 py-3">Familiar / Tutor</th>
                     <th className="py-3 pl-3 pr-5 text-right">Estado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {students.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-16 text-center text-slate-500">
+                      <td colSpan={6} className="py-16 text-center text-slate-500">
                         <div className="flex flex-col items-center gap-2">
                           <Users className="w-8 h-8 text-slate-300" />
                           <p className="font-medium text-slate-700">No se encontraron estudiantes</p>
@@ -291,6 +390,29 @@ export const StudentsPage = () => {
                               </span>
                             ) : (
                               <span className="text-xs text-slate-400">Sin matrícula</span>
+                            )}
+                          </td>
+
+                          <td className="px-3 py-3">
+                            {student.parents && student.parents.length > 0 ? (
+                              <div>
+                                <p className="font-medium text-slate-800 text-xs">
+                                  {student.parents[0].parent.lastName} {student.parents[0].parent.firstName}
+                                </p>
+                                <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                                  {student.parents[0].relationship === 'FATHER' || student.parents[0].relationship === 'PADRE'
+                                    ? 'Padre'
+                                    : student.parents[0].relationship === 'MOTHER' || student.parents[0].relationship === 'MADRE'
+                                    ? 'Madre'
+                                    : student.parents[0].relationship === 'GUARDIAN'
+                                    ? 'Apoderado'
+                                    : student.parents[0].relationship === 'TUTOR'
+                                    ? 'Tutor'
+                                    : 'Familiar'}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-400 italic">Sin vincular</span>
                             )}
                           </td>
 

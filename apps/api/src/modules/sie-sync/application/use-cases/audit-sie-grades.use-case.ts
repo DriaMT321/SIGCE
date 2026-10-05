@@ -256,8 +256,9 @@ export class AuditSieGradesUseCase {
       // 4. Procesar cursos
       for (const courseItem of coursesToAudit) {
         await page.evaluate((infoUe) => {
-          if (typeof (window as any).seeStudents === 'function') {
-            (window as any).seeStudents(infoUe);
+          const win = window as unknown as { seeStudents?: (arg: unknown) => void };
+          if (typeof win.seeStudents === 'function') {
+            win.seeStudents(infoUe);
           }
         }, courseItem.infoUe);
 

@@ -127,8 +127,6 @@ export const SchedulesPage: React.FC = () => {
     scheduleMatrix.set(`${s.dayOfWeek}_${s.periodIndex}`, s);
   }
 
-  const selectedTeacher = teachers.find((t) => t.id === selectedTeacherId);
-
   const inicialCourses = courses.filter((c) => c.gradeLevel <= 4);
   const primariaCourses = courses.filter((c) => c.gradeLevel >= 5 && c.gradeLevel <= 10);
   const secundariaCourses = courses.filter((c) => c.gradeLevel >= 11);
