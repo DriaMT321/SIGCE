@@ -5,6 +5,7 @@ export interface IAuditLogRepository {
   findAll(params?: {
     entity?: string;
     userId?: string;
+    correlationId?: string;
     limit?: number;
     offset?: number;
   }): Promise<{ items: AuditLogEntity[]; total: number }>;

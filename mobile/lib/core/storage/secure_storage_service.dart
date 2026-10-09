@@ -31,6 +31,21 @@ class SecureStorageService {
     return await _storage.read(key: _userDataKey);
   }
 
+  Future<void> saveCache(String key, String jsonString) async {
+    await _storage.write(key: 'cache_$key', value: jsonString);
+    await _storage.write(key: 'cache_time_$key', value: DateTime.now().toIso8601String());
+  }
+
+  Future<String?> getCache(String key) async {
+    return await _storage.read(key: 'cache_$key');
+  }
+
+  Future<DateTime?> getCacheTimestamp(String key) async {
+    final str = await _storage.read(key: 'cache_time_$key');
+    if (str == null) return null;
+    return DateTime.tryParse(str);
+  }
+
   Future<void> clearAll() async {
     await _storage.deleteAll();
   }

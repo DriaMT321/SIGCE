@@ -26,6 +26,8 @@ interface AuditLog {
   entity: string;
   entityId: string;
   userId: string | null;
+  reason?: string | null;
+  correlationId?: string | null;
   previousValue: unknown | null;
   newValue: unknown | null;
   createdAt: string;
@@ -40,7 +42,7 @@ export const AuditPage: React.FC = () => {
 
   const auditQuery = useQuery({
     queryKey: ['audit'],
-    queryFn: academicApi.listAudit,
+    queryFn: () => academicApi.listAudit(),
     refetchInterval: 30000,
   });
 
@@ -95,7 +97,7 @@ export const AuditPage: React.FC = () => {
   const handleExportCSV = () => {
     if (!logs.length) return;
 
-    const headers = ['ID', 'Fecha_Hora', 'Accion', 'Entidad', 'Entidad_ID', 'Usuario_ID', 'Valor_Anterior', 'Nuevo_Valor'];
+    const headers = ['ID', 'Fecha_Hora', 'Accion', 'Entidad', 'Entidad_ID', 'Usuario_ID', 'Motivo', 'Correlation_ID', 'Valor_Anterior', 'Nuevo_Valor'];
     const rows = filteredLogs.map((l) => [
       `"${l.id}"`,
       `"${new Date(l.createdAt).toISOString()}"`,
@@ -103,6 +105,8 @@ export const AuditPage: React.FC = () => {
       `"${l.entity}"`,
       `"${l.entityId}"`,
       `"${l.userId ?? 'SYSTEM'}"`,
+      `"${(l.reason ?? '').replace(/"/g, '""')}"`,
+      `"${(l.correlationId ?? '').replace(/"/g, '""')}"`,
       `"${JSON.stringify(l.previousValue ?? '').replace(/"/g, '""')}"`,
       `"${JSON.stringify(l.newValue ?? '').replace(/"/g, '""')}"`,
     ]);
@@ -402,13 +406,25 @@ export const AuditPage: React.FC = () => {
                       </td>
 
                       <td className="px-5 py-4 max-w-xs">
-                        <div className="text-xs text-slate-600 truncate font-mono bg-slate-50 rounded-md px-2 py-1 border border-slate-100">
-                          {log.newValue ? (
-                            JSON.stringify(log.newValue)
-                          ) : log.previousValue ? (
-                            <span className="text-rose-600">Eliminado: {JSON.stringify(log.previousValue)}</span>
-                          ) : (
-                            <span className="text-slate-400">—</span>
+                        <div className="space-y-1">
+                          {log.reason && (
+                            <div className="text-xs text-amber-700 bg-amber-50 rounded px-1.5 py-0.5 font-medium truncate border border-amber-200" title={log.reason}>
+                              Motivo: {log.reason}
+                            </div>
+                          )}
+                          <div className="text-xs text-slate-600 truncate font-mono bg-slate-50 rounded-md px-2 py-1 border border-slate-100">
+                            {log.newValue ? (
+                              JSON.stringify(log.newValue)
+                            ) : log.previousValue ? (
+                              <span className="text-rose-600">Eliminado: {JSON.stringify(log.previousValue)}</span>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </div>
+                          {log.correlationId && (
+                            <span className="inline-block text-[10px] font-mono text-slate-400 truncate max-w-[150px]" title={`CID: ${log.correlationId}`}>
+                              CID: {log.correlationId.slice(0, 8)}...
+                            </span>
                           )}
                         </div>
                       </td>
@@ -512,6 +528,31 @@ export const AuditPage: React.FC = () => {
                   </span>
                 </div>
               </div>
+
+              {selectedLog.reason && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 text-xs text-amber-900">
+                  <span className="font-bold block uppercase tracking-wide text-amber-800 mb-0.5">
+                    Motivo / Justificación Registrada:
+                  </span>
+                  <p className="leading-relaxed font-medium">{selectedLog.reason}</p>
+                </div>
+              )}
+
+              {selectedLog.correlationId && (
+                <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs">
+                  <span className="text-slate-500 font-medium">Correlation ID (Trazabilidad):</span>
+                  <div className="flex items-center gap-2 font-mono text-slate-700">
+                    <span>{selectedLog.correlationId}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(selectedLog.correlationId!, 'cid')}
+                      className="text-slate-400 hover:text-slate-600"
+                    >
+                      {copiedId === 'cid' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">

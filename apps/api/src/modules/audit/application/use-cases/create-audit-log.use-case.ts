@@ -15,6 +15,8 @@ export interface CreateAuditLogDto {
   newValue?: Record<string, unknown> | null;
   ipAddress?: string | null;
   userAgent?: string | null;
+  reason?: string | null;
+  correlationId?: string | null;
 }
 
 @Injectable()

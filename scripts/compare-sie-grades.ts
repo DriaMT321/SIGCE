@@ -28,8 +28,8 @@ export async function runGradeComparison(maxCourses = 5) {
   console.log('  MODO ESTRICTO: SOLO LECTURA (PROHIBIDO MODIFICAR NOTAS)');
   console.log('========================================================================\n');
 
-  const username = process.env.SIE_USERNAME || '2967609';
-  const password = process.env.SIE_PASSWORD || 'Olaa@mar123*';
+  const username = process.env.SIE_USERNAME || '';
+  const password = process.env.SIE_PASSWORD || '';
   const sieUrl = process.env.SIE_BASE_URL || 'https://academico.sie.gob.bo';
 
   const executablePath = getExecutablePath();

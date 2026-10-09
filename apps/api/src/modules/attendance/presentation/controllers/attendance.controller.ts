@@ -27,13 +27,13 @@ export class AttendanceController {
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
   @Permissions('attendance:create')
   async create(@Body() dto: CreateAttendanceDto, @CurrentUser() user: AuthenticatedUser, @Req() req: Request) {
-    return { statusCode: 201, message: 'Asistencia registrada exitosamente', data: await this.createAttendance.execute(dto, user.id, req.ip) };
+    return { statusCode: 201, message: 'Asistencia registrada exitosamente', data: await this.createAttendance.execute(dto, user.id, req.ip, user.role) };
   }
 
   @Patch(':id')
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
   @Permissions('attendance:update')
   async update(@Param('id') id: string, @Body() dto: UpdateAttendanceDto, @CurrentUser() user: AuthenticatedUser, @Req() req: Request) {
-    return { statusCode: 200, message: 'Asistencia actualizada exitosamente', data: await this.updateAttendance.execute(id, dto, user.id, req.ip) };
+    return { statusCode: 200, message: 'Asistencia actualizada exitosamente', data: await this.updateAttendance.execute(id, dto, user.id, req.ip, user.role) };
   }
 }

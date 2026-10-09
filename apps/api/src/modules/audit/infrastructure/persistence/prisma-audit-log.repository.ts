@@ -17,6 +17,8 @@ export class PrismaAuditLogRepository implements IAuditLogRepository {
         entityId: log.entityId,
         previousValue: (log.previousValue as Prisma.InputJsonValue) ?? Prisma.JsonNull,
         newValue: (log.newValue as Prisma.InputJsonValue) ?? Prisma.JsonNull,
+        reason: log.reason,
+        correlationId: log.correlationId,
         ipAddress: log.ipAddress,
         userAgent: log.userAgent,
       },
@@ -33,18 +35,22 @@ export class PrismaAuditLogRepository implements IAuditLogRepository {
       created.ipAddress,
       created.userAgent,
       created.createdAt,
+      created.reason,
+      created.correlationId,
     );
   }
 
   async findAll(params?: {
     entity?: string;
     userId?: string;
+    correlationId?: string;
     limit?: number;
     offset?: number;
   }): Promise<{ items: AuditLogEntity[]; total: number }> {
     const where: Prisma.AuditLogWhereInput = {};
     if (params?.entity) where.entity = params.entity;
     if (params?.userId) where.userId = params.userId;
+    if (params?.correlationId) where.correlationId = params.correlationId;
 
     const [rawItems, total] = await Promise.all([
       this.prisma.auditLog.findMany({
@@ -69,6 +75,8 @@ export class PrismaAuditLogRepository implements IAuditLogRepository {
           item.ipAddress,
           item.userAgent,
           item.createdAt,
+          item.reason,
+          item.correlationId,
         ),
     );
 
@@ -93,6 +101,8 @@ export class PrismaAuditLogRepository implements IAuditLogRepository {
       item.ipAddress,
       item.userAgent,
       item.createdAt,
+      item.reason,
+      item.correlationId,
     );
   }
 }

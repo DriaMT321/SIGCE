@@ -12,7 +12,7 @@ class GradesScreen extends StatefulWidget {
 }
 
 class _GradesScreenState extends State<GradesScreen> {
-  late Future<List<GradeSummary>> _gradesFuture;
+  late Future<CachedResult<List<GradeSummary>>> _gradesFuture;
 
   @override
   void initState() {
@@ -21,21 +21,74 @@ class _GradesScreenState extends State<GradesScreen> {
   }
 
   void _loadGrades() {
-    _gradesFuture = AcademicRepository(ApiClient(SecureStorageService())).getGrades();
+    _gradesFuture = AcademicRepository(ApiClient(SecureStorageService())).getGradesWithCache();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Boletín de calificaciones')),
-      body: FutureBuilder<List<GradeSummary>>(
+      body: FutureBuilder<CachedResult<List<GradeSummary>>>(
         future: _gradesFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-          if (snapshot.hasError) return Center(child: ElevatedButton(onPressed: () => setState(_loadGrades), child: const Text('Reintentar')));
-          final grades = snapshot.data ?? [];
-          if (grades.isEmpty) return const Center(child: Text('No hay calificaciones registradas.', style: TextStyle(color: Colors.white70)));
-          return ListView.separated(padding: const EdgeInsets.all(16), itemCount: grades.length, separatorBuilder: (_, __) => const SizedBox(height: 12), itemBuilder: (_, index) => _buildGrade(grades[index]));
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: ElevatedButton(
+                onPressed: () => setState(_loadGrades),
+                child: const Text('Reintentar'),
+              ),
+            );
+          }
+          final result = snapshot.data;
+          final grades = result?.data ?? [];
+          final isOffline = result?.isOffline ?? false;
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(_loadGrades);
+              await _gradesFuture;
+            },
+            child: Column(
+              children: [
+                if (isOffline)
+                  Container(
+                    width: double.infinity,
+                    color: const Color(0xFF78350F),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.cloud_off, size: 16, color: Color(0xFFFDE68A)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Modo sin conexión · ${result?.formattedUpdatedDate ?? "Caché local"}',
+                            style: const TextStyle(fontSize: 12, color: Color(0xFFFDE68A), fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                Expanded(
+                  child: grades.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'No hay calificaciones registradas.',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: grades.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (_, index) => _buildGrade(grades[index]),
+                        ),
+                ),
+              ],
+            ),
+          );
         },
       ),
     );

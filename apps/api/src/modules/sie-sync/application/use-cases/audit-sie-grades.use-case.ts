@@ -138,12 +138,12 @@ export class AuditSieGradesUseCase {
       options?.username?.trim() ||
       this.configService.get<string>('sie.username') ||
       process.env.SIE_USERNAME ||
-      '2967609';
+      '';
     const password =
       options?.password?.trim() ||
       this.configService.get<string>('sie.password') ||
       process.env.SIE_PASSWORD ||
-      'Olaa@mar123*';
+      '';
 
     const visualMode = options?.visualMode === true;
     const maxCourses = options?.maxCourses || 4;

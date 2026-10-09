@@ -18,4 +18,5 @@ export interface GradeRepository {
   findById(id: string): Promise<GradeEntity | null>;
   create(data: GradeCreateData): Promise<GradeEntity>;
   update(id: string, data: GradeUpdateData): Promise<GradeEntity>;
+  upsertBulk(grades: GradeCreateData[]): Promise<GradeEntity[]>;
 }

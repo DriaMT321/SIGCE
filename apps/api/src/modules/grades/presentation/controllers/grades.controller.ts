@@ -7,13 +7,23 @@ import { Roles } from '../../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
 import { RolesGuard } from '../../../../common/guards/roles.guard';
-import { CreateGradeDto, UpdateGradeDto } from '../../application/dto/grade.dto';
-import { CreateGradeUseCase, ListGradesUseCase, UpdateGradeUseCase } from '../../application/use-cases/grade.use-cases';
+import { CreateGradeDto, UpdateGradeDto, CreateBulkGradesDto } from '../../application/dto/grade.dto';
+import {
+  CreateGradeUseCase,
+  ListGradesUseCase,
+  UpdateGradeUseCase,
+  CreateBulkGradesUseCase,
+} from '../../application/use-cases/grade.use-cases';
 
 @Controller('grades')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class GradesController {
-  constructor(private readonly listGrades: ListGradesUseCase, private readonly createGrade: CreateGradeUseCase, private readonly updateGrade: UpdateGradeUseCase) {}
+  constructor(
+    private readonly listGrades: ListGradesUseCase,
+    private readonly createGrade: CreateGradeUseCase,
+    private readonly updateGrade: UpdateGradeUseCase,
+    private readonly createBulkGrades: CreateBulkGradesUseCase,
+  ) {}
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER, UserRole.PARENT)
@@ -27,13 +37,21 @@ export class GradesController {
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
   @Permissions('grades:create')
   async create(@Body() dto: CreateGradeDto, @CurrentUser() user: AuthenticatedUser, @Req() req: Request) {
-    return { statusCode: 201, message: 'Calificación registrada exitosamente', data: await this.createGrade.execute(dto, user.id, req.ip) };
+    return { statusCode: 201, message: 'Calificación registrada exitosamente', data: await this.createGrade.execute(dto, user.id, req.ip, user.role) };
+  }
+
+  @Post('bulk')
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
+  @Permissions('grades:create')
+  async createBulk(@Body() dto: CreateBulkGradesDto, @CurrentUser() user: AuthenticatedUser, @Req() req: Request) {
+    const result = await this.createBulkGrades.execute(dto, user.id, req.ip, user.role);
+    return { statusCode: 201, message: 'Calificaciones registradas exitosamente en bloque', data: result };
   }
 
   @Patch(':id')
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
   @Permissions('grades:update')
   async update(@Param('id') id: string, @Body() dto: UpdateGradeDto, @CurrentUser() user: AuthenticatedUser, @Req() req: Request) {
-    return { statusCode: 200, message: 'Calificación actualizada exitosamente', data: await this.updateGrade.execute(id, dto, user.id, req.ip) };
+    return { statusCode: 200, message: 'Calificación actualizada exitosamente', data: await this.updateGrade.execute(id, dto, user.id, req.ip, user.role) };
   }
 }

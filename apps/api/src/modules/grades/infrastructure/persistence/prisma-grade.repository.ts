@@ -49,6 +49,36 @@ export class PrismaGradeRepository implements GradeRepository {
     }
   }
 
+  async upsertBulk(grades: GradeCreateData[]) {
+    const results = await this.prisma.$transaction(
+      grades.map((g) =>
+        this.prisma.grade.upsert({
+          where: {
+            studentId_subjectId_periodId: {
+              studentId: g.studentId,
+              subjectId: g.subjectId,
+              periodId: g.periodId,
+            },
+          },
+          create: {
+            enrollmentId: g.enrollmentId,
+            studentId: g.studentId,
+            subjectId: g.subjectId,
+            periodId: g.periodId,
+            value: g.value,
+            remarks: g.remarks,
+          },
+          update: {
+            value: g.value,
+            remarks: g.remarks,
+          },
+          include: { student: true, subject: true, period: true },
+        }),
+      ),
+    );
+    return results.map((item) => this.map(item));
+  }
+
   private map(item: Awaited<ReturnType<PrismaService['grade']['findUnique']>> & { student?: unknown; subject?: unknown; period?: unknown }): GradeEntity {
     const value = item as NonNullable<Awaited<ReturnType<PrismaService['grade']['findUnique']>>> & {
       student: { id: string; rude: string; firstName: string; lastName: string };

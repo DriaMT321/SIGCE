@@ -15,6 +15,7 @@ export class GetAuditLogsUseCase {
   async execute(params?: {
     entity?: string;
     userId?: string;
+    correlationId?: string;
     limit?: number;
     offset?: number;
   }): Promise<{ items: AuditLogEntity[]; total: number }> {

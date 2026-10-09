@@ -244,6 +244,10 @@ export const academicApi = {
     const response = await apiClient.get('/periods', { params: { academicYearId } });
     return z.object({ data: z.array(periodSchema) }).parse(response.data).data;
   },
+  async updatePeriod(id: string, data: { name?: string; isClosed?: boolean; startDate?: string; endDate?: string }) {
+    const response = await apiClient.patch(`/periods/${id}`, data);
+    return response.data as { statusCode: number; message: string; data: Period };
+  },
   async listSubjects(search?: string) {
     const response = await apiClient.get('/subjects', { params: { search } });
     return z.object({ data: z.array(subjectSchema) }).parse(response.data).data;
@@ -268,6 +272,16 @@ export const academicApi = {
     const response = await apiClient.post('/grades', data);
     return dataResponse(gradeSchema).parse(response.data).data;
   },
+  async createBulkGrades(data: {
+    courseId: string;
+    subjectId: string;
+    periodId: string;
+    grades: Array<{ studentId: string; enrollmentId: string; value: number; remarks?: string }>;
+    reason?: string;
+  }) {
+    const response = await apiClient.post('/grades/bulk', data);
+    return response.data as { statusCode: number; message: string; data: { count: number; items: Grade[] } };
+  },
   async updateGrade(id: string, data: unknown) {
     const response = await apiClient.patch(`/grades/${id}`, data);
     return dataResponse(gradeSchema).parse(response.data).data;
@@ -280,17 +294,46 @@ export const academicApi = {
     const response = await apiClient.post('/attendance', data);
     return dataResponse(attendanceSchema).parse(response.data).data;
   },
-  async listAlerts() {
-    const response = await apiClient.get('/alerts', { params: { limit: 100 } });
-    return z.object({ data: z.array(z.object({ id: z.string(), title: z.string(), message: z.string(), severity: z.string(), isRead: z.boolean(), createdAt: z.string() })), total: z.number() }).parse(response.data);
+  async listAlerts(params?: { status?: string }) {
+    const response = await apiClient.get('/alerts', { params: { limit: 100, ...params } });
+    return z.object({
+      data: z.array(z.object({
+        id: z.string(),
+        title: z.string(),
+        message: z.string(),
+        severity: z.string(),
+        status: z.string().optional(),
+        isRead: z.boolean(),
+        createdAt: z.string(),
+      })),
+      total: z.number(),
+    }).parse(response.data);
   },
   async markAlertRead(id: string) {
     const response = await apiClient.patch(`/alerts/${id}/read`);
     return z.object({ data: z.object({ id: z.string(), isRead: z.boolean() }) }).parse(response.data).data;
   },
-  async listAudit() {
-    const response = await apiClient.get('/audit', { params: { limit: 100 } });
-    return z.object({ data: z.array(z.object({ id: z.string(), action: z.string(), entity: z.string(), entityId: z.string(), userId: z.string().nullable(), previousValue: z.unknown().nullable(), newValue: z.unknown().nullable(), createdAt: z.string() })), total: z.number() }).parse(response.data);
+  async updateAlertStatus(id: string, status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED') {
+    const response = await apiClient.patch(`/alerts/${id}/status`, { status });
+    return z.object({ data: z.object({ id: z.string(), status: z.string() }) }).parse(response.data).data;
+  },
+  async listAudit(params?: { correlationId?: string; entity?: string }) {
+    const response = await apiClient.get('/audit', { params: { limit: 100, ...params } });
+    return z.object({
+      data: z.array(z.object({
+        id: z.string(),
+        action: z.string(),
+        entity: z.string(),
+        entityId: z.string(),
+        userId: z.string().nullable(),
+        reason: z.string().nullable().optional(),
+        correlationId: z.string().nullable().optional(),
+        previousValue: z.unknown().nullable(),
+        newValue: z.unknown().nullable(),
+        createdAt: z.string(),
+      })),
+      total: z.number(),
+    }).parse(response.data);
   },
   async listSieSynchronizations() {
     const response = await apiClient.get('/sie-sync', { params: { limit: 20 } });

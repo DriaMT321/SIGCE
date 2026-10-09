@@ -87,8 +87,8 @@ export function SieSyncDashboardPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'audit' | 'queue'>('audit');
 
-  const [sieUsername, setSieUsername] = useState('2967609');
-  const [siePassword, setSiePassword] = useState('Olaa@mar123*');
+  const [sieUsername, setSieUsername] = useState('');
+  const [siePassword, setSiePassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [visualMode, setVisualMode] = useState(true);
   const [courseFilter, setCourseFilter] = useState('Quinto');
@@ -288,7 +288,7 @@ export function SieSyncDashboardPage() {
             type="button"
             size="sm"
             onClick={() => executeAuditMutation.mutate()}
-            disabled={isAuditing || !sieUsername.trim() || !siePassword.trim()}
+            disabled={isAuditing}
             className="gap-1.5 text-sm bg-brand-600 hover:bg-brand-700"
           >
             <RefreshCw className={`w-4 h-4 ${isAuditing ? 'animate-spin' : ''}`} />
@@ -376,7 +376,7 @@ export function SieSyncDashboardPage() {
                     type="text"
                     value={sieUsername}
                     onChange={(e) => setSieUsername(e.target.value)}
-                    placeholder="2967609"
+                    placeholder="Por defecto en servidor (.env)"
                     className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm font-mono font-medium text-slate-900 focus:border-slate-400 focus:bg-white focus:outline-none"
                   />
                 </div>
@@ -390,7 +390,7 @@ export function SieSyncDashboardPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={siePassword}
                     onChange={(e) => setSiePassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder="Por defecto en servidor (.env)"
                     className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-9 text-sm font-mono font-medium text-slate-900 focus:border-slate-400 focus:bg-white focus:outline-none"
                   />
                   <button

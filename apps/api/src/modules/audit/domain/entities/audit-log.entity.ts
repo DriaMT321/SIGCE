@@ -12,6 +12,8 @@ export class AuditLogEntity {
     public readonly ipAddress: string | null,
     public readonly userAgent: string | null,
     public readonly createdAt: Date,
+    public readonly reason: string | null = null,
+    public readonly correlationId: string | null = null,
   ) {}
 
   static create(params: {
@@ -23,6 +25,8 @@ export class AuditLogEntity {
     newValue?: Record<string, unknown> | null;
     ipAddress?: string | null;
     userAgent?: string | null;
+    reason?: string | null;
+    correlationId?: string | null;
   }): AuditLogEntity {
     return new AuditLogEntity(
       '',
@@ -35,6 +39,8 @@ export class AuditLogEntity {
       params.ipAddress ?? null,
       params.userAgent ?? null,
       new Date(),
+      params.reason ?? null,
+      params.correlationId ?? null,
     );
   }
 }

@@ -4,6 +4,7 @@ export interface AlertEntity {
   title: string;
   message: string;
   severity: string;
+  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
   isRead: boolean;
   link: string | null;
   metadata: unknown;

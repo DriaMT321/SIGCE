@@ -18,12 +18,14 @@ export class AuditController {
   async getAuditLogs(
     @Query('entity') entity?: string,
     @Query('userId') userId?: string,
+    @Query('correlationId') correlationId?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
     const data = await this.getAuditLogsUseCase.execute({
       entity,
       userId,
+      correlationId,
       limit: limit ? parseInt(limit, 10) : 50,
       offset: offset ? parseInt(offset, 10) : 0,
     });
