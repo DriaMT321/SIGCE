@@ -15,6 +15,7 @@ import { CurriculumPage } from '../features/curriculum/pages/CurriculumPage';
 import { AssignmentsPage } from '../features/assignments/pages/AssignmentsPage';
 import { CommunityPage } from '../features/community/pages/CommunityPage';
 import { AlertsPage } from '../features/alerts/pages/AlertsPage';
+import { AnnouncementsPage } from '../features/announcements/pages/AnnouncementsPage';
 import { UsersPage } from '../features/users/pages/UsersPage';
 
 export const router = createBrowserRouter([
@@ -69,6 +70,10 @@ export const router = createBrowserRouter([
       {
         path: 'alerts',
         element: <AlertsPage />,
+      },
+      {
+        path: 'announcements',
+        element: <AnnouncementsPage />,
       },
       {
         path: 'grades',

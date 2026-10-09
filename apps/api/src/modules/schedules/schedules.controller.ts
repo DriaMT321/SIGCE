@@ -67,6 +67,41 @@ export class SchedulesController {
     };
   }
 
+  @Post('upsert')
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY)
+  async upsert(
+    @Body()
+    body: {
+      courseId: string;
+      subjectId: string;
+      teacherId: string;
+      academicYearId?: string;
+      dayOfWeek: DayOfWeek;
+      startTime: string;
+      endTime: string;
+      periodIndex: number;
+      classroom?: string;
+    },
+  ) {
+    const data = await this.schedulesService.upsert(body);
+    return {
+      statusCode: 200,
+      message: 'Sesión de horario asignada exitosamente',
+      data,
+    };
+  }
+
+  @Post('generate-auto/:courseId')
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
+  async generateAuto(@Param('courseId') courseId: string) {
+    const result = await this.schedulesService.generateAuto(courseId);
+    return {
+      statusCode: 200,
+      message: result.message,
+      data: result,
+    };
+  }
+
   @Post()
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
   async create(
@@ -92,7 +127,7 @@ export class SchedulesController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY)
   async delete(@Param('id') id: string) {
     await this.schedulesService.delete(id);
     return {

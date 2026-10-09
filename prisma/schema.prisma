@@ -50,6 +50,22 @@ enum AlertStatus {
   RESOLVED
 }
 
+enum AnnouncementUrgency {
+  BAJA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+enum AnnouncementScope {
+  COURSE
+  ALL_COURSES
+  PARENT
+  ALL_PARENTS
+  TEACHER
+  ALL_TEACHERS
+}
+
 enum SieSyncStatus {
   PENDING
   QUEUED
@@ -143,6 +159,7 @@ model User {
   teacher             Teacher?
   requestedSyncs      SieSynchronization[] @relation("UserRequestedSyncs")
   registeredAttendances Attendance[]       @relation("UserRegisteredAttendances")
+  createdAnnouncements Announcement[]      @relation("UserCreatedAnnouncements")
 
   @@index([email])
   @@index([role])
@@ -240,6 +257,7 @@ model Parent {
 
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   studentParents StudentParent[]
+  announcements  Announcement[]
 
   @@index([ci])
   @@index([userId])
@@ -285,6 +303,7 @@ model Teacher {
   teacherSubjects TeacherSubject[]
   schedules       ClassSchedule[]
   assignments     Assignment[]
+  announcements   Announcement[]
 
   @@index([ci])
   @@index([userId])
@@ -356,6 +375,7 @@ model Course {
   schedules        ClassSchedule[]
   curriculumTopics CurriculumTopic[]
   assignments      Assignment[]
+  announcements    Announcement[]
 
   @@unique([academicYearId, gradeLevel, section, shift])
   @@index([academicYearId])
@@ -585,6 +605,33 @@ model Alert {
   @@index([isRead])
   @@index([status])
   @@map("alerts")
+}
+
+model Announcement {
+  id              String              @id @default(uuid())
+  title           String
+  content         String
+  urgency         AnnouncementUrgency @default(MEDIA)
+  scope           AnnouncementScope
+  targetCourseId  String?             @map("target_course_id")
+  targetParentId  String?             @map("target_parent_id")
+  targetTeacherId String?             @map("target_teacher_id")
+  createdById     String              @map("created_by_id")
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+
+  createdBy       User                @relation("UserCreatedAnnouncements", fields: [createdById], references: [id], onDelete: Cascade)
+  targetCourse    Course?             @relation(fields: [targetCourseId], references: [id], onDelete: SetNull)
+  targetParent    Parent?             @relation(fields: [targetParentId], references: [id], onDelete: SetNull)
+  targetTeacher   Teacher?            @relation(fields: [targetTeacherId], references: [id], onDelete: SetNull)
+
+  @@index([scope])
+  @@index([urgency])
+  @@index([createdById])
+  @@index([targetCourseId])
+  @@index([targetParentId])
+  @@index([targetTeacherId])
+  @@map("announcements")
 }
 
 model AuditLog {

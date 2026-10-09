@@ -437,5 +437,75 @@ export const academicApi = {
     const response = await apiClient.delete(`/assignments/${id}`);
     return response.data as { statusCode: number; message: string };
   },
+
+  // Horarios - Edición Manual y Generación Automática
+  async upsertSchedule(data: {
+    courseId: string;
+    subjectId: string;
+    teacherId: string;
+    dayOfWeek: string;
+    periodIndex: number;
+    startTime: string;
+    endTime: string;
+    classroom?: string;
+  }) {
+    const response = await apiClient.post('/schedules/upsert', data);
+    return response.data as { statusCode: number; message: string; data: ClassScheduleItem };
+  },
+  async generateAutoSchedule(courseId: string) {
+    const response = await apiClient.post(`/schedules/generate-auto/${courseId}`);
+    return response.data as {
+      statusCode: number;
+      message: string;
+      data: {
+        totalSlots: number;
+        distribution: Array<{ subjectName: string; code: string; teacherName: string; periods: number }>;
+      };
+    };
+  },
+  async deleteSchedule(id: string) {
+    const response = await apiClient.delete(`/schedules/${id}`);
+    return response.data as { statusCode: number; message: string };
+  },
+
+  // Comunicados Institucionales
+  async listAnnouncements() {
+    const response = await apiClient.get('/announcements');
+    return response.data as { statusCode: number; message: string; data: AnnouncementItem[]; total: number };
+  },
+  async createAnnouncement(data: {
+    title: string;
+    content: string;
+    urgency: 'BAJA' | 'MEDIA' | 'ALTA' | 'CRITICA';
+    scope: 'COURSE' | 'ALL_COURSES' | 'PARENT' | 'ALL_PARENTS' | 'TEACHER' | 'ALL_TEACHERS';
+    targetCourseId?: string;
+    targetParentId?: string;
+    targetTeacherId?: string;
+  }) {
+    const response = await apiClient.post('/announcements', data);
+    return response.data as { statusCode: number; message: string; data: AnnouncementItem };
+  },
+  async deleteAnnouncement(id: string) {
+    const response = await apiClient.delete(`/announcements/${id}`);
+    return response.data as { statusCode: number; message: string };
+  },
 };
+
+export interface AnnouncementItem {
+  id: string;
+  title: string;
+  content: string;
+  urgency: 'BAJA' | 'MEDIA' | 'ALTA' | 'CRITICA';
+  scope: 'COURSE' | 'ALL_COURSES' | 'PARENT' | 'ALL_PARENTS' | 'TEACHER' | 'ALL_TEACHERS';
+  targetCourseId?: string | null;
+  targetParentId?: string | null;
+  targetTeacherId?: string | null;
+  createdById: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: { id: string; firstName: string; lastName: string; role: string; email?: string };
+  targetCourse?: { id: string; name: string } | null;
+  targetParent?: { id: string; firstName: string; lastName: string; ci?: string; phone?: string } | null;
+  targetTeacher?: { id: string; firstName: string; lastName: string; specialty?: string } | null;
+}
 

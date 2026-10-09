@@ -19,6 +19,7 @@ import {
   LogOut,
   ShieldCheck,
   FileCheck,
+  Megaphone,
 } from 'lucide-react';
 import { authService } from '../../features/auth/services/auth.service';
 
@@ -60,6 +61,7 @@ const navSections: NavSection[] = [
     items: [
       { name: 'Docentes', href: '/dashboard/teachers', icon: ContactRound, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY'] },
       { name: 'Padres', href: '/dashboard/parents', icon: UsersRound, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY'] },
+      { name: 'Comunicados', href: '/dashboard/announcements', icon: Megaphone, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },
       { name: 'Alertas', href: '/dashboard/alerts', icon: Bell, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY', 'TEACHER', 'PARENT'] },
     ],
   },
