@@ -160,8 +160,16 @@ export class PrismaStudentRepository implements StudentRepository {
 
   async softDelete(id: string) {
     try {
-      await this.prisma.student.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } });
-    } catch {
+      await this.prisma.$transaction(async (tx) => {
+        const student = await tx.student.findUnique({ where: { id } });
+        if (!student) throw new NotFoundException('Estudiante no encontrado');
+        await tx.student.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } });
+        if (student.userId) {
+          await tx.user.update({ where: { id: student.userId }, data: { deletedAt: new Date(), isActive: false } });
+        }
+      });
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new NotFoundException('Estudiante no encontrado');
     }
   }

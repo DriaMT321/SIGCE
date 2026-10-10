@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Param, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post, Param, Query, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { AuthenticatedUser, UserRole } from '@academic/shared-types';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
@@ -8,12 +8,17 @@ import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
 import { RolesGuard } from '../../../../common/guards/roles.guard';
 import { CreateTeacherDto, UpdateTeacherDto } from '../../application/dto/teacher.dto';
-import { CreateTeacherUseCase, ListTeachersUseCase, UpdateTeacherUseCase } from '../../application/use-cases/teacher.use-cases';
+import { CreateTeacherUseCase, DeleteTeacherUseCase, ListTeachersUseCase, UpdateTeacherUseCase } from '../../application/use-cases/teacher.use-cases';
 
 @Controller('teachers')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class TeachersController {
-  constructor(private readonly listTeachers: ListTeachersUseCase, private readonly createTeacher: CreateTeacherUseCase, private readonly updateTeacher: UpdateTeacherUseCase) {}
+  constructor(
+    private readonly listTeachers: ListTeachersUseCase,
+    private readonly createTeacher: CreateTeacherUseCase,
+    private readonly updateTeacher: UpdateTeacherUseCase,
+    private readonly deleteTeacher: DeleteTeacherUseCase,
+  ) {}
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
@@ -35,5 +40,12 @@ export class TeachersController {
   @Permissions('teachers:update')
   async update(@Param('id') id: string, @Body() dto: UpdateTeacherDto, @CurrentUser() user: AuthenticatedUser, @Req() req: Request) {
     return { statusCode: 200, message: 'Docente actualizado exitosamente', data: await this.updateTeacher.execute(id, dto, user.id, req.ip) };
+  }
+
+  @Delete(':id')
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
+  async delete(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser, @Req() req: Request) {
+    await this.deleteTeacher.execute(id, user.id, req.ip);
+    return { statusCode: 200, message: 'Docente eliminado exitosamente' };
   }
 }

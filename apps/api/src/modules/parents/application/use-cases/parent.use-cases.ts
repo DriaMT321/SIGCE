@@ -31,3 +31,14 @@ export class UpdateParentUseCase {
     return parent;
   }
 }
+
+@Injectable()
+export class DeleteParentUseCase {
+  constructor(@Inject(PARENT_REPOSITORY) private readonly repository: ParentRepository, private readonly audit: CreateAuditLogUseCase) {}
+  async execute(id: string, userId: string, ipAddress?: string) {
+    const previous = await this.repository.findById(id);
+    if (!previous) throw new NotFoundException('Familiar no encontrado');
+    await this.repository.softDelete(id);
+    await this.audit.execute({ userId, action: AuditAction.DELETE, entity: 'Parent', entityId: id, previousValue: previous as unknown as Record<string, unknown>, ipAddress });
+  }
+}

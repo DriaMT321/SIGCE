@@ -55,6 +55,26 @@ export class PrismaTeacherRepository implements TeacherRepository {
     }
   }
 
+  async softDelete(id: string) {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        const teacher = await tx.teacher.findUnique({ where: { id } });
+        if (!teacher) throw new NotFoundException('Docente no encontrado');
+        await tx.teacher.update({
+          where: { id },
+          data: { deletedAt: new Date() },
+        });
+        await tx.user.update({
+          where: { id: teacher.userId },
+          data: { deletedAt: new Date(), isActive: false },
+        });
+      });
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new NotFoundException('Docente no encontrado');
+    }
+  }
+
   private map(value: TeacherWithUser): TeacherEntity {
     return { id: value.id, userId: value.userId, ci: value.ci, firstName: value.firstName, lastName: value.lastName, specialty: value.specialty, phone: value.phone, itemNumber: value.itemNumber, email: value.user.email, createdAt: value.createdAt, updatedAt: value.updatedAt };
   }

@@ -212,6 +212,10 @@ export const academicApi = {
     const response = await apiClient.post('/students', data);
     return dataResponse(studentSchema).parse(response.data).data;
   },
+  async deleteStudent(id: string) {
+    const response = await apiClient.delete(`/students/${id}`);
+    return response.data;
+  },
   async listCourses(search?: string) {
     const response = await apiClient.get('/courses', { params: { search, limit: 100 } });
     return listResponse(courseSchema).parse(response.data);
@@ -228,6 +232,14 @@ export const academicApi = {
     const response = await apiClient.post('/teachers', data);
     return dataResponse(teacherSchema).parse(response.data).data;
   },
+  async updateTeacher(id: string, data: unknown) {
+    const response = await apiClient.patch(`/teachers/${id}`, data);
+    return dataResponse(teacherSchema).parse(response.data).data;
+  },
+  async deleteTeacher(id: string) {
+    const response = await apiClient.delete(`/teachers/${id}`);
+    return response.data;
+  },
   async listParents(search?: string, limit = 100, offset = 0) {
     const response = await apiClient.get('/parents', { params: { search, limit, offset } });
     return listResponse(parentSchema).parse(response.data);
@@ -235,6 +247,14 @@ export const academicApi = {
   async createParent(data: unknown) {
     const response = await apiClient.post('/parents', data);
     return dataResponse(parentSchema).parse(response.data).data;
+  },
+  async updateParent(id: string, data: unknown) {
+    const response = await apiClient.patch(`/parents/${id}`, data);
+    return dataResponse(parentSchema).parse(response.data).data;
+  },
+  async deleteParent(id: string) {
+    const response = await apiClient.delete(`/parents/${id}`);
+    return response.data;
   },
   async listAcademicYears() {
     const response = await apiClient.get('/academic-years');
@@ -477,10 +497,20 @@ export const academicApi = {
     title: string;
     content: string;
     urgency: 'BAJA' | 'MEDIA' | 'ALTA' | 'CRITICA';
-    scope: 'COURSE' | 'ALL_COURSES' | 'PARENT' | 'ALL_PARENTS' | 'TEACHER' | 'ALL_TEACHERS';
+    scope:
+      | 'COURSE'
+      | 'ALL_COURSES'
+      | 'PARENT'
+      | 'ALL_PARENTS'
+      | 'TEACHER'
+      | 'ALL_TEACHERS'
+      | 'SPECIFIC_PARENTS'
+      | 'SPECIFIC_TEACHERS'
+      | 'SPECIFIC_STUDENTS';
     targetCourseId?: string;
     targetParentId?: string;
     targetTeacherId?: string;
+    targetUserIds?: string[];
   }) {
     const response = await apiClient.post('/announcements', data);
     return response.data as { statusCode: number; message: string; data: AnnouncementItem };
@@ -496,10 +526,20 @@ export interface AnnouncementItem {
   title: string;
   content: string;
   urgency: 'BAJA' | 'MEDIA' | 'ALTA' | 'CRITICA';
-  scope: 'COURSE' | 'ALL_COURSES' | 'PARENT' | 'ALL_PARENTS' | 'TEACHER' | 'ALL_TEACHERS';
+  scope:
+    | 'COURSE'
+    | 'ALL_COURSES'
+    | 'PARENT'
+    | 'ALL_PARENTS'
+    | 'TEACHER'
+    | 'ALL_TEACHERS'
+    | 'SPECIFIC_PARENTS'
+    | 'SPECIFIC_TEACHERS'
+    | 'SPECIFIC_STUDENTS';
   targetCourseId?: string | null;
   targetParentId?: string | null;
   targetTeacherId?: string | null;
+  targetUserIds?: string[];
   createdById: string;
   createdAt: string;
   updatedAt: string;

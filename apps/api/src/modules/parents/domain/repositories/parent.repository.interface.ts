@@ -20,4 +20,5 @@ export interface ParentRepository {
   findById(id: string): Promise<ParentEntity | null>;
   create(data: ParentCreateData): Promise<ParentEntity>;
   update(id: string, data: ParentUpdateData): Promise<ParentEntity>;
+  softDelete(id: string): Promise<void>;
 }

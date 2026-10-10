@@ -5,6 +5,7 @@ import {
   Search,
   Filter,
   Loader2,
+  GraduationCap,
 } from 'lucide-react';
 import { academicApi, CurriculumTopicItem } from '../../../lib/academic-api';
 import { Input } from '../../../components/ui/input';
@@ -53,9 +54,16 @@ const CAMPO_COLORS: Record<string, { bg: string; text: string; border: string }>
 export const CurriculumPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [selectedTrimestre, setSelectedTrimestre] = useState<number>(0);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('ALL');
   const [selectedNivel, setSelectedNivel] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState<string>('');
+
+  const { data: coursesData } = useQuery({
+    queryKey: ['courses'],
+    queryFn: () => academicApi.listCourses(),
+  });
+  const courses = coursesData?.data ?? [];
 
   const { data: statsData } = useQuery({
     queryKey: ['curriculum', 'stats'],
@@ -64,10 +72,11 @@ export const CurriculumPage: React.FC = () => {
   const stats = statsData?.data;
 
   const { data: topicsData, isLoading } = useQuery({
-    queryKey: ['curriculum', 'list', selectedTrimestre, searchTerm],
+    queryKey: ['curriculum', 'list', selectedTrimestre, selectedCourseId, searchTerm],
     queryFn: () =>
       academicApi.listCurriculum({
         periodNumber: selectedTrimestre > 0 ? selectedTrimestre : undefined,
+        courseId: selectedCourseId !== 'ALL' ? selectedCourseId : undefined,
         search: searchTerm || undefined,
       }),
   });
@@ -206,18 +215,39 @@ export const CurriculumPage: React.FC = () => {
             ))}
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-slate-500">Estado:</span>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="h-8 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700"
-            >
-              <option value="ALL">Todos</option>
-              <option value="PLANIFICADO">Planificado</option>
-              <option value="EN_DESARROLLO">En Desarrollo</option>
-              <option value="COMPLETADO">Completado</option>
-            </select>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
+                <GraduationCap className="w-3.5 h-3.5" />
+                Curso:
+              </span>
+              <select
+                value={selectedCourseId}
+                onChange={(e) => setSelectedCourseId(e.target.value)}
+                className="h-8 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-900"
+              >
+                <option value="ALL">Todos los Cursos</option>
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-slate-500">Estado:</span>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="h-8 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-900"
+              >
+                <option value="ALL">Todos los Estados</option>
+                <option value="PLANIFICADO">Planificado</option>
+                <option value="EN_DESARROLLO">En Desarrollo</option>
+                <option value="COMPLETADO">Completado</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -261,7 +291,7 @@ export const CurriculumPage: React.FC = () => {
                     <div className="flex-1 space-y-1.5 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-900 text-white">
-                          {GRADE_NAMES[topic.gradeLevel] || `Grado ${topic.gradeLevel}`}
+                          {topic.course?.name || GRADE_NAMES[topic.gradeLevel] || `Grado ${topic.gradeLevel}`}
                         </span>
 
                         <span

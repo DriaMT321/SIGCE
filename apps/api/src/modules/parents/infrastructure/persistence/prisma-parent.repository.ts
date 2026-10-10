@@ -55,6 +55,26 @@ export class PrismaParentRepository implements ParentRepository {
     }
   }
 
+  async softDelete(id: string) {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        const parent = await tx.parent.findUnique({ where: { id } });
+        if (!parent) throw new NotFoundException('Familiar no encontrado');
+        await tx.parent.update({
+          where: { id },
+          data: { deletedAt: new Date() },
+        });
+        await tx.user.update({
+          where: { id: parent.userId },
+          data: { deletedAt: new Date(), isActive: false },
+        });
+      });
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new NotFoundException('Familiar no encontrado');
+    }
+  }
+
   private map(value: ParentWithRelations): ParentEntity {
     return { id: value.id, userId: value.userId, ci: value.ci, firstName: value.firstName, lastName: value.lastName, phone: value.phone, email: value.email, address: value.address, occupation: value.occupation, students: value.studentParents.map(({ student }) => ({ id: student.id, rude: student.rude, firstName: student.firstName, lastName: student.lastName })), createdAt: value.createdAt, updatedAt: value.updatedAt };
   }

@@ -31,3 +31,14 @@ export class UpdateTeacherUseCase {
     return teacher;
   }
 }
+
+@Injectable()
+export class DeleteTeacherUseCase {
+  constructor(@Inject(TEACHER_REPOSITORY) private readonly repository: TeacherRepository, private readonly audit: CreateAuditLogUseCase) {}
+  async execute(id: string, userId: string, ipAddress?: string) {
+    const previous = await this.repository.findById(id);
+    if (!previous) throw new NotFoundException('Docente no encontrado');
+    await this.repository.softDelete(id);
+    await this.audit.execute({ userId, action: AuditAction.DELETE, entity: 'Teacher', entityId: id, previousValue: previous as unknown as Record<string, unknown>, ipAddress });
+  }
+}

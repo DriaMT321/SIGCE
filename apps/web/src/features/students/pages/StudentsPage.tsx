@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import {
   AlertCircle,
+  AlertTriangle,
   Check,
   Copy,
   Loader2,
@@ -14,6 +15,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
@@ -41,6 +43,7 @@ export const StudentsPage = () => {
   const [pageSize, setPageSize] = useState(50);
   const [showForm, setShowForm] = useState(false);
   const [copiedRude, setCopiedRude] = useState<string | null>(null);
+  const [deletingStudent, setDeletingStudent] = useState<{ id: string; name: string } | null>(null);
 
   const currentRole = authService.getCurrentUser()?.role;
   const canManage = currentRole === 'ADMIN' || currentRole === 'DIRECTOR' || currentRole === 'SECRETARY';
@@ -78,6 +81,14 @@ export const StudentsPage = () => {
       setShowForm(false);
       void queryClient.invalidateQueries({ queryKey: ['students'] });
       void queryClient.invalidateQueries({ queryKey: ['parents'] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => academicApi.deleteStudent(id),
+    onSuccess: () => {
+      setDeletingStudent(null);
+      void queryClient.invalidateQueries({ queryKey: ['students'] });
     },
   });
 
@@ -326,7 +337,8 @@ export const StudentsPage = () => {
                     <th className="px-3 py-3">C.I.</th>
                     <th className="px-3 py-3">Curso</th>
                     <th className="px-3 py-3">Familiar / Tutor</th>
-                    <th className="py-3 pl-3 pr-5 text-right">Estado</th>
+                    <th className="px-3 py-3">Estado</th>
+                    {canManage && <th className="py-3 pl-3 pr-5 text-right">Acciones</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -416,7 +428,7 @@ export const StudentsPage = () => {
                             )}
                           </td>
 
-                          <td className="py-3 pl-3 pr-5 text-right">
+                          <td className="px-3 py-3">
                             <span
                               className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${
                                 student.isActive
@@ -428,6 +440,24 @@ export const StudentsPage = () => {
                               {student.isActive ? 'Activo' : 'Inactivo'}
                             </span>
                           </td>
+
+                          {canManage && (
+                            <td className="py-3 pl-3 pr-5 text-right">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDeletingStudent({
+                                    id: student.id,
+                                    name: `${student.firstName} ${student.lastName}`,
+                                  })
+                                }
+                                className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                title="Eliminar estudiante (Baja lógica)"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          )}
                         </tr>
                       );
                     })
@@ -473,6 +503,53 @@ export const StudentsPage = () => {
           </>
         )}
       </div>
+
+      {/* MODAL: CONFIRMAR BAJA LÓGICA (SOFT DELETE) */}
+      {deletingStudent && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-md p-6 shadow-xl animate-in fade-in zoom-in-95">
+            <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+
+            <h3 className="text-base font-bold text-slate-900">
+              ¿Eliminar Estudiante?
+            </h3>
+            <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+              Está a punto de dar de baja al estudiante <strong className="text-slate-900">{deletingStudent.name}</strong>.
+            </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mt-3 text-xs text-amber-800 leading-relaxed">
+              <strong>Baja Lógica (Soft Delete):</strong> El registro quedará archivado y la cuenta de usuario vinculada será desactivada automáticamente, garantizando la preservación del historial de calificaciones y asistencias.
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-5">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDeletingStudent(null)}
+                disabled={deleteMutation.isPending}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={() => deleteMutation.mutate(deletingStudent.id)}
+                disabled={deleteMutation.isPending}
+                className="bg-rose-600 hover:bg-rose-700 text-white"
+              >
+                {deleteMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                    Eliminando...
+                  </>
+                ) : (
+                  'Confirmar Eliminación'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

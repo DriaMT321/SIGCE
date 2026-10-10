@@ -20,4 +20,5 @@ export interface TeacherRepository {
   findById(id: string): Promise<TeacherEntity | null>;
   create(data: TeacherCreateData): Promise<TeacherEntity>;
   update(id: string, data: TeacherUpdateData): Promise<TeacherEntity>;
+  softDelete(id: string): Promise<void>;
 }

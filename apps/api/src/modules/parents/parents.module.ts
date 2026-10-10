@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ParentsController } from './presentation/controllers/parents.controller';
 import { PARENT_REPOSITORY } from './domain/repositories/parent.repository.interface';
 import { PrismaParentRepository } from './infrastructure/persistence/prisma-parent.repository';
-import { CreateParentUseCase, ListParentsUseCase, UpdateParentUseCase } from './application/use-cases/parent.use-cases';
+import { CreateParentUseCase, DeleteParentUseCase, ListParentsUseCase, UpdateParentUseCase } from './application/use-cases/parent.use-cases';
 
 @Module({
   controllers: [ParentsController],
@@ -11,6 +11,7 @@ import { CreateParentUseCase, ListParentsUseCase, UpdateParentUseCase } from './
     ListParentsUseCase,
     CreateParentUseCase,
     UpdateParentUseCase,
+    DeleteParentUseCase,
   ],
 })
 export class ParentsModule {}

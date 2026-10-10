@@ -11,6 +11,7 @@ export interface CreateAnnouncementInput {
   targetCourseId?: string;
   targetParentId?: string;
   targetTeacherId?: string;
+  targetUserIds?: string[];
 }
 
 @Injectable()
@@ -48,6 +49,10 @@ export class AnnouncementsService {
             { scope: AnnouncementScope.ALL_TEACHERS },
             { scope: AnnouncementScope.TEACHER, targetTeacherId: teacher?.id },
             { scope: AnnouncementScope.COURSE, targetCourseId: { in: teacherCourseIds } },
+            ...(teacher?.id
+              ? [{ scope: AnnouncementScope.SPECIFIC_TEACHERS, targetUserIds: { has: teacher.id } }]
+              : []),
+            { scope: AnnouncementScope.SPECIFIC_TEACHERS, targetUserIds: { has: user.id } },
           ],
         },
         include: {
@@ -76,8 +81,10 @@ export class AnnouncementsService {
       });
 
       const childrenCourseIds: string[] = [];
+      const childrenIds: string[] = [];
       if (parent) {
         parent.studentParents.forEach((sp) => {
+          childrenIds.push(sp.student.id);
           sp.student.enrollments.forEach((e) => {
             childrenCourseIds.push(e.courseId);
           });
@@ -91,6 +98,14 @@ export class AnnouncementsService {
             { scope: AnnouncementScope.ALL_PARENTS },
             { scope: AnnouncementScope.PARENT, targetParentId: parent?.id },
             { scope: AnnouncementScope.COURSE, targetCourseId: { in: childrenCourseIds } },
+            ...(parent?.id
+              ? [{ scope: AnnouncementScope.SPECIFIC_PARENTS, targetUserIds: { has: parent.id } }]
+              : []),
+            { scope: AnnouncementScope.SPECIFIC_PARENTS, targetUserIds: { has: user.id } },
+            ...childrenIds.map((cId) => ({
+              scope: AnnouncementScope.SPECIFIC_STUDENTS,
+              targetUserIds: { has: cId },
+            })),
           ],
         },
         include: {
@@ -116,6 +131,8 @@ export class AnnouncementsService {
   }
 
   async create(user: AuthenticatedUser, data: CreateAnnouncementInput) {
+    const targetUserIdsInput = data.targetUserIds || [];
+
     const announcement = await this.prisma.announcement.create({
       data: {
         title: data.title,
@@ -125,6 +142,7 @@ export class AnnouncementsService {
         targetCourseId: data.targetCourseId || null,
         targetParentId: data.targetParentId || null,
         targetTeacherId: data.targetTeacherId || null,
+        targetUserIds: targetUserIdsInput,
         createdById: user.id,
       },
       include: {
@@ -146,28 +164,51 @@ export class AnnouncementsService {
     };
     const alertSeverity = severityMap[data.urgency] || AlertSeverity.INFO;
 
-    let targetUserIds: string[] = [];
+    let targetAlertUserIds: string[] = [];
 
     if (data.scope === AnnouncementScope.ALL_PARENTS) {
       const parents = await this.prisma.parent.findMany({ select: { userId: true } });
-      targetUserIds = parents.map((p) => p.userId);
+      targetAlertUserIds = parents.map((p) => p.userId);
     } else if (data.scope === AnnouncementScope.ALL_TEACHERS) {
       const teachers = await this.prisma.teacher.findMany({ select: { userId: true } });
-      targetUserIds = teachers.map((t) => t.userId);
+      targetAlertUserIds = teachers.map((t) => t.userId);
     } else if (data.scope === AnnouncementScope.PARENT && data.targetParentId) {
       const parent = await this.prisma.parent.findUnique({
         where: { id: data.targetParentId },
         select: { userId: true },
       });
-      if (parent) targetUserIds = [parent.userId];
+      if (parent) targetAlertUserIds = [parent.userId];
     } else if (data.scope === AnnouncementScope.TEACHER && data.targetTeacherId) {
       const teacher = await this.prisma.teacher.findUnique({
         where: { id: data.targetTeacherId },
         select: { userId: true },
       });
-      if (teacher) targetUserIds = [teacher.userId];
+      if (teacher) targetAlertUserIds = [teacher.userId];
+    } else if (data.scope === AnnouncementScope.SPECIFIC_PARENTS && targetUserIdsInput.length > 0) {
+      const parents = await this.prisma.parent.findMany({
+        where: { id: { in: targetUserIdsInput } },
+        select: { userId: true },
+      });
+      const resolved = parents.map((p) => p.userId);
+      targetAlertUserIds = resolved.length > 0 ? resolved : targetUserIdsInput;
+    } else if (data.scope === AnnouncementScope.SPECIFIC_TEACHERS && targetUserIdsInput.length > 0) {
+      const teachers = await this.prisma.teacher.findMany({
+        where: { id: { in: targetUserIdsInput } },
+        select: { userId: true },
+      });
+      const resolved = teachers.map((t) => t.userId);
+      targetAlertUserIds = resolved.length > 0 ? resolved : targetUserIdsInput;
+    } else if (data.scope === AnnouncementScope.SPECIFIC_STUDENTS && targetUserIdsInput.length > 0) {
+      const students = await this.prisma.student.findMany({
+        where: { id: { in: targetUserIdsInput } },
+        include: { studentParents: { include: { parent: true } } },
+      });
+      const studentUserIds = students.map((s) => s.userId).filter(Boolean) as string[];
+      const studentParentUserIds = students.flatMap((s) =>
+        s.studentParents.map((sp) => sp.parent.userId)
+      );
+      targetAlertUserIds = Array.from(new Set([...studentUserIds, ...studentParentUserIds]));
     } else if (data.scope === AnnouncementScope.COURSE && data.targetCourseId) {
-      // Padres de estudiantes del curso + profesores del curso
       const [enrollments, teacherSubjects] = await Promise.all([
         this.prisma.enrollment.findMany({
           where: { courseId: data.targetCourseId, status: 'ACTIVE' },
@@ -183,20 +224,19 @@ export class AnnouncementsService {
         e.student.studentParents.map((sp) => sp.parent.userId)
       );
       const teacherUserIds = teacherSubjects.map((ts) => ts.teacher.userId);
-      targetUserIds = Array.from(new Set([...parentUserIds, ...teacherUserIds]));
+      targetAlertUserIds = Array.from(new Set([...parentUserIds, ...teacherUserIds]));
     } else if (data.scope === AnnouncementScope.ALL_COURSES) {
       const allUsers = await this.prisma.user.findMany({
         where: { role: { in: [UserRole.PARENT, UserRole.TEACHER] } },
         select: { id: true },
       });
-      targetUserIds = allUsers.map((u) => u.id);
+      targetAlertUserIds = allUsers.map((u) => u.id);
     }
 
-    if (targetUserIds.length > 0) {
-      // Limitar a lotes para no saturar memoria si hay muchos usuarios
+    if (targetAlertUserIds.length > 0) {
       const BATCH_SIZE = 100;
-      for (let i = 0; i < targetUserIds.length; i += BATCH_SIZE) {
-        const batch = targetUserIds.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < targetAlertUserIds.length; i += BATCH_SIZE) {
+        const batch = targetAlertUserIds.slice(i, i + BATCH_SIZE);
         await this.prisma.alert.createMany({
           data: batch.map((uId) => ({
             userId: uId,

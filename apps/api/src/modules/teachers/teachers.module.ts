@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TeachersController } from './presentation/controllers/teachers.controller';
 import { TEACHER_REPOSITORY } from './domain/repositories/teacher.repository.interface';
 import { PrismaTeacherRepository } from './infrastructure/persistence/prisma-teacher.repository';
-import { CreateTeacherUseCase, ListTeachersUseCase, UpdateTeacherUseCase } from './application/use-cases/teacher.use-cases';
+import { CreateTeacherUseCase, DeleteTeacherUseCase, ListTeachersUseCase, UpdateTeacherUseCase } from './application/use-cases/teacher.use-cases';
 
 @Module({
   controllers: [TeachersController],
@@ -11,6 +11,7 @@ import { CreateTeacherUseCase, ListTeachersUseCase, UpdateTeacherUseCase } from 
     ListTeachersUseCase,
     CreateTeacherUseCase,
     UpdateTeacherUseCase,
+    DeleteTeacherUseCase,
   ],
 })
 export class TeachersModule {}

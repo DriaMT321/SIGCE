@@ -64,6 +64,9 @@ enum AnnouncementScope {
   ALL_PARENTS
   TEACHER
   ALL_TEACHERS
+  SPECIFIC_PARENTS
+  SPECIFIC_TEACHERS
+  SPECIFIC_STUDENTS
 }
 
 enum SieSyncStatus {
@@ -616,6 +619,7 @@ model Announcement {
   targetCourseId  String?             @map("target_course_id")
   targetParentId  String?             @map("target_parent_id")
   targetTeacherId String?             @map("target_teacher_id")
+  targetUserIds   String[]            @default([]) @map("target_user_ids")
   createdById     String              @map("created_by_id")
   createdAt       DateTime            @default(now()) @map("created_at")
   updatedAt       DateTime            @updatedAt @map("updated_at")
