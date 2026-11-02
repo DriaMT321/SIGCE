@@ -1,0 +1,338 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root,
+  [data-theme='institutional'] {
+    --background: 210 40% 98%;
+    --foreground: 222.2 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47% 11%;
+
+    --primary: 352 81% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 24 90% 96%;
+    --secondary-foreground: 24 90% 35%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 22 90% 54%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 352 81% 40%;
+
+    --radius: 0.5rem;
+
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-display: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  [data-theme='executive'] {
+    --primary: 222 47% 20%;
+    --primary-foreground: 210 40% 98%;
+    --ring: 222 47% 20%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+  }
+
+  [data-theme='executive'] .sigce-shell,
+  [data-theme='executive'] .sigce-main {
+    background-color: #eff2f5;
+  }
+
+  [data-theme='executive'] .sigce-main .bg-brand-600 {
+    background-color: #29405c;
+  }
+
+  [data-theme='executive'] .sigce-main .text-brand-600 {
+    color: #29405c;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #f8fafc;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Clean scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.pagina404 {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100svh;
+  place-items: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  background: #f7f6f1;
+  color: #292820;
+}
+
+.pagina404contenedor {
+  display: flex;
+  width: min(100%, 68rem);
+  min-height: min(42rem, calc(100svh - 3rem));
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid #e7e4da;
+  border-radius: 0.75rem;
+  background: #fff;
+  padding: clamp(1.25rem, 4vw, 3rem);
+  box-shadow: 0 8px 24px rgb(41 40 32 / 5%);
+}
+
+.pagina404marca {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.pagina404nombre {
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.pagina404contexto,
+.pagina404descripcion,
+.pagina404pie {
+  color: #706e64;
+}
+
+.pagina404contexto {
+  font-size: 0.8125rem;
+}
+
+.pagina404contenido {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.85fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: clamp(2rem, 7vw, 6rem);
+  padding-block: clamp(2rem, 7vh, 4.5rem);
+}
+
+.pagina404ilustracion {
+  display: grid;
+  width: 100%;
+  max-width: 21rem;
+  aspect-ratio: 1.12;
+  place-items: center;
+  border: 1px solid #e7e4da;
+  border-radius: 0.625rem;
+  background: #fbfaf6;
+  padding: 1.5rem;
+}
+
+.pagina404ilustracion svg {
+  display: block;
+  width: min(100%, 15rem);
+  height: auto;
+}
+
+.pagina404codigo {
+  margin: 0 0 0.75rem;
+  color: #806719;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.pagina404mensaje h1 {
+  max-width: 14ch;
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.05em;
+}
+
+.pagina404descripcion {
+  max-width: 48ch;
+  margin: 1rem 0 0;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.pagina404acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.pagina404botonprincipal,
+.pagina404botonsecundario {
+  display: inline-flex;
+  min-height: 2.875rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #706e64;
+  border-radius: 0.3125rem;
+  padding: 0.625rem 1rem;
+  color: #292820;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 140ms ease;
+}
+
+.pagina404botonprincipal {
+  border-color: #292820;
+  background: #292820;
+  color: #fff;
+}
+
+.pagina404botonprincipal:hover {
+  background: #414037;
+}
+
+.pagina404botonsecundario:hover {
+  background: #fbfaf6;
+}
+
+.pagina404botonprincipal:focus-visible,
+.pagina404botonsecundario:focus-visible {
+  outline: 3px solid #806719;
+  outline-offset: 3px;
+}
+
+.pagina404pie {
+  border-top: 1px solid #e7e4da;
+  padding-top: 1rem;
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 700px) {
+  .pagina404 {
+    padding: 1rem;
+  }
+
+  .pagina404contenedor {
+    min-height: calc(100svh - 2rem);
+  }
+
+  .pagina404contenido {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+    padding-block: 2rem;
+  }
+
+  .pagina404ilustracion {
+    width: min(100%, 16rem);
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 430px) {
+  .pagina404acciones {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pagina404botonprincipal,
+  .pagina404botonsecundario {
+    transition: none;
+  }
+}
+
+.insignia-notificacion {
+  transform-origin: 80% 20%;
+  animation: insignia-aparecer 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes insignia-aparecer {
+  from { opacity: 0; transform: translate(3px, -3px) scale(0.75); }
+  to { opacity: 1; transform: translate(0, 0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .insignia-notificacion { animation: none; }
+}
+
+@media print {
+  .sigce-shell,
+  .sigce-shell > div,
+  .sigce-shell > div > div,
+  .sigce-main,
+  .sigce-main > div {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+  }
+  .sigce-shell aside,
+  .sigce-shell header:not(.boletin-cabecera):not(.libreta-cabecera) {
+    display: none !important;
+  }
+  .reports-page > :not(#reporte-sigce) {
+    display: none !important;
+  }
+  #reporte-sigce {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  #reporte-sigce table { break-inside: auto; }
+  #reporte-sigce tr { break-inside: avoid; }
+}

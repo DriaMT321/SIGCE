@@ -1,41 +1,49 @@
-import { SieSyncStatus, UserRole } from './enums';
+import { estadosincronizacionsie, rolusuario } from './enumeraciones';
 
-export interface SieSyncJobData {
+export interface datosprocesosincronizacionsie {
   synchronizationId: string;
   itemId: string;
   studentRude: string;
-  studentCi: string;
   academicYear: number;
   periodNumber: number;
   subjectCode: string;
+  subjectName?: string;
+  courseGradeLevel?: number;
+  courseSection?: string;
+  courseShift?: string;
   localGrade: number;
+  correlationId?: string;
   retryCount?: number;
 }
 
-export interface SieSyncResult {
+export interface resultadosincronizacionsie {
   synchronizationId: string;
   itemId: string;
   studentRude: string;
   localValue: number;
-  sieValue: number;
-  status: SieSyncStatus;
+  sieValue: number | null;
+  source: 'LOCAL_SIE_SIMULATION' | 'SIE_REAL';
+  status: estadosincronizacionsie;
   isMatched: boolean;
   errorMessage?: string;
-  verifiedAt: string;
+  verifiedAt: string | null;
+  skipped?: boolean;
 }
 
-export interface JwtPayload {
+export interface contenidotokenjwt {
   sub: string;
+  sessionId?: string;
   email: string;
-  role: UserRole;
+  role: rolusuario;
   firstName: string;
   lastName: string;
+  credentialVersion?: number;
 }
 
-export interface AuthenticatedUser {
+export interface usuarioautenticado {
   id: string;
   email: string;
-  role: UserRole;
+  role: rolusuario;
   firstName: string;
   lastName: string;
 }

@@ -4,6 +4,7 @@ node_modules/
 
 # Build outputs
 dist/
+**/dist-esm/
 build/
 out/
 .next/
@@ -62,3 +63,23 @@ mobile/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.ja
 # Prisma (CRITICAL: DO NOT IGNORE prisma/migrations/)
 !prisma/migrations/
 !prisma/migrations/**
+
+# Local backups and extracted personal data; keep outside version control.
+/database/*.dump
+/database/*.sql
+/database/backups/
+/dump.rdb
+/estudiantes_familias.csv
+/estudiantes_familias.json
+/familias_agrupadas.json
+/estudiantes_extraidos.json
+/profesores_extraidos.json
+/LISTADO_PADRES_Y_PROFESORES.md
+/report_*.json
+/scratch/auditoria_calificaciones_*.json
+/scratch/auditoria_calificaciones_*.md
+
+/scratch/libreta-render/
+/scratch/mockups-web-direccion/
+/work/
+entender-el-proyecto-sin-cambiar-c-digo.json

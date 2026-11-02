@@ -1,183 +1,315 @@
 import 'dart:convert';
-import '../../../core/network/api_client.dart';
-import '../../../core/storage/secure_storage_service.dart';
+import 'dart:io';
 
-class CachedResult<T> {
-  const CachedResult({
-    required this.data,
-    required this.isOffline,
-    this.cachedAt,
-  });
+import 'package:dio/dio.dart';
 
-  final T data;
-  final bool isOffline;
-  final DateTime? cachedAt;
+import '../../../core/auth/estadosesionautenticacion.dart';
+import '../../../core/network/clienteapi.dart';
+import '../../../core/storage/servicioalmacenamientoseguro.dart';
+import '../domain/entities/registrosacademicos.dart';
+import '../domain/exceptions/excepcionacademica.dart';
+import '../domain/repositories/repositorioacademico.dart';
+import './mappers/mapeadorregistrosacademicos.dart';
 
-  String get formattedUpdatedDate {
-    if (cachedAt == null) return '';
-    final d = cachedAt!;
-    final day = d.day.toString().padLeft(2, '0');
-    final month = d.month.toString().padLeft(2, '0');
-    final year = d.year.toString();
-    final hour = d.hour.toString().padLeft(2, '0');
-    final minute = d.minute.toString().padLeft(2, '0');
-    return 'Actualizado al $day/$month/$year $hour:$minute';
-  }
-}
+class AcademicRepository implements puertorepositorioacademico {
+  AcademicRepository(
+    this._clienteapi, [
+    seguroalmacenamientoservicio? almacenamiento,
+  ]) : _almacenamiento = almacenamiento ?? seguroalmacenamientoservicio();
 
-class AcademicRepository {
-  AcademicRepository(this._apiClient, [SecureStorageService? storage])
-      : _storage = storage ?? SecureStorageService();
+  final clienteapi _clienteapi;
+  final seguroalmacenamientoservicio _almacenamiento;
 
-  final ApiClient _apiClient;
-  final SecureStorageService _storage;
-
-  Future<List<StudentSummary>> getStudents() async {
-    final response = await _apiClient.client.get('/students', queryParameters: {'limit': 100});
-    final items = _list(response.data);
-    return items.map(StudentSummary.fromJson).toList();
-  }
-
-  Future<CachedResult<List<GradeSummary>>> getGradesWithCache({String? studentId}) async {
-    final cacheKey = 'grades_${studentId ?? 'all'}';
+  @override
+  Future<resultadoencache<List<periodoacademico>>> obtenerperiodosencache() async {
     try {
-      final response = await _apiClient.client.get('/grades', queryParameters: {'studentId': studentId, 'limit': 200});
-      final items = _list(response.data);
-      await _storage.saveCache(cacheKey, jsonEncode(response.data));
-      final parsed = items.map(GradeSummary.fromJson).toList();
-      return CachedResult(data: parsed, isOffline: false, cachedAt: DateTime.now());
-    } catch (_) {
-      final cachedJson = await _storage.getCache(cacheKey);
-      final cachedTime = await _storage.getCacheTimestamp(cacheKey);
-      if (cachedJson != null) {
-        final decoded = jsonDecode(cachedJson);
-        final items = _list(decoded);
-        return CachedResult(
-          data: items.map(GradeSummary.fromJson).toList(),
-          isOffline: true,
-          cachedAt: cachedTime,
+      return await _obtenerlistaencache(
+        cacheKey: 'periods',
+        path: '/periods',
+        queryParameters: {},
+        pageSize: 100,
+        paginated: false,
+        parse: (items) =>
+            items.map(mapeadorregistrosacademicos.periodo).toList(),
+      );
+    } on DioException catch (error) {
+      if (!_esfallodeconexion(error)) rethrow;
+      return const resultadoencache(datos: [], estaoffline: true);
+    }
+  }
+
+  @override
+  Future<resultadoencache<List<resumendeestudiante>>>
+  obtenerestudiantesencache() => _obtenerlistaencache(
+    cacheKey: 'students',
+    path: '/students',
+    queryParameters: {'limit': 100},
+    pageSize: 100,
+    parse: (items) =>
+        items.map(mapeadorregistrosacademicos.estudiante).toList(),
+  );
+
+  @override
+  Future<List<resumendeestudiante>> obtenerestudiantes() async {
+    return (await obtenerestudiantesencache()).datos;
+  }
+
+  @override
+  Future<resultadoencache<List<resumendecalificacion>>> getGradesWithCache({
+    String? identificadorestudiante,
+  }) async {
+    final cachekey = 'grades_${identificadorestudiante ?? 'all'}';
+    return _obtenerlistaencache(
+      cacheKey: cachekey,
+      path: '/grades',
+      queryParameters: {'studentId': identificadorestudiante, 'limit': 200},
+      pageSize: 200,
+      parse: (items) =>
+          items.map(mapeadorregistrosacademicos.calificacion).toList(),
+    );
+  }
+
+  @override
+  Future<List<resumendecalificacion>> obtenercalificaciones({
+    String? identificadorestudiante,
+  }) async {
+    final resultado = await getGradesWithCache(
+      identificadorestudiante: identificadorestudiante,
+    );
+    return resultado.datos;
+  }
+
+  @override
+  Future<resultadoencache<List<resumendeasistencia>>> obtenerasistenciaencache({
+    String? identificadorestudiante,
+  }) {
+    return _obtenerlistaencache(
+      cacheKey: 'attendance_${identificadorestudiante ?? 'all'}',
+      path: '/attendance',
+      queryParameters: {'studentId': identificadorestudiante, 'limit': 200},
+      pageSize: 200,
+      parse: (items) =>
+          items.map(mapeadorregistrosacademicos.asistencia).toList(),
+    );
+  }
+
+  @override
+  Future<List<resumendeasistencia>> obtenerasistencia({
+    String? identificadorestudiante,
+  }) async {
+    return (await obtenerasistenciaencache(
+      identificadorestudiante: identificadorestudiante,
+    )).datos;
+  }
+
+  @override
+  Future<resultadoencache<List<resumendealerta>>> obteneralertasencache() {
+    return _obtenerlistaencache(
+      cacheKey: 'alerts',
+      path: '/alerts',
+      queryParameters: {'limit': 100},
+      pageSize: 100,
+      parse: (items) => items.map(mapeadorregistrosacademicos.alerta).toList(),
+    );
+  }
+
+  @override
+  Future<List<resumendealerta>> obteneralertas() async {
+    return (await obteneralertasencache()).datos;
+  }
+
+  Future<resultadoencache<List<T>>> _obtenerlistaencache<T>({
+    required String cacheKey,
+    required String path,
+    required Map<String, dynamic> queryParameters,
+    required int pageSize,
+    bool paginated = true,
+    required List<T> Function(List<Map<String, dynamic>>) parse,
+  }) async {
+    final sessionestado = estadodesionautenticacion.instance;
+    final generacionsesion = sessionestado.generacion;
+    _verificarsesionvigente(sessionestado, generacionsesion);
+
+    late final List<Map<String, dynamic>> rows;
+    try {
+      rows = await _obtenertodaslaspaginas(
+        sessionState: sessionestado,
+        sessionGeneration: generacionsesion,
+        path: path,
+        queryParameters: queryParameters,
+        pagesize: pageSize,
+        paginated: paginated,
+      );
+    } on DioException catch (error) {
+      if (!_esfallodeconexion(error)) rethrow;
+      _verificarsesionvigente(sessionestado, generacionsesion);
+      final cachejson = await sessionestado.leercachesivigente(
+        storage: _almacenamiento,
+        generation: generacionsesion,
+        cachekey: cacheKey,
+      );
+      _verificarsesionvigente(sessionestado, generacionsesion);
+      if (cachejson == null) rethrow;
+      try {
+        final cacheat = await sessionestado.leerfechacachesivigente(
+          storage: _almacenamiento,
+          generation: generacionsesion,
+          cachekey: cacheKey,
+        );
+        _verificarsesionvigente(sessionestado, generacionsesion);
+        final cache = resultadoencache(
+          datos: parse(_lista(jsonDecode(cachejson))),
+          estaoffline: true,
+          fechaencache: cacheat,
+        );
+        _verificarsesionvigente(sessionestado, generacionsesion);
+        return cache;
+      } on FormatException {
+        throw const excepcionacademica(
+          'Los registros guardados no son válidos.',
+        );
+      } on excepcionacademica {
+        throw const excepcionacademica(
+          'Los registros guardados no son válidos.',
         );
       }
-      rethrow;
     }
-  }
 
-  Future<List<GradeSummary>> getGrades({String? studentId}) async {
-    final result = await getGradesWithCache(studentId: studentId);
-    return result.data;
-  }
-
-  Future<List<AttendanceSummary>> getAttendance({String? studentId}) async {
-    final response = await _apiClient.client.get('/attendance', queryParameters: {'studentId': studentId, 'limit': 200});
-    final items = _list(response.data);
-    return items.map(AttendanceSummary.fromJson).toList();
-  }
-
-  Future<List<AlertSummary>> getAlerts() async {
-    final response = await _apiClient.client.get('/alerts', queryParameters: {'limit': 100});
-    final items = _list(response.data);
-    return items.map(AlertSummary.fromJson).toList();
-  }
-
-  List<Map<String, dynamic>> _list(dynamic body) {
-    if (body is! Map<String, dynamic> || body['data'] is! List<dynamic>) {
-      throw const AcademicException('La respuesta del servidor no es válida.');
-    }
-    return (body['data'] as List<dynamic>).whereType<Map<String, dynamic>>().toList();
-  }
-}
-
-class StudentSummary {
-  StudentSummary({required this.id, required this.name, required this.rude, required this.courseName});
-
-  final String id;
-  final String name;
-  final String rude;
-  final String courseName;
-
-  factory StudentSummary.fromJson(Map<String, dynamic> json) {
-    final enrollments = json['enrollments'];
-    final firstEnrollment = enrollments is List<dynamic> && enrollments.isNotEmpty && enrollments.first is Map<String, dynamic>
-        ? enrollments.first as Map<String, dynamic>
-        : <String, dynamic>{};
-    final course = firstEnrollment['course'] is Map<String, dynamic> ? firstEnrollment['course'] as Map<String, dynamic> : <String, dynamic>{};
-    return StudentSummary(
-      id: _requiredString(json, 'id'),
-      name: '${_requiredString(json, 'firstName')} ${_requiredString(json, 'lastName')}',
-      rude: _requiredString(json, 'rude'),
-      courseName: course['name']?.toString() ?? 'Sin matrícula',
+    _verificarsesionvigente(sessionestado, generacionsesion);
+    final parsed = parse(rows);
+    final guardado = await sessionestado.guardarcachesivigente(
+      storage: _almacenamiento,
+      generation: generacionsesion,
+      cacheKey: cacheKey,
+      cadenajson: jsonEncode({'data': rows, 'total': rows.length}),
+    );
+    if (!guardado) _lanzarsesioncambiada();
+    _verificarsesionvigente(sessionestado, generacionsesion);
+    return resultadoencache(
+      datos: parsed,
+      estaoffline: false,
+      fechaencache: DateTime.now(),
     );
   }
-}
 
-class GradeSummary {
-  GradeSummary({required this.subject, required this.period, required this.value, required this.studentName});
+  Future<List<Map<String, dynamic>>> _obtenertodaslaspaginas({
+    required estadodesionautenticacion sessionState,
+    required int sessionGeneration,
+    required String path,
+    required Map<String, dynamic> queryParameters,
+    required int pagesize,
+    required bool paginated,
+  }) async {
+    final rows = <Map<String, dynamic>>[];
+    int? expectedTotal;
+    var offset = 0;
 
-  final String subject;
-  final String period;
-  final double value;
-  final String studentName;
-
-  factory GradeSummary.fromJson(Map<String, dynamic> json) {
-    final subject = json['subject'] is Map<String, dynamic> ? json['subject'] as Map<String, dynamic> : <String, dynamic>{};
-    final period = json['period'] is Map<String, dynamic> ? json['period'] as Map<String, dynamic> : <String, dynamic>{};
-    final student = json['student'] is Map<String, dynamic> ? json['student'] as Map<String, dynamic> : <String, dynamic>{};
-    return GradeSummary(
-      subject: subject['name']?.toString() ?? 'Materia',
-      period: period['name']?.toString() ?? 'Periodo',
-      value: (json['value'] as num?)?.toDouble() ?? 0,
-      studentName: '${student['firstName'] ?? ''} ${student['lastName'] ?? ''}'.trim(),
-    );
-  }
-}
-
-class AttendanceSummary {
-  AttendanceSummary({required this.date, required this.status, required this.studentName, this.justification});
-
-  final DateTime date;
-  final String status;
-  final String studentName;
-  final String? justification;
-
-  factory AttendanceSummary.fromJson(Map<String, dynamic> json) {
-    final student = json['student'] is Map<String, dynamic> ? json['student'] as Map<String, dynamic> : <String, dynamic>{};
-    return AttendanceSummary(
-      date: DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
-      status: json['status']?.toString() ?? 'UNKNOWN',
-      studentName: '${student['firstName'] ?? ''} ${student['lastName'] ?? ''}'.trim(),
-      justification: json['justification']?.toString(),
-    );
-  }
-}
-
-class AlertSummary {
-  AlertSummary({required this.title, required this.message, required this.severity, required this.createdAt, required this.isRead});
-
-  final String title;
-  final String message;
-  final String severity;
-  final DateTime createdAt;
-  final bool isRead;
-
-  factory AlertSummary.fromJson(Map<String, dynamic> json) => AlertSummary(
-        title: json['title']?.toString() ?? 'Alerta',
-        message: json['message']?.toString() ?? '',
-        severity: json['severity']?.toString() ?? 'INFO',
-        createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
-        isRead: json['isRead'] == true,
+    while (true) {
+      _verificarsesionvigente(sessionState, sessionGeneration);
+      final respuesta = await _clienteapi.cliente.get(
+        path,
+        queryParameters: {
+          ...queryParameters,
+          'limit': pagesize,
+          'offset': offset,
+        },
       );
-}
+      _verificarsesionvigente(sessionState, sessionGeneration);
+      final cuerpo = respuesta.data;
+      if (cuerpo is! Map<String, dynamic> || cuerpo['data'] is! List<dynamic>) {
+        throw const excepcionacademica(
+          'La respuesta del servidor no es válida.',
+        );
+      }
 
-class AcademicException implements Exception {
-  const AcademicException(this.message);
+      final page = _lista(cuerpo);
+      if (!paginated) {
+        rows.addAll(page);
+        break;
+      }
+      final totalvalor = cuerpo['total'];
+      if (totalvalor == null) {
+        if (page.length >= pagesize) {
+          throw const excepcionacademica(
+            'El servidor no informó el total; no se puede confirmar que el historial esté completo.',
+          );
+        }
+        rows.addAll(page);
+        break;
+      }
+      if (totalvalor is! int || totalvalor < 0) {
+        throw const excepcionacademica(
+          'El total de registros del servidor no es válido.',
+        );
+      }
+      if (expectedTotal != null && totalvalor != expectedTotal) {
+        throw const excepcionacademica(
+          'Los registros cambiaron durante la consulta. Actualiza la pantalla para volver a cargarlos.',
+        );
+      }
+      expectedTotal = totalvalor;
 
-  final String message;
-}
+      final remaining = expectedTotal - rows.length;
+      if (page.length > remaining) {
+        throw const excepcionacademica(
+          'El servidor devolvió más registros de los esperados.',
+        );
+      }
+      rows.addAll(page);
+      if (rows.length == expectedTotal) break;
+      if (page.isEmpty || page.length < pagesize) {
+        throw const excepcionacademica(
+          'El servidor devolvió un historial parcial. La caché anterior se conservó.',
+        );
+      }
+      offset += page.length;
+    }
 
-String _requiredString(Map<String, dynamic> json, String key) {
-  final value = json[key];
-  if (value is! String || value.isEmpty) {
-    throw AcademicException('Falta el campo $key en la respuesta.');
+    return rows;
   }
-  return value;
+
+  void _verificarsesionvigente(
+    estadodesionautenticacion sessionestado,
+    int generacion,
+  ) {
+    if (!sessionestado.essesionvigente(generacion)) _lanzarsesioncambiada();
+  }
+
+  Never _lanzarsesioncambiada() {
+    throw DioException(
+      requestOptions: RequestOptions(path: ''),
+      type: DioExceptionType.cancel,
+      message: 'La sesión cambió durante la solicitud.',
+    );
+  }
+
+  List<Map<String, dynamic>> _lista(dynamic cuerpo) {
+    if (cuerpo is! Map<String, dynamic> || cuerpo['data'] is! List<dynamic>) {
+      throw const excepcionacademica('La respuesta del servidor no es válida.');
+    }
+    final rows = cuerpo['data'] as List<dynamic>;
+    return [
+      for (var indice = 0; indice < rows.length; indice++)
+        if (rows[indice] is Map<String, dynamic>)
+          rows[indice] as Map<String, dynamic>
+        else
+          throw excepcionacademica(
+            'El registro ${indice + 1} de la respuesta no es válido.',
+          ),
+    ];
+  }
+}
+
+bool _esfallodeconexion(DioException error) {
+  switch (error.type) {
+    case DioExceptionType.connectionTimeout:
+    case DioExceptionType.sendTimeout:
+    case DioExceptionType.receiveTimeout:
+    case DioExceptionType.connectionError:
+      return true;
+    case DioExceptionType.unknown:
+      return error.error is SocketException;
+    default:
+      return false;
+  }
 }

@@ -1,9 +1,15 @@
 import { Global, Module } from '@nestjs/common';
-import { EventsGateway } from './events.gateway';
+import { pasarelaeventos } from './eventos.gateway';
+import { moduloautenticacion } from '../../modules/auth/autenticacion.module';
+import { tokenrevocacionsesionesusuario } from '../../modules/auth/application/ports/usuariosesionrevocacion.port';
 
 @Global()
 @Module({
-  providers: [EventsGateway],
-  exports: [EventsGateway],
+  imports: [moduloautenticacion],
+  providers: [
+    pasarelaeventos,
+    { provide: tokenrevocacionsesionesusuario, useExisting: pasarelaeventos },
+  ],
+  exports: [pasarelaeventos, tokenrevocacionsesionesusuario],
 })
-export class WebsocketModule {}
+export class modulowebsocket {}

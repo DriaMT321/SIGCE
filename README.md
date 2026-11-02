@@ -6,13 +6,21 @@
 
 ## Arquitectura del Sistema
 
-El proyecto está diseñado bajo los principios de **Clean Architecture** y **Domain-Driven Design (DDD)** implementado como un **Monolito Modular** y un **Worker RPA asíncrono** independiente:
+El sistema está organizado como un **monolito modular** con un **Worker RPA asíncrono**. En la API y el worker, el código de servidor separa presentación, aplicación, dominio e infraestructura; los casos de uso dependen de puertos y los adaptadores concretos de NestJS, Prisma, BullMQ, Puppeteer y el sistema de archivos quedan en los bordes. Las validaciones HTTP pertenecen a presentación y una prueba automatizada comprueba estas reglas de dependencia.
 
-- **Frontend Web (`apps/web`)**: SPA en React 19 + Vite + TypeScript + Tailwind CSS + TanStack Query + React Hook Form + Zod + Socket.IO Client. Estructura orientada a *features*.
-- **Backend API (`apps/api`)**: NestJS + TypeScript + PostgreSQL 16 + Prisma ORM + JWT/RBAC + BullMQ + Socket.IO Gateway. Separación estricta en capas `domain`, `application`, `infrastructure` y `presentation`.
-- **Worker RPA (`apps/sie-worker`)**: Proceso independiente en TypeScript + BullMQ + Puppeteer (Chromium) para automatización, interoperabilidad y verificación bidireccional contra el portal SIE.
+La API organiza sus módulos por capacidades y límites de contexto. El dominio concentra invariantes de matrícula, calificación, corrección de notas, asistencia y generación horaria; las interacciones entre módulos usan contratos publicados. Los modelos de lectura se mantienen como estructuras simples cuando no tienen comportamiento propio. Esta aplicación de DDD no implica convertir cada tabla en un agregado. El mapa de contextos, sus contratos y los límites comprobados se describen en [la guía de arquitectura Clean Architecture y DDD](docs/arquitectura-clean-ddd.md); el contraste con los requisitos del perfil está en [la auditoría de cumplimiento](docs/auditoria-cumplimiento-perfil.md).
+
+- **Frontend Web (`apps/web`)**: SPA en React 19 + Vite + TypeScript + Tailwind CSS + TanStack Query + React Hook Form + Zod + Socket.IO Client. Estructura orientada a _features_.
+- **Backend API (`apps/api`)**: NestJS + TypeScript + PostgreSQL 16 + Prisma ORM + JWT/RBAC + BullMQ + Socket.IO Gateway. Los módulos del backend siguen capas de presentación, aplicación, dominio e infraestructura, con dependencias verificadas mediante pruebas.
+- **Worker RPA (`apps/sie-worker`)**: Proceso independiente en TypeScript + BullMQ + Puppeteer (Chromium) para procesar trabajos SIE. La conexión real está protegida por configuración y requiere habilitación explícita.
 - **Mobile (`mobile`)**: Aplicación móvil Flutter + Dart + Riverpod + Dio + GoRouter + Flutter Secure Storage + Flutter Local Notifications para padres y tutores (sin dependencias de Firebase).
-- **Tipos Compartidos (`packages/shared-types`)**: Paquete TypeScript con enums, DTOs y eventos de dominio transversales.
+- **Tipos Compartidos (`packages/shared-types`)**: Paquete TypeScript con enumeraciones, DTOs y eventos de dominio transversales.
+
+### Horarios y norma educativa
+
+El generador semanal crea cinco períodos pedagógicos diarios de 40 minutos para Inicial; Primaria y Secundaria usan seis períodos de 40 minutos en turnos de mañana o tarde, y seis de 35 minutos en turno nocturno. Se trabaja de lunes a viernes y se evitan solapamientos docentes. La distribución por materia se reparte de forma equilibrada entre las asignaciones registradas; debe revisarse frente a la carga curricular aprobada por la unidad educativa. La [RM 0001/2026](https://www.minedu.gob.bo/files/documentos-normativos/resoluciones-ministeriales/1_RM_0001_EDUCACIN_REGULAR.pdf) establece estas duraciones y deja la fijación del horario local a las autoridades correspondientes. Las horas de inicio y los recreos predeterminados en SIGCE son referencias operativas, no una regla nacional; deben contrastarse con el horario aprobado localmente.
+
+Los grados de Educación Regular usan un único catálogo escolarizado: 1-2 Inicial, 3-8 Primaria y 9-14 Secundaria. Corresponde a la duración establecida en los artículos 12-14 de la [Ley 070](https://www.minedu.gob.bo/files/documentos-normativos/leyes/LEY_070_AVELINO_SINANI_ELIZARDO_PEREZ.pdf). Los paralelos y grupos institucionales se identifican con `section`; no se representan como grados adicionales.
 
 ```
 academic-management/
@@ -24,13 +32,13 @@ academic-management/
 ├── packages/
 │   └── shared-types/                 # Tipos, Enums y Eventos compartidos
 ├── prisma/
-│   ├── schema.prisma                 # Fuente de verdad relacional (~20 entidades)
+│   ├── schema.prisma                 # Fuente de verdad relacional (29 modelos)
 │   ├── migrations/                   # Migraciones versionadas en Git
 │   └── seed.ts                       # Seed idempotente de desarrollo
 ├── database/
 │   └── schema-reference.sql          # Referencia SQL técnica y académica
 ├── scripts/
-│   └── db-setup.ts                   # Script automatizado de reconstrucción de BD
+│   └── configurarbasedatos.ts                   # Script automatizado de reconstrucción de BD
 ├── docker-compose.yml                # Servicios PostgreSQL 16 y Redis 7 Alpine
 ├── .env.example                      # Plantilla de variables de entorno seguras
 ├── pnpm-workspace.yaml               # Configuración de Monorepo pnpm
@@ -47,7 +55,7 @@ Asegúrate de tener instalados en tu computadora:
 2. **pnpm**: `v9.x` o `v10.x` (`npm install -g pnpm`).
 3. **Docker** y **Docker Compose**: Para ejecutar PostgreSQL y Redis localmente.
 4. **Git**: Para control de versiones.
-5. **Flutter SDK** *(opcional para el módulo móvil)*: `v3.24+`.
+5. **Flutter SDK** _(opcional para el módulo móvil)_: versión compatible con `mobile/pubspec.yaml`.
 
 ---
 
@@ -80,22 +88,25 @@ Copy-Item .env.example .env
 cp .env.example .env
 ```
 
+En `.env`, define contraseñas locales propias y genera `JWT_ACCESS_SECRET` y `JWT_REFRESH_SECRET` con al menos 32 bytes aleatorios e independientes. La API rechaza los valores JWT ilustrativos al iniciar en producción.
+
 ### 4. Levantar servicios de infraestructura (PostgreSQL y Redis)
 
 ```bash
 docker compose up -d
 ```
 
-### 5. Inicializar la base de datos (Migraciones + Seed)
+### 5. Inicializar la base local de desarrollo
 
-Ejecuta el comando automatizado `db:setup`:
+`db:setup` aplica migraciones y ejecuta el seed. El comando exige confirmar el nombre de la base destino:
 
 ```bash
-pnpm db:setup
+pnpm db:setup -- --confirm-database <nombre-de-base>
 ```
 
 Este comando automáticamente:
-1. Verifica la conectividad con PostgreSQL.
+
+1. Verifica que el nombre confirmado coincida con la base configurada y comprueba la conectividad.
 2. Genera el cliente tipado de Prisma.
 3. Aplica todas las migraciones SQL versionadas (`prisma migrate deploy`).
 4. Ejecuta el Seed con el usuario Administrador y catálogos base.
@@ -108,29 +119,36 @@ Este comando automáticamente:
 Puedes levantar cada componente en terminales separadas:
 
 ### Backend API (NestJS)
+
 ```bash
 pnpm dev:api
 ```
+
 - Servidor HTTP: `http://localhost:3000/api/v1`
 - WebSocket Gateway: `http://localhost:3000`
 
 ### Frontend Web (React + Vite)
+
 ```bash
 pnpm dev:web
 ```
+
 - Aplicación Web: `http://localhost:5173`
 
 ### Worker RPA (BullMQ + Puppeteer)
+
 ```bash
 pnpm dev:worker
 ```
+
 - Consume trabajos de la cola `sie-synchronization` y ejecuta Chromium headless.
 
 ### Aplicación Móvil (Flutter)
+
 ```bash
 cd mobile
 flutter pub get
-flutter run
+flutter run -t lib/principal.dart
 ```
 
 ---
@@ -141,32 +159,36 @@ El seed genera automáticamente las siguientes credenciales para pruebas locales
 
 - **Usuario**: el valor configurado en `SEED_ADMIN_EMAIL`.
 - **Contraseña**: el valor configurado en `SEED_ADMIN_PASSWORD`.
-- **Rol**: `ADMIN`
+- **Rol**: `ADMINISTRATIVE` (Administración y Dirección)
 
 ---
 
 ## Scripts Globales Disponibles
 
-| Comando | Descripción |
-|---|---|
-| `pnpm build` | Compila todos los paquetes y aplicaciones del monorepo (`shared-types`, `api`, `web`, `sie-worker`). |
-| `pnpm test` | Ejecuta las suites de pruebas unitarias con Jest. |
-| `pnpm typecheck` | Ejecuta la verificación estricta de tipos de TypeScript sin emitir código. |
-| `pnpm format` | Formatea el código de todo el repositorio con Prettier. |
-| `pnpm db:generate` | Regenera el cliente de Prisma tras modificar `schema.prisma`. |
-| `pnpm db:migrate` | Crea y aplica una nueva migración durante desarrollo (`prisma migrate dev`). |
-| `pnpm db:deploy` | Aplica migraciones pendientes en un entorno nuevo o servidor. |
-| `pnpm db:seed` | Ejecuta el script de datos iniciales (`seed.ts`). |
-| `pnpm db:setup` | Reconstruye y verifica la base de datos de manera automatizada. |
-| `pnpm db:reset` | **Destructivo (Dev)**: Destruye el esquema y lo recrea desde cero. |
-| `pnpm db:studio` | Abre la interfaz gráfica Prisma Studio en el navegador. |
+| Comando                                                                                           | Descripción                                                                                          |
+| ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `pnpm build`                                                                                      | Compila todos los paquetes y aplicaciones del monorepo (`shared-types`, `api`, `web`, `sie-worker`). |
+| `pnpm test`                                                                                       | Ejecuta las suites de pruebas unitarias con Jest.                                                    |
+| `pnpm typecheck`                                                                                  | Ejecuta la verificación estricta de tipos de TypeScript sin emitir código.                           |
+| `pnpm format`                                                                                     | Formatea el código de todo el repositorio con Prettier.                                              |
+| `pnpm db:generate`                                                                                | Regenera el cliente de Prisma tras modificar `schema.prisma`.                                        |
+| `pnpm db:migrate`                                                                                 | Crea y aplica una nueva migración durante desarrollo (`prisma migrate dev`).                         |
+| `pnpm db:deploy -- --confirm-database <nombre>`                                                   | Aplica migraciones en la base cuyo nombre confirmaste. Haz un respaldo antes de usarlo.              |
+| `pnpm db:seed`                                                                                    | Ejecuta el script de datos iniciales (`seed.ts`).                                                    |
+| `pnpm db:setup -- --confirm-database <nombre>`                                                    | Aplica migraciones, ejecuta el seed y verifica la base configurada. Para desarrollo local.           |
+| `pnpm db:backup`                                                                                  | Crea un volcado PostgreSQL en formato custom.                                                        |
+| `pnpm db:restore -- --backup <archivo.dump> --target-database <nombre> --confirm-target <nombre>` | Restaura el archivo indicado en una base existente dentro de una transacción.                        |
+| `pnpm db:reset -- --confirm-database <nombre> --allow-data-loss`                                  | **Destructivo**: elimina y recrea el esquema de la base confirmada.                                  |
+| `pnpm db:studio`                                                                                  | Abre la interfaz gráfica Prisma Studio en el navegador.                                              |
 
 ---
 
 ## Pruebas de Diagnóstico y Automatización
 
 ### Prueba de Diagnóstico Puppeteer (Chromium Sandbox)
+
 Para comprobar que el motor de automatización Puppeteer puede inicializar Chromium y procesar páginas sin tocar el SIE real:
+
 ```bash
 pnpm --filter @academic/sie-worker test:puppeteer
 ```
@@ -195,8 +217,9 @@ Se implementó el bloque que no depende todavía del portal estatal:
 - Las solicitudes de verificación toman calificaciones existentes en PostgreSQL; no crean estudiantes ni notas ficticias.
 - Los filtros disponibles para el disparador son curso, materia y periodo académico.
 - BullMQ encola un trabajo por calificación y el Worker actualiza estados y auditoría.
-- El panel web consulta el historial real y recibe estados `queued`, `started`, `progress`, `verified` y `failed` mediante Socket.IO.
+- El panel web consulta el historial y recibe los estados `queued`, `started`, `progress`, `verified`, `discrepancy`, `paused` y `failed` mediante Socket.IO.
 - Puppeteer trabaja únicamente sobre una página HTML local controlada.
+- Los lotes requieren un resumen confirmado, contienen hasta 50 notas, agrupan discrepancias y se pausan si superan el umbral operativo configurado.
 
 La conexión real se habilitará posteriormente mediante un adaptador separado, sin cambiar el caso de uso ni el flujo de la cola.
 
@@ -211,5 +234,8 @@ La conexión real se habilitará posteriormente mediante un adaptador separado, 
 - Las credenciales del usuario bootstrap se leen exclusivamente desde `SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD` en `.env`; no se documentan valores reales en el repositorio.
 - `POST /api/v1/auth/refresh` rota refresh tokens almacenados como hashes y `POST /api/v1/auth/revoke` los revoca.
 - Los endpoints protegidos combinan `RolesGuard` y `PermissionsGuard`, usando los permisos sembrados en `RolePermission`.
-- El Worker publica `sie.sync.started`, `sie.sync.verified` y `sie.sync.failed` mediante Redis; el Gateway NestJS los retransmite por Socket.IO.
-- El módulo Flutter contiene la capa de aplicación y consultas académicas de la Fase 2. La generación/compilación de plataformas requiere una instalación funcional del SDK Flutter; en este equipo el SDK instalado no pudo inicializarse.
+- El Worker publica `sie.sync.started`, `sie.sync.verified`, `sie.sync.discrepancy` y `sie.sync.failed` mediante Redis; el Gateway NestJS los retransmite por Socket.IO.
+- El módulo Flutter requiere una instalación del SDK Flutter y las herramientas de cada plataforma destino. Las pruebas unitarias y el análisis estático se ejecutan desde `mobile` con `flutter test` y `flutter analyze`; para compilar Android también se requieren Java y Android SDK.
+- `pnpm db:backup` y `pnpm db:restore` usan `pg_dump` y `pg_restore`; los comandos reciben sus argumentos sin interpolar en un shell.
+- La restauración exige seleccionar el archivo y repetir el nombre exacto de la base destino. El destino debe existir y la restauración falla entera si encuentra conflictos.
+- La auditoría de este repositorio preparó migraciones, pero no las aplicó a una base de datos. Consulta [el procedimiento operativo](docs/operaciones-base-datos.md) antes de desplegarlas.

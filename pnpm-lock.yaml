@@ -14,7 +14,13 @@ importers:
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.3
+      puppeteer:
+        specifier: ^24.4.0
+        version: 24.43.1(typescript@5.9.3)
     devDependencies:
+      '@academic/seguridadarchivos':
+        specifier: workspace:*
+        version: link:packages/seguridadarchivos
       '@eslint/js':
         specifier: ^9.39.5
         version: 9.39.5
@@ -63,6 +69,15 @@ importers:
 
   apps/api:
     dependencies:
+      '@academic/academic-domain':
+        specifier: workspace:*
+        version: link:../../packages/academic-domain
+      '@academic/domain-kernel':
+        specifier: workspace:*
+        version: link:../../packages/domain-kernel
+      '@academic/seguridadarchivos':
+        specifier: workspace:*
+        version: link:../../packages/seguridadarchivos
       '@academic/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -187,6 +202,9 @@ importers:
 
   apps/sie-worker:
     dependencies:
+      '@academic/domain-kernel':
+        specifier: workspace:*
+        version: link:../../packages/domain-kernel
       '@academic/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -230,6 +248,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@academic/academic-domain':
+        specifier: workspace:*
+        version: link:../../packages/academic-domain
       '@academic/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -257,6 +278,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      gsap:
+        specifier: ^3.15.0
+        version: 3.15.0
       lucide-react:
         specifier: ^0.477.0
         version: 0.477.0(react@19.2.8)
@@ -310,7 +334,32 @@ importers:
         specifier: ^6.2.0
         version: 6.4.3(@types/node@22.20.1)(jiti@1.21.7)(terser@5.50.0)(tsx@4.23.12)
 
+  packages/academic-domain:
+    devDependencies:
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+
+  packages/domain-kernel:
+    devDependencies:
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+
+  packages/seguridadarchivos:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.9
+        version: 22.20.1
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+
   packages/shared-types:
+    dependencies:
+      '@academic/domain-kernel':
+        specifier: workspace:*
+        version: link:../domain-kernel
     devDependencies:
       rimraf:
         specifier: ^6.0.1
@@ -2381,6 +2430,7 @@ packages:
   cron-parser@4.9.0:
     resolution: {integrity: sha512-p0SaNjrHOnQeR8/VnfGbmg9te2kfyYSQ7Sc/j/6DtPL3JQvKxmjO9TSjNFpujqV3vEYYBvNNvXSxzyksBWAx1Q==}
     engines: {node: '>=12.0.0'}
+    deprecated: v4 is no longer maintained, upgrade to v5
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -2639,6 +2689,7 @@ packages:
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -2906,6 +2957,9 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+
+  gsap@3.15.0:
+    resolution: {integrity: sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==}
 
   handlebars@4.7.9:
     resolution: {integrity: sha512-4E71E0rpOaQuJR2A3xDZ+GM1HyWYv1clR58tC8emQNeQe3RH7MAzSbat+V0wG78LQBo6m6bzSG/L4pBuCsgnUQ==}
@@ -7385,6 +7439,8 @@ snapshots:
   gopd@1.2.0: {}
 
   graceful-fs@4.2.11: {}
+
+  gsap@3.15.0: {}
 
   handlebars@4.7.9:
     dependencies:

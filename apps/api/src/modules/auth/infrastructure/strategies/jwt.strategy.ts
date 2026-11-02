@@ -2,37 +2,50 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../../../../common/database/prisma.service';
-import { JwtPayload, AuthenticatedUser } from '@academic/shared-types';
+import { servicioprisma } from '../../../../common/database/prisma.service';
+import { contenidotokenjwt, usuarioautenticado } from '@academic/shared-types';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class estrategiajwt extends PassportStrategy(Strategy) {
   constructor(
-    private readonly configService: ConfigService,
-    private readonly prisma: PrismaService,
+    private readonly configuracionservicio: ConfigService,
+    private readonly prisma: servicioprisma,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.getOrThrow<string>('jwt.accessSecret'),
+      secretOrKey: configuracionservicio.getOrThrow<string>('jwt.accessSecret'),
     });
   }
 
-  async validate(payload: JwtPayload): Promise<AuthenticatedUser> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
+  async validate(carga: contenidotokenjwt): Promise<usuarioautenticado> {
+    if (!carga.sessionId) throw new UnauthorizedException('Sesión no válida');
+    const sesion = await this.prisma.authSession.findFirst({
+      where: { id: carga.sessionId, userId: carga.sub, revokedAt: null, expiresAt: { gt: new Date() } },
+      select: { id: true },
+    });
+    if (!sesion) throw new UnauthorizedException('Sesión cerrada o expirada');
+    const usuario = await this.prisma.user.findUnique({
+      where: { id: carga.sub },
     });
 
-    if (!user || !user.isActive || user.deletedAt) {
+    if (
+      !usuario ||
+      !usuario.isActive ||
+      usuario.deletedAt ||
+      usuario.passwordSetupRequired ||
+      ((carga.credentialVersion !== undefined || usuario.credentialVersion !== 0) &&
+        carga.credentialVersion !== usuario.credentialVersion)
+    ) {
       throw new UnauthorizedException('Usuario no autorizado o inactivo');
     }
 
     return {
-      id: user.id,
-      email: user.email,
-      role: user.role as unknown as AuthenticatedUser['role'],
-      firstName: user.firstName,
-      lastName: user.lastName,
+      id: usuario.id,
+      email: usuario.email,
+      role: usuario.role as unknown as usuarioautenticado['role'],
+      firstName: usuario.firstName,
+      lastName: usuario.lastName,
     };
   }
 }

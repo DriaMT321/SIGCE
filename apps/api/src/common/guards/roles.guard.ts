@@ -1,32 +1,32 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { UserRole } from '@academic/shared-types';
-import { ROLES_KEY } from '../decorators/roles.decorator';
+import { rolusuario } from '@academic/shared-types';
+import { constanteclaveroles } from '../decorators/roles.decorator';
 
 @Injectable()
-export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+export class guardiaroles implements CanActivate {
+  constructor(private lectormetadatos: Reflector) {}
 
-  canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+  canActivate(contexto: ExecutionContext): boolean {
+    const rolesrequeridos = this.lectormetadatos.getAllAndOverride<rolusuario[]>(
+      constanteclaveroles,
+      [contexto.getHandler(), contexto.getClass()],
+    );
 
-    if (!requiredRoles || requiredRoles.length === 0) {
+    if (!rolesrequeridos || rolesrequeridos.length === 0) {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest();
+    const { user: usuario } = contexto.switchToHttp().getRequest();
 
-    if (!user) {
+    if (!usuario) {
       throw new ForbiddenException('Usuario no autenticado para validar permisos de rol');
     }
 
-    const hasRole = requiredRoles.includes(user.role);
-    if (!hasRole) {
+    const tienerol = rolesrequeridos.includes(usuario.role);
+    if (!tienerol) {
       throw new ForbiddenException(
-        `Acceso denegado: Se requiere uno de los roles [${requiredRoles.join(', ')}], pero el usuario tiene rol [${user.role}]`,
+        `Acceso denegado: Se requiere uno de los roles [${rolesrequeridos.join(', ')}], pero el usuario tiene rol [${usuario.role}]`,
       );
     }
 

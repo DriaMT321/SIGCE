@@ -1,0 +1,21 @@
+node_modules/
+.git/
+.agents/
+agent/
+.claude/
+
+**/dist/
+**/dist-esm/
+**/coverage/
+**/build/
+**/.dart_tool/
+**/*.tsbuildinfo
+
+prisma/schema.prisma
+MTD ProyectoGrado.docx.md
+apps/web/src/vite-env.d.ts
+apps/web/vite.config.d.ts
+apps/web/vite.config.js
+mobile/ios/**/Contents.json
+mobile/macos/**/Contents.json
+mobile/web/flutter_bootstrap.js

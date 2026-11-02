@@ -2,11 +2,16 @@
   "name": "@academic/shared-types",
   "version": "1.0.0",
   "main": "./dist/index.js",
+  "module": "./dist/esm/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "prebuild": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "tsc && tsc -p tsconfig.esm.json",
     "dev": "tsc --watch",
     "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@academic/domain-kernel": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",

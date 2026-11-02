@@ -1,6 +1,9 @@
 import { PrismaClient, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import * as dotenv from 'dotenv';
+import { validarcontrasena } from '../apps/api/src/core/domain/policies/politicacontrasena';
+import { materiassecundaria } from './catalogomateriassecundaria';
+import { materiasinicialyprimaria } from './catalogomateriasprimaria';
 
 dotenv.config();
 
@@ -18,9 +21,53 @@ async function main() {
     { name: 'users:delete', description: 'Eliminar usuarios', module: 'users' },
 
     // Módulos académicos
-    { name: 'academic-years:read', description: 'Ver gestiones académicas', module: 'academic-years' },
+    {
+      name: 'academic-years:read',
+      description: 'Ver gestiones académicas',
+      module: 'academic-years',
+    },
+    {
+      name: 'academic-years:create',
+      description: 'Crear gestiones académicas',
+      module: 'academic-years',
+    },
+    {
+      name: 'academic-years:update',
+      description: 'Actualizar gestiones académicas',
+      module: 'academic-years',
+    },
+    {
+      name: 'academic-years:delete',
+      description: 'Eliminar gestiones académicas',
+      module: 'academic-years',
+    },
     { name: 'periods:read', description: 'Ver periodos académicos', module: 'periods' },
+    {
+      name: 'periods:create',
+      description: 'Crear periodos académicos',
+      module: 'periods',
+    },
+    {
+      name: 'periods:update',
+      description: 'Actualizar y cerrar periodos académicos',
+      module: 'periods',
+    },
     { name: 'subjects:read', description: 'Ver materias', module: 'subjects' },
+    {
+      name: 'subjects:create',
+      description: 'Crear materias',
+      module: 'subjects',
+    },
+    {
+      name: 'subjects:update',
+      description: 'Actualizar materias',
+      module: 'subjects',
+    },
+    {
+      name: 'subjects:delete',
+      description: 'Eliminar materias',
+      module: 'subjects',
+    },
     { name: 'courses:read', description: 'Ver cursos', module: 'courses' },
     { name: 'courses:create', description: 'Crear cursos', module: 'courses' },
     { name: 'courses:update', description: 'Editar cursos', module: 'courses' },
@@ -30,6 +77,11 @@ async function main() {
     { name: 'enrollments:update', description: 'Editar matrículas', module: 'enrollments' },
     { name: 'alerts:read', description: 'Ver alertas', module: 'alerts' },
     { name: 'alerts:update', description: 'Marcar alertas como leídas', module: 'alerts' },
+    {
+      name: 'alerts:configure',
+      description: 'Configurar reglas de alertas tempranas',
+      module: 'alerts',
+    },
 
     // Módulos de comunidad educativa
     { name: 'parents:read', description: 'Ver familiares', module: 'parents' },
@@ -49,6 +101,11 @@ async function main() {
     { name: 'grades:read', description: 'Ver calificaciones', module: 'grades' },
     { name: 'grades:create', description: 'Registrar calificaciones', module: 'grades' },
     { name: 'grades:update', description: 'Modificar calificaciones', module: 'grades' },
+    {
+      name: 'grades:publish',
+      description: 'Publicar calificaciones para familias y estudiantes',
+      module: 'grades',
+    },
 
     // Módulo Asistencia
     { name: 'attendance:read', description: 'Ver asistencia', module: 'attendance' },
@@ -75,29 +132,90 @@ async function main() {
   // 2. Asignar permisos a roles
   const allPermissions = await prisma.permission.findMany();
   const permissionNamesByRole: Record<UserRole, string[]> = {
-    [UserRole.ADMIN]: allPermissions.map((permission) => permission.name),
-    [UserRole.DIRECTOR]: [
-      'users:read', 'students:read', 'students:update', 'grades:read',
-      'attendance:read', 'audit:read', 'sie:read', 'sie:execute',
-      'academic-years:read', 'periods:read', 'subjects:read', 'courses:read', 'courses:create', 'courses:update', 'courses:delete',
-      'enrollments:read', 'enrollments:create', 'enrollments:update', 'alerts:read', 'alerts:update',
-      'parents:read', 'parents:create', 'parents:update', 'teachers:read', 'teachers:create', 'teachers:update',
-    ],
+    [UserRole.ADMINISTRATIVE]: allPermissions.map((permission) => permission.name),
     [UserRole.SECRETARY]: [
-      'users:read', 'students:read', 'students:create', 'students:update',
-      'sie:read', 'sie:execute', 'academic-years:read', 'periods:read', 'subjects:read',
-      'courses:read', 'courses:create', 'courses:update', 'enrollments:read', 'enrollments:create', 'enrollments:update', 'alerts:read', 'alerts:update',
-      'parents:read', 'parents:create', 'parents:update', 'teachers:read', 'teachers:create', 'teachers:update',
+      'users:read',
+      'students:read',
+      'students:create',
+      'students:update',
+      'sie:read',
+      'sie:execute',
+      'grades:read',
+      'grades:create',
+      'grades:update',
+      'grades:publish',
+      'academic-years:read',
+      'academic-years:create',
+      'academic-years:update',
+      'periods:read',
+      'periods:create',
+      'periods:update',
+      'subjects:read',
+      'subjects:create',
+      'subjects:update',
+      'courses:read',
+      'courses:create',
+      'courses:update',
+      'enrollments:read',
+      'enrollments:create',
+      'enrollments:update',
+      'alerts:read',
+      'alerts:update',
+      'parents:read',
+      'parents:create',
+      'parents:update',
+      'teachers:read',
+      'teachers:create',
+      'teachers:update',
     ],
     [UserRole.TEACHER]: [
-      'students:read', 'grades:read', 'grades:create', 'grades:update',
-      'attendance:read', 'attendance:create', 'attendance:update', 'sie:read', 'academic-years:read', 'periods:read', 'subjects:read', 'courses:read', 'enrollments:read', 'alerts:read', 'alerts:update', 'teachers:read',
+      'students:read',
+      'grades:read',
+      'grades:create',
+      'grades:update',
+      'grades:publish',
+      'attendance:read',
+      'attendance:create',
+      'attendance:update',
+      'sie:read',
+      'academic-years:read',
+      'periods:read',
+      'subjects:read',
+      'courses:read',
+      'enrollments:read',
+      'alerts:read',
+      'alerts:update',
+      'teachers:read',
     ],
-    [UserRole.PARENT]: ['students:read', 'grades:read', 'attendance:read', 'enrollments:read', 'academic-years:read', 'periods:read', 'subjects:read', 'alerts:read', 'alerts:update'],
+    [UserRole.PARENT]: [
+      'students:read',
+      'grades:read',
+      'attendance:read',
+      'enrollments:read',
+      'academic-years:read',
+      'periods:read',
+      'subjects:read',
+      'alerts:read',
+      'alerts:update',
+    ],
+    [UserRole.STUDENT]: [
+      'students:read',
+      'grades:read',
+      'attendance:read',
+      'enrollments:read',
+      'academic-years:read',
+      'periods:read',
+      'subjects:read',
+      'alerts:read',
+      'alerts:update',
+    ],
   };
 
   console.log('  -> Asignando permisos a roles...');
-  for (const [role, permissionNames] of Object.entries(permissionNamesByRole) as [UserRole, string[]][]) {
+  for (const [role, permissionNames] of Object.entries(permissionNamesByRole) as [
+    UserRole,
+    string[],
+  ][]) {
     for (const permission of allPermissions.filter((item) => permissionNames.includes(item.name))) {
       await prisma.rolePermission.upsert({
         where: {
@@ -119,8 +237,11 @@ async function main() {
   const adminEmail = process.env.SEED_ADMIN_EMAIL?.trim();
   const adminPassword = process.env.SEED_ADMIN_PASSWORD;
   if (!adminEmail || !adminPassword) {
-    throw new Error('SEED_ADMIN_EMAIL y SEED_ADMIN_PASSWORD son obligatorias para ejecutar el seed');
+    throw new Error(
+      'SEED_ADMIN_EMAIL y SEED_ADMIN_PASSWORD son obligatorias para ejecutar el seed',
+    );
   }
+  validarcontrasena(adminPassword);
   const adminFirstName = process.env.SEED_ADMIN_FIRST_NAME || 'Administrador';
   const adminLastName = process.env.SEED_ADMIN_LAST_NAME || 'General';
 
@@ -132,7 +253,7 @@ async function main() {
     update: {
       firstName: adminFirstName,
       lastName: adminLastName,
-      role: UserRole.ADMIN,
+      role: UserRole.ADMINISTRATIVE,
       isActive: true,
     },
     create: {
@@ -140,7 +261,7 @@ async function main() {
       passwordHash: passwordHash,
       firstName: adminFirstName,
       lastName: adminLastName,
-      role: UserRole.ADMIN,
+      role: UserRole.ADMINISTRATIVE,
       isActive: true,
     },
   });
@@ -167,9 +288,24 @@ async function main() {
 
   // 3 Trimestres
   const periods = [
-    { number: 1, name: '1er Trimestre', start: `${currentYear}-02-01`, end: `${currentYear}-05-15` },
-    { number: 2, name: '2do Trimestre', start: `${currentYear}-05-16`, end: `${currentYear}-08-31` },
-    { number: 3, name: '3er Trimestre', start: `${currentYear}-09-01`, end: `${currentYear}-11-30` },
+    {
+      number: 1,
+      name: '1er Trimestre',
+      start: `${currentYear}-02-01`,
+      end: `${currentYear}-05-15`,
+    },
+    {
+      number: 2,
+      name: '2do Trimestre',
+      start: `${currentYear}-05-16`,
+      end: `${currentYear}-08-31`,
+    },
+    {
+      number: 3,
+      name: '3er Trimestre',
+      start: `${currentYear}-09-01`,
+      end: `${currentYear}-11-30`,
+    },
   ];
 
   for (const p of periods) {
@@ -197,15 +333,7 @@ async function main() {
   }
 
   // 5. Materias base
-  const subjectsData = [
-    { name: 'Matemática', code: 'MAT-SEC', area: 'Ciencia y Tecnología' },
-    { name: 'Lenguaje y Comunicación', code: 'LEN-SEC', area: 'Humanidades' },
-    { name: 'Ciencias Naturales: Física', code: 'FIS-SEC', area: 'Ciencia y Tecnología' },
-    { name: 'Ciencias Naturales: Química', code: 'QUI-SEC', area: 'Ciencia y Tecnología' },
-    { name: 'Ciencias Sociales: Historia', code: 'HIS-SEC', area: 'Ciencias Sociales' },
-    { name: 'Lengua Extranjera: Inglés', code: 'ING-SEC', area: 'Humanidades' },
-    { name: 'Educación Física y Deportes', code: 'EFD-SEC', area: 'Deportes' },
-  ];
+  const subjectsData = [...materiasinicialyprimaria, ...materiassecundaria];
 
   for (const s of subjectsData) {
     await prisma.subject.upsert({
@@ -226,16 +354,16 @@ async function main() {
   });
   if (!bootstrapAudit) {
     await prisma.auditLog.create({
-    data: {
-      userId: adminUser.id,
-      action: 'CREATE',
-      entity: 'SystemBootstrap',
-      entityId: adminUser.id,
-      newValue: {
-        event: 'DATABASE_INITIALIZED_AND_SEEDED',
-        timestamp: new Date().toISOString(),
-      },
-      ipAddress: '127.0.0.1',
+      data: {
+        userId: adminUser.id,
+        action: 'CREATE',
+        entity: 'SystemBootstrap',
+        entityId: adminUser.id,
+        newValue: {
+          event: 'DATABASE_INITIALIZED_AND_SEEDED',
+          timestamp: new Date().toISOString(),
+        },
+        ipAddress: '127.0.0.1',
         userAgent: 'PrismaSeed/1.0',
       },
     });

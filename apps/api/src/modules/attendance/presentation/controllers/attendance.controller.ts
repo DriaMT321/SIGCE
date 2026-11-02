@@ -1,39 +1,90 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
-import { AuthenticatedUser, UserRole } from '@academic/shared-types';
-import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
-import { Permissions } from '../../../../common/decorators/permissions.decorator';
-import { Roles } from '../../../../common/decorators/roles.decorator';
-import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
-import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
-import { RolesGuard } from '../../../../common/guards/roles.guard';
-import { CreateAttendanceDto, UpdateAttendanceDto } from '../../application/dto/attendance.dto';
-import { CreateAttendanceUseCase, ListAttendanceUseCase, UpdateAttendanceUseCase } from '../../application/use-cases/attendance.use-cases';
+import { usuarioautenticado, rolusuario } from '@academic/shared-types';
+import { usuarioactual } from '../../../../common/decorators/usuarioactual.decorator';
+import { definirpermisos } from '../../../../common/decorators/permisos.decorator';
+import { definirroles } from '../../../../common/decorators/roles.decorator';
+import { guardiaautenticacionjwt } from '../../../../common/guards/jwtautenticacion.guard';
+import { guardiapermisos } from '../../../../common/guards/permisos.guard';
+import { guardiaroles } from '../../../../common/guards/roles.guard';
+import { dtocrearasistencia, dtoactualizarasistencia } from '../dto/asistencia.dto';
+import { dtofiltrosasistencia } from '../dto/filtrosasistencia.dto';
+import {
+  casousocrearasistencia,
+  casousolistarasistencias,
+  casousoactualizarasistencia,
+} from '../../application/use-cases/asistencia.use-cases';
 
 @Controller('attendance')
-@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+@UseGuards(guardiaautenticacionjwt, guardiaroles, guardiapermisos)
 export class AttendanceController {
-  constructor(private readonly listAttendance: ListAttendanceUseCase, private readonly createAttendance: CreateAttendanceUseCase, private readonly updateAttendance: UpdateAttendanceUseCase) {}
+  constructor(
+    private readonly listarattendance: casousolistarasistencias,
+    private readonly crearattendance: casousocrearasistencia,
+    private readonly actualizarattendance: casousoactualizarasistencia,
+  ) {}
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER, UserRole.PARENT)
-  @Permissions('attendance:read')
-  async list(@CurrentUser() user: AuthenticatedUser, @Query('studentId') studentId?: string, @Query('courseId') courseId?: string, @Query('from') from?: string, @Query('to') to?: string, @Query('limit') limit?: string, @Query('offset') offset?: string) {
-    const result = await this.listAttendance.execute({ studentId, courseId, from: from ? new Date(from) : undefined, to: to ? new Date(to) : undefined, parentUserId: user.role === UserRole.PARENT ? user.id : undefined, limit: Math.min(Number(limit) || 100, 200), offset: Number(offset) || 0 });
-    return { statusCode: 200, message: 'Asistencia obtenida exitosamente', data: result.items, total: result.total };
+  @definirroles(
+    rolusuario.ADMINISTRATIVE,
+    rolusuario.SECRETARY,
+    rolusuario.TEACHER,
+    rolusuario.PARENT,
+    rolusuario.STUDENT,
+  )
+  @definirpermisos('attendance:read')
+  async listar(
+    @usuarioactual() usuario: usuarioautenticado,
+    @Query() filtros: dtofiltrosasistencia,
+  ) {
+    const resultado = await this.listarattendance.ejecutar({
+      studentId: filtros.studentId,
+      courseId: filtros.courseId,
+      from: filtros.from ? new Date(filtros.from) : undefined,
+      to: filtros.to ? new Date(filtros.to) : undefined,
+      parentUserId: [rolusuario.PARENT, rolusuario.STUDENT].includes(usuario.role)
+        ? usuario.id
+        : undefined,
+      teacherUserId: usuario.role === rolusuario.TEACHER ? usuario.id : undefined,
+      limit: Math.min(filtros.limit ?? 100, 200),
+      offset: filtros.offset ?? 0,
+    });
+    return {
+      statusCode: 200,
+      message: 'Asistencia obtenida exitosamente',
+      data: resultado.items,
+      total: resultado.total,
+    };
   }
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
-  @Permissions('attendance:create')
-  async create(@Body() dto: CreateAttendanceDto, @CurrentUser() user: AuthenticatedUser, @Req() req: Request) {
-    return { statusCode: 201, message: 'Asistencia registrada exitosamente', data: await this.createAttendance.execute(dto, user.id, req.ip, user.role) };
+  @definirroles(rolusuario.ADMINISTRATIVE, rolusuario.SECRETARY, rolusuario.TEACHER)
+  @definirpermisos('attendance:create')
+  async crear(
+    @Body() dto: dtocrearasistencia,
+    @usuarioactual() usuario: usuarioautenticado,
+    @Req() req: Request,
+  ) {
+    return {
+      statusCode: 201,
+      message: 'Asistencia registrada exitosamente',
+      data: await this.crearattendance.ejecutar(dto, usuario.id, req.ip, usuario.role),
+    };
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.SECRETARY, UserRole.TEACHER)
-  @Permissions('attendance:update')
-  async update(@Param('id') id: string, @Body() dto: UpdateAttendanceDto, @CurrentUser() user: AuthenticatedUser, @Req() req: Request) {
-    return { statusCode: 200, message: 'Asistencia actualizada exitosamente', data: await this.updateAttendance.execute(id, dto, user.id, req.ip, user.role) };
+  @definirroles(rolusuario.ADMINISTRATIVE, rolusuario.SECRETARY, rolusuario.TEACHER)
+  @definirpermisos('attendance:update')
+  async actualizar(
+    @Param('id') id: string,
+    @Body() dto: dtoactualizarasistencia,
+    @usuarioactual() usuario: usuarioautenticado,
+    @Req() req: Request,
+  ) {
+    return {
+      statusCode: 200,
+      message: 'Asistencia actualizada exitosamente',
+      data: await this.actualizarattendance.ejecutar(id, dto, usuario.id, req.ip, usuario.role),
+    };
   }
 }

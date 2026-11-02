@@ -4,7 +4,8 @@
   "private": true,
   "description": "Backend NestJS - Sistema de Gestión Académica",
   "scripts": {
-    "prebuild": "pnpm --filter @academic/shared-types build",
+    "prebuild": "pnpm --filter @academic/domain-kernel build && pnpm --filter @academic/shared-types build && pnpm --filter @academic/academic-domain build && pnpm --filter @academic/seguridadarchivos build",
+    "pretest": "pnpm --filter @academic/domain-kernel build && pnpm --filter @academic/shared-types build && pnpm --filter @academic/academic-domain build && pnpm --filter @academic/seguridadarchivos build",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -18,6 +19,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@academic/academic-domain": "workspace:*",
+    "@academic/domain-kernel": "workspace:*",
+    "@academic/seguridadarchivos": "workspace:*",
     "@academic/shared-types": "workspace:*",
     "@nestjs/bullmq": "^11.0.2",
     "@nestjs/common": "^11.0.11",

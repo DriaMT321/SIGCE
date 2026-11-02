@@ -1,19 +1,19 @@
-import { SieWorkerApplication } from './worker';
+import { aplicaciontrabajadorsie } from './aplicaciontrabajadorsie';
 
-const app = new SieWorkerApplication();
+const aplicacion = new aplicaciontrabajadorsie();
 
-app.start().catch((err) => {
+aplicacion.iniciar().catch((err) => {
   console.error('Error fatal iniciando el Worker RPA:', err);
   process.exit(1);
 });
 
 // Manejo de señales de apagado
 process.on('SIGINT', async () => {
-  await app.stop();
+  await aplicacion.detener();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  await app.stop();
+  await aplicacion.detener();
   process.exit(0);
 });
