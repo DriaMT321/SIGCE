@@ -4,7 +4,7 @@ class configuracionaplicacion {
   static const String nombreaplicacion = 'Gestión Académica Móvil';
   static const String _urlbaseapi = String.fromEnvironment(
     'SIGCE_API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:3000/api/v1',
+    defaultValue: 'https://api.sigce.lat/api/v1',
   );
   static String get urlbaseapi {
     final ruta = Uri.tryParse(_urlbaseapi);
