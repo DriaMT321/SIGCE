@@ -190,7 +190,8 @@ export const configuraciontrabajador = {
       usartls = urlcontls;
     }
 
-    if (process.env.NODE_ENV === 'production' && (!usartls || !contrasena)) {
+    const esbuclelocal = servidor === 'localhost' || servidor === '127.0.0.1' || servidor === '::1';
+    if (process.env.NODE_ENV === 'production' && !esbuclelocal && (!usartls || !contrasena)) {
       throw new Error('En producción Redis requiere TLS y una contraseña configurada');
     }
 

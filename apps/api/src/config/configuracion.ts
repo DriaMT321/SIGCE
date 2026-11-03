@@ -167,7 +167,8 @@ export default (): configuracionaplicacion => {
         usarTLS = urlcontls;
       }
 
-      if (entornoNodo === 'production' && (!usarTLS || !contrasena)) {
+      const esBucleLocal = servidor === 'localhost' || servidor === '127.0.0.1' || servidor === '::1';
+      if (entornoNodo === 'production' && !esBucleLocal && (!usarTLS || !contrasena)) {
         throw new Error('En producción Redis requiere TLS y una contraseña configurada');
       }
 
