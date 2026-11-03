@@ -9,6 +9,10 @@ import '../../features/grades/presentation/pantallacalificaciones.dart';
 import '../../features/attendance/presentation/pantallaasistencia.dart';
 import '../../features/alerts/presentation/pantallaalertas.dart';
 import '../../features/profile/presentation/pantallaperfil.dart';
+import '../../features/schedules/presentation/pantallahorarios.dart';
+import '../../features/assignments/presentation/pantallatareas.dart';
+import '../../features/announcements/presentation/pantallacomunicados.dart';
+import '../../features/meetings/presentation/pantallasolicitudcita.dart';
 
 final GoRouter enrutadoraplicacion = GoRouter(
   initialLocation: '/login',
@@ -64,9 +68,33 @@ final GoRouter enrutadoraplicacion = GoRouter(
       },
     ),
     GoRoute(
+      path: '/assignments',
+      builder: (BuildContext contexto, GoRouterState estado) {
+        return const pantallatareas();
+      },
+    ),
+    GoRoute(
+      path: '/schedules',
+      builder: (BuildContext contexto, GoRouterState estado) {
+        return const pantallahorarios();
+      },
+    ),
+    GoRoute(
+      path: '/announcements',
+      builder: (BuildContext contexto, GoRouterState estado) {
+        return const pantallacomunicados();
+      },
+    ),
+    GoRoute(
       path: '/alerts',
       builder: (BuildContext contexto, GoRouterState estado) {
         return const pantallaalertas();
+      },
+    ),
+    GoRoute(
+      path: '/request-meeting',
+      builder: (BuildContext contexto, GoRouterState estado) {
+        return const pantallasolicitudcita();
       },
     ),
     GoRoute(

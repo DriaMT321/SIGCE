@@ -1,22 +1,31 @@
 import 'package:flutter/material.dart';
 
 class temaaplicacion {
-  static const Color lienzo = Color(0xFFF7F6F1);
+  // Paleta oficial institucional - Colegio Comunidad Cristiana
+  static const Color lienzo = Color(0xFFF8FAFC);
   static const Color superficie = Color(0xFFFFFFFF);
-  static const Color tinta = Color(0xFF292820);
-  static const Color tintatenue = Color(0xFF706E64);
-  static const Color borde = Color(0xFFE7E4DA);
-  static const Color bordedecontrol = Color(0xFF8E8B80);
-  static const Color marca = Color(0xFF806719);
-  static const Color fondomarca = Color(0xFFF4EBCB);
-  static const Color exito = Color(0xFF496B4A);
-  static const Color fondoexito = Color(0xFFEDF3EC);
-  static const Color advertencia = Color(0xFF8A6615);
-  static const Color fondoadvertencia = Color(0xFFFBF3DB);
-  static const Color bordeadvertencia = Color(0x338A6615);
-  static const Color error = Color(0xFF9B4038);
-  static const Color fondoerror = Color(0xFFF8ECEA);
-  static const Color bordeerror = Color(0x479B4038);
+  static const Color tinta = Color(0xFF1E293B);
+  static const Color tintatenue = Color(0xFF64748B);
+  static const Color borde = Color(0xFFE2E8F0);
+  static const Color bordedecontrol = Color(0xFFCBD5E1);
+
+  // Colores del logotipo oficial
+  static const Color marca = Color(0xFF8B1820); // Vino tinto institucional
+  static const Color fondomarca = Color(0xFFFEE2E2);
+  static const Color secundario = Color(0xFFC2410C); // Naranja cálido cruz
+  static const Color fondosecundario = Color(0xFFFFEDD5);
+  static const Color acento = Color(0xFFD97706); // Ámbar
+  static const Color fondoacento = Color(0xFFFEF3C7);
+
+  // Estados
+  static const Color exito = Color(0xFF15803D);
+  static const Color fondoexito = Color(0xFFDCFCE7);
+  static const Color advertencia = Color(0xFFB45309);
+  static const Color fondoadvertencia = Color(0xFFFEF3C7);
+  static const Color bordeadvertencia = Color(0x33B45309);
+  static const Color error = Color(0xFFB91C1C);
+  static const Color fondoerror = Color(0xFFFEE2E2);
+  static const Color bordeerror = Color(0x47B91C1C);
 
   static ThemeData get temaclara {
     const scheme = ColorScheme.light(
@@ -24,18 +33,18 @@ class temaaplicacion {
       onPrimary: Colors.white,
       primaryContainer: fondomarca,
       onPrimaryContainer: tinta,
-      secondary: Color(0xFF626B56),
+      secondary: secundario,
       onSecondary: Colors.white,
-      secondaryContainer: Color(0xFFEAEEE5),
-      onSecondaryContainer: Color(0xFF293126),
+      secondaryContainer: fondosecundario,
+      onSecondaryContainer: Color(0xFF431407),
       surface: superficie,
       onSurface: tinta,
       error: error,
       onError: Colors.white,
       errorContainer: fondoerror,
-      onErrorContainer: Color(0xFF57211C),
+      onErrorContainer: Color(0xFF7F1D1D),
       outline: bordedecontrol,
-      outlineVariant: Color(0xFFD5D1C6),
+      outlineVariant: Color(0xFFE2E8F0),
       surfaceTint: Colors.transparent,
     );
 
@@ -46,16 +55,17 @@ class temaaplicacion {
       fontFamily: 'Manrope',
       scaffoldBackgroundColor: lienzo,
       appBarTheme: const AppBarTheme(
-        backgroundColor: lienzo,
+        backgroundColor: superficie,
         foregroundColor: tinta,
         surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
+        elevation: 0.5,
+        scrolledUnderElevation: 1,
         centerTitle: false,
         titleTextStyle: TextStyle(
           color: tinta,
           fontSize: 18,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w800,
+          fontFamily: 'Manrope',
         ),
       ),
       cardTheme: CardThemeData(
@@ -64,8 +74,8 @@ class temaaplicacion {
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: bordedecontrol),
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Color(0xFFE2E8F0)),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -75,8 +85,8 @@ class temaaplicacion {
           elevation: 0,
           minimumSize: const Size(48, 48),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
-          textStyle: const TextStyle(fontWeight: FontWeight.w700),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Manrope'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -85,8 +95,8 @@ class temaaplicacion {
           foregroundColor: Colors.white,
           minimumSize: const Size(48, 48),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
-          textStyle: const TextStyle(fontWeight: FontWeight.w700),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Manrope'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -94,44 +104,44 @@ class temaaplicacion {
           foregroundColor: tinta,
           minimumSize: const Size(48, 48),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          side: const BorderSide(color: borde),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          side: const BorderSide(color: Color(0xFFCBD5E1)),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Manrope'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFFFCFBF8),
+        fillColor: const Color(0xFFF8FAFC),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 16,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: bordedecontrol),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: bordedecontrol),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: marca, width: 1.5),
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: marca, width: 1.8),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: error),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: error, width: 1.5),
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: error, width: 1.8),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: superficie,
         surfaceTintColor: Colors.transparent,
         indicatorColor: fondomarca,
-        elevation: 0,
+        elevation: 2,
         height: 72,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         iconTheme: WidgetStateProperty.resolveWith(
@@ -141,7 +151,7 @@ class temaaplicacion {
         ),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
-            color: states.contains(WidgetState.selected) ? tinta : tintatenue,
+            color: states.contains(WidgetState.selected) ? marca : tintatenue,
             fontSize: 12,
             fontWeight: states.contains(WidgetState.selected)
                 ? FontWeight.w700
@@ -162,7 +172,7 @@ class temaaplicacion {
         backgroundColor: tinta,
         contentTextStyle: const TextStyle(color: Colors.white),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
 
@@ -170,15 +180,15 @@ class temaaplicacion {
       textTheme: base.textTheme.copyWith(
         headlineSmall: base.textTheme.headlineSmall?.copyWith(
           color: tinta,
-          fontSize: 26,
-          height: 1.2,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.5,
+          fontSize: 24,
+          height: 1.25,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.4,
         ),
         titleLarge: base.textTheme.titleLarge?.copyWith(
           color: tinta,
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
+          fontSize: 19,
+          fontWeight: FontWeight.w800,
         ),
         titleMedium: base.textTheme.titleMedium?.copyWith(
           color: tinta,

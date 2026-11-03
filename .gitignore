@@ -83,3 +83,8 @@ mobile/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.ja
 /scratch/mockups-web-direccion/
 /work/
 entender-el-proyecto-sin-cambiar-c-digo.json
+
+# Mobile APKs and temporary documents
+*.apk
+apps/web/public/*.apk
+*.docx

@@ -44,8 +44,12 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
       case 0:
         context.go('/students');
       case 1:
-        context.go('/alerts');
+        context.go('/assignments');
       case 2:
+        context.go('/schedules');
+      case 3:
+        context.go('/announcements');
+      case 4:
         context.go('/profile');
     }
   }
@@ -53,7 +57,36 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('SIGCE')),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/brand/logo-sf.png',
+              height: 30,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const Icon(Icons.school, size: 24),
+            ),
+            const SizedBox(width: 10),
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'SIGCE Móvil',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                ),
+                Text(
+                  'Colegio Comunidad Cristiana',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: temaaplicacion.tintatenue,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
       body: FutureBuilder<resultadoencache<List<resumendeestudiante>>>(
         future: _futuroestudiantes,
         builder: (context, snapshot) {
@@ -67,6 +100,7 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
           }
           final resultado = snapshot.data;
           final estudiantes = resultado?.datos ?? [];
+
           return RefreshIndicator(
             onRefresh: () async {
               setState(_cargarestudiantes);
@@ -74,11 +108,12 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
               children: [
                 const introduccionpagina(
-                  titulo: 'Estudiantes vinculados',
-                  descripcion: 'Consulta sus calificaciones y asistencia.',
+                  titulo: 'Seguimiento Académico',
+                  descripcion:
+                      'Consulta notas, asistencia, tareas y horarios de tus estudiantes.',
                 ),
                 if (resultado?.estaoffline ?? false) ...[
                   avisosinconexion(
@@ -88,13 +123,77 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
                   ),
                   const SizedBox(height: 12),
                 ],
+                // Tarjeta de acceso rápido a citas con docentes
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: temaaplicacion.fondomarca.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: temaaplicacion.marca.withOpacity(0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: temaaplicacion.marca,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.handshake_outlined,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '¿Necesitas hablar con un profesor?',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                                color: temaaplicacion.tinta,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Agenda una entrevista presencial o justificación.',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: temaaplicacion.tintatenue,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => context.push('/request-meeting'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: temaaplicacion.marca,
+                          textStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        child: const Text('Solicitar'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
                 if (estudiantes.isEmpty)
                   const SizedBox(
                     height: 240,
                     child: estadomensaje(
                       icono: Icons.school_outlined,
                       titulo: 'No tienes estudiantes asociados.',
-                      mensaje: 'Cuando la institución vincule estudiantes a tu cuenta, aparecerán aquí.',
+                      mensaje:
+                          'Cuando la institución vincule estudiantes a tu cuenta, aparecerán aquí.',
                     ),
                   )
                 else
@@ -122,55 +221,97 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
         : estudiante.nombre.trim().characters.first.toUpperCase();
     final tematexto = Theme.of(contexto).textTheme;
 
-    return Card(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: temaaplicacion.borde),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(17),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 CircleAvatar(
-                  radius: 23,
+                  radius: 22,
                   backgroundColor: temaaplicacion.fondomarca,
                   foregroundColor: temaaplicacion.marca,
                   child: Text(
                     initial,
                     style: tematexto.titleMedium?.copyWith(
                       color: temaaplicacion.marca,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),
-                const SizedBox(width: 13),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(estudiante.nombre, style: tematexto.titleMedium),
-                      const SizedBox(height: 3),
-                      Text(estudiante.nombrecurso, style: tematexto.bodyMedium),
+                      Text(
+                        estudiante.nombre,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: temaaplicacion.tinta,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          estudiante.nombrecurso,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: temaaplicacion.tintatenue,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 12),
             Text(
-              'RUDE  ${estudiante.rude}',
+              'RUDE: ${estudiante.rude}',
               style: tematexto.labelSmall?.copyWith(
                 color: temaaplicacion.tintatenue,
                 letterSpacing: 0.25,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 14),
+            const Divider(height: 1, color: temaaplicacion.borde),
+            const SizedBox(height: 12),
+            // Matriz de 4 botones de acción rápida
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.assessment_outlined, size: 18),
-                    label: const Text('Calificaciones', maxLines: 1),
+                    icon: const Icon(Icons.assessment_outlined, size: 16),
+                    label: const Text('Notas', maxLines: 1),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 7),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                       textStyle: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -181,13 +322,13 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 9),
+                const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.event_available_outlined, size: 18),
+                    icon: const Icon(Icons.event_available_outlined, size: 16),
                     label: const Text('Asistencia', maxLines: 1),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 7),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                       textStyle: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -196,6 +337,40 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
                     onPressed: () => contexto.push(
                       '/students/${estudiante.identificador}/attendance',
                     ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.calendar_month_outlined, size: 16),
+                    label: const Text('Horario', maxLines: 1),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      textStyle: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    onPressed: () => contexto.push('/schedules'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.assignment_outlined, size: 16),
+                    label: const Text('Tareas', maxLines: 1),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      textStyle: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    onPressed: () => contexto.push('/assignments'),
                   ),
                 ),
               ],

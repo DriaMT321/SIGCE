@@ -44,8 +44,12 @@ class _alertaspantallaestado extends ConsumerState<pantallaalertas> {
       case 0:
         context.go('/students');
       case 1:
-        context.go('/alerts');
+        context.go('/assignments');
       case 2:
+        context.go('/schedules');
+      case 3:
+        context.go('/announcements');
+      case 4:
         context.go('/profile');
     }
   }
@@ -103,54 +107,61 @@ class _alertaspantallaestado extends ConsumerState<pantallaalertas> {
                         resultado?.fechaactualizacionformateada ??
                         'Caché local',
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                 ],
                 if (alertas.isEmpty)
                   const SizedBox(
                     height: 240,
                     child: estadomensaje(
-                      icono: Icons.notifications_none_outlined,
-                      titulo: 'No tienes alertas nuevas.',
-                      mensaje: 'Las notificaciones académicas aparecerán aquí.',
+                      icono: Icons.check_circle_outline,
+                      titulo: 'Sin alertas pendientes.',
+                      mensaje:
+                          'Te avisaremos cuando haya novedades en calificaciones o asistencia.',
                     ),
                   )
                 else
-                  ...alertas.map(_construiralerta),
+                  ...alertas.map(
+                    (alerta) => _construirtarjetaalerta(context, alerta),
+                  ),
               ],
             ),
           );
         },
       ),
       bottomNavigationBar: barranavegacionaplicacion(
-        indiceactual: 1,
+        indiceactual: 3,
         alseleccionardestino: _abrirdestino,
       ),
     );
   }
 
-  Widget _construiralerta(resumendealerta alerta) {
-    final (label, foreground, background, icon) = switch (alerta.gravedad) {
-      'DANGER' => (
-        'Importante',
-        temaaplicacion.error,
+  Widget _construirtarjetaalerta(
+    BuildContext context,
+    resumendealerta alerta,
+  ) {
+    final (background, foreground, label, icon) = switch (alerta.gravedad) {
+      'CRITICAL' => (
         temaaplicacion.fondoerror,
-        Icons.priority_high_rounded,
+        temaaplicacion.error,
+        'Crítica',
+        Icons.error_outline,
       ),
       'WARNING' => (
-        'Atención',
-        temaaplicacion.advertencia,
         temaaplicacion.fondoadvertencia,
-        Icons.info_outline_rounded,
+        temaaplicacion.advertencia,
+        'Atención',
+        Icons.warning_amber_outlined,
       ),
       _ => (
-        'Información',
-        temaaplicacion.marca,
         temaaplicacion.fondomarca,
-        Icons.notifications_none_outlined,
+        temaaplicacion.marca,
+        'Informativa',
+        Icons.info_outline,
       ),
     };
 
     return Card(
+      margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

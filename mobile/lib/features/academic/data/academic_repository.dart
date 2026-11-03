@@ -118,6 +118,129 @@ class AcademicRepository implements puertorepositorioacademico {
     return (await obteneralertasencache()).datos;
   }
 
+  @override
+  Future<resultadoencache<List<resumendeasignacion>>> obtenerasignacionesencache({
+    String? idcurso,
+    String? idmateria,
+  }) {
+    final query = <String, dynamic>{'limit': 100};
+    if (idcurso != null && idcurso.isNotEmpty) query['courseId'] = idcurso;
+    if (idmateria != null && idmateria.isNotEmpty) query['subjectId'] = idmateria;
+    return _obtenerlistaencache(
+      cacheKey: 'assignments_${idcurso ?? 'all'}_${idmateria ?? 'all'}',
+      path: '/assignments',
+      queryParameters: query,
+      pageSize: 100,
+      paginated: false,
+      parse: (items) =>
+          items.map(mapeadorregistrosacademicos.asignacion).toList(),
+    );
+  }
+
+  @override
+  Future<List<resumendeasignacion>> obtenerasignaciones({
+    String? idcurso,
+    String? idmateria,
+  }) async {
+    return (await obtenerasignacionesencache(
+      idcurso: idcurso,
+      idmateria: idmateria,
+    )).datos;
+  }
+
+  @override
+  Future<resultadoencache<List<resumendecomunicado>>> obtenercomunicadosencache() {
+    return _obtenerlistaencache(
+      cacheKey: 'announcements',
+      path: '/announcements',
+      queryParameters: {},
+      pageSize: 100,
+      paginated: false,
+      parse: (items) =>
+          items.map(mapeadorregistrosacademicos.comunicado).toList(),
+    );
+  }
+
+  @override
+  Future<List<resumendecomunicado>> obtenercomunicados() async {
+    return (await obtenercomunicadosencache()).datos;
+  }
+
+  @override
+  Future<resultadoencache<horariomi>> obtenermihorarioencache() async {
+    final sessionestado = estadodesionautenticacion.instance;
+    final generacionsesion = sessionestado.generacion;
+    _verificarsesionvigente(sessionestado, generacionsesion);
+
+    try {
+      final respuesta = await _clienteapi.cliente.get('/schedules/my-schedule');
+      final cuerpo = respuesta.data;
+      final datos = cuerpo is Map<String, dynamic>
+          ? (cuerpo['data'] as Map<String, dynamic>?) ?? {}
+          : <String, dynamic>{};
+      final parsed = mapeadorregistrosacademicos.parsearhorariomi(datos);
+      await sessionestado.guardarcachesivigente(
+        storage: _almacenamiento,
+        generation: generacionsesion,
+        cacheKey: 'my_schedule',
+        cadenajson: jsonEncode(datos),
+      );
+      return resultadoencache(
+        datos: parsed,
+        estaoffline: false,
+        fechaencache: DateTime.now(),
+      );
+    } on DioException catch (error) {
+      if (!_esfallodeconexion(error)) rethrow;
+      final cachedJson = await sessionestado.leercachesivigente(
+        storage: _almacenamiento,
+        generation: generacionsesion,
+        cachekey: 'my_schedule',
+      );
+      if (cachedJson != null) {
+        final decoded = jsonDecode(cachedJson) as Map<String, dynamic>;
+        return resultadoencache(
+          datos: mapeadorregistrosacademicos.parsearhorariomi(decoded),
+          estaoffline: true,
+          fechaencache: await sessionestado.leerfechacachesivigente(
+            storage: _almacenamiento,
+            generation: generacionsesion,
+            cachekey: 'my_schedule',
+          ),
+        );
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<horariomi> obtenermihorario() async {
+    return (await obtenermihorarioencache()).datos;
+  }
+
+  @override
+  Future<void> solicitarentrevista({
+    required String idestudiante,
+    required String nombreestudiante,
+    required String docenteomateria,
+    required String fecha,
+    required String motivo,
+  }) async {
+    const clave = 'meeting_requests';
+    final existing = await _almacenamiento.obtenercache(clave);
+    final List<dynamic> lista = existing != null ? jsonDecode(existing) : [];
+    lista.add({
+      'studentId': idestudiante,
+      'studentName': nombreestudiante,
+      'teacherOrSubject': docenteomateria,
+      'requestedDate': fecha,
+      'reason': motivo,
+      'createdAt': DateTime.now().toIso8601String(),
+      'status': 'SOLICITADA',
+    });
+    await _almacenamiento.guardarcache(clave, jsonEncode(lista));
+  }
+
   Future<resultadoencache<List<T>>> _obtenerlistaencache<T>({
     required String cacheKey,
     required String path,

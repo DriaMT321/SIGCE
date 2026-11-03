@@ -42,3 +42,55 @@ class casoobteneralertasencache {
   Future<resultadoencache<List<resumendealerta>>> ejecutar() =>
       _repositorio.obteneralertasencache();
 }
+
+class casoobtenerasignacionesencache {
+  const casoobtenerasignacionesencache(this._repositorio);
+
+  final puertorepositorioacademico _repositorio;
+
+  Future<resultadoencache<List<resumendeasignacion>>> ejecutar({
+    String? idcurso,
+    String? idmateria,
+  }) => _repositorio.obtenerasignacionesencache(
+    idcurso: idcurso,
+    idmateria: idmateria,
+  );
+}
+
+class casoobtenercomunicadosencache {
+  const casoobtenercomunicadosencache(this._repositorio);
+
+  final puertorepositorioacademico _repositorio;
+
+  Future<resultadoencache<List<resumendecomunicado>>> ejecutar() =>
+      _repositorio.obtenercomunicadosencache();
+}
+
+class casoobtenermihorarioencache {
+  const casoobtenermihorarioencache(this._repositorio);
+
+  final puertorepositorioacademico _repositorio;
+
+  Future<resultadoencache<horariomi>> ejecutar() =>
+      _repositorio.obtenermihorarioencache();
+}
+
+class casosolicitarentrevista {
+  const casosolicitarentrevista(this._repositorio);
+
+  final puertorepositorioacademico _repositorio;
+
+  Future<void> ejecutar({
+    required String idestudiante,
+    required String nombreestudiante,
+    required String docenteomateria,
+    required String fecha,
+    required String motivo,
+  }) => _repositorio.solicitarentrevista(
+    idestudiante: idestudiante,
+    nombreestudiante: nombreestudiante,
+    docenteomateria: docenteomateria,
+    fecha: fecha,
+    motivo: motivo,
+  );
+}

@@ -39,6 +39,7 @@ class mapeadorregistrosacademicos {
       valor: valor.toDouble(),
       nombreestudiante:
           '${_cadenarequerida(estudiante, 'firstName')} ${_cadenarequerida(estudiante, 'lastName')}',
+      observaciones: json['remarks'] as String?,
     );
   }
 
@@ -86,12 +87,142 @@ class mapeadorregistrosacademicos {
   }
 
   static resumendealerta alerta(Map<String, dynamic> json) => resumendealerta(
-    titulo: _cadenarequerida(json, 'title'),
-    mensaje: _cadenarequerida(json, 'message'),
-    gravedad: _cadenarequerida(json, 'severity'),
-    fechacreacion: _fecharequerida(json, 'createdAt'),
-    estaleida: _booleanorequerido(json, 'isRead'),
+    titulo: _cadenadefecto(json, 'title', 'Alerta'),
+    mensaje: _cadenadefecto(json, 'message', ''),
+    gravedad: _cadenadefecto(json, 'severity', 'INFO'),
+    fechacreacion: _fechadefecto(json, 'createdAt'),
+    estaleida: json['isRead'] is bool ? json['isRead'] as bool : false,
   );
+
+  static resumendeasignacion asignacion(Map<String, dynamic> json) {
+    final materia = json['subject'] is Map<String, dynamic>
+        ? json['subject'] as Map<String, dynamic>
+        : <String, dynamic>{};
+    final docente = json['teacher'] is Map<String, dynamic>
+        ? json['teacher'] as Map<String, dynamic>
+        : <String, dynamic>{};
+    final estudiante = json['student'] is Map<String, dynamic>
+        ? json['student'] as Map<String, dynamic>
+        : null;
+
+    final docentename = docente['firstName'] != null
+        ? '${docente['firstName']} ${docente['lastName'] ?? ''}'.trim()
+        : (docente['user'] is Map<String, dynamic>
+            ? '${(docente['user'] as Map<String, dynamic>)['firstName'] ?? ''} ${(docente['user'] as Map<String, dynamic>)['lastName'] ?? ''}'.trim()
+            : 'Docente titular');
+
+    return resumendeasignacion(
+      identificador: _cadenadefecto(json, 'id', ''),
+      titulo: _cadenadefecto(json, 'title', 'Sin título'),
+      tipo: _cadenadefecto(json, 'type', 'TAREA'),
+      descripcion: _cadenadefecto(json, 'description', ''),
+      fechalimite: _fechadefecto(json, 'dueDate'),
+      puntajemaximo: json['maxScore'] is num
+          ? (json['maxScore'] as num).toDouble()
+          : 100.0,
+      estado: _cadenadefecto(json, 'status', 'PENDIENTE'),
+      nombremateria: _cadenadefecto(materia, 'name', 'Materia general'),
+      nombredocente: docentename.isNotEmpty ? docentename : 'Profesor',
+      nombreestudiante: estudiante != null
+          ? '${estudiante['firstName'] ?? ''} ${estudiante['lastName'] ?? ''}'.trim()
+          : null,
+    );
+  }
+
+  static resumendecomunicado comunicado(Map<String, dynamic> json) {
+    final autor = json['author'] is Map<String, dynamic>
+        ? json['author'] as Map<String, dynamic>
+        : <String, dynamic>{};
+    final autornombre = autor['firstName'] != null
+        ? '${autor['firstName']} ${autor['lastName'] ?? ''}'.trim()
+        : 'Dirección U.E. Comunidad Cristiana';
+
+    return resumendecomunicado(
+      identificador: _cadenadefecto(json, 'id', ''),
+      titulo: _cadenadefecto(json, 'title', 'Comunicado institucional'),
+      contenido: _cadenadefecto(json, 'content', ''),
+      prioridad: _cadenadefecto(json, 'priority', 'MEDIA'),
+      fechacreacion: _fechadefecto(json, 'createdAt'),
+      autornombre: autornombre,
+      alcance: json['scope'] as String?,
+    );
+  }
+
+  static sesionhorario sesion(Map<String, dynamic> json) {
+    final materia = json['subject'] is Map<String, dynamic>
+        ? json['subject'] as Map<String, dynamic>
+        : <String, dynamic>{};
+    final docente = json['teacher'] is Map<String, dynamic>
+        ? json['teacher'] as Map<String, dynamic>
+        : <String, dynamic>{};
+    final docentename = docente['firstName'] != null
+        ? '${docente['firstName']} ${docente['lastName'] ?? ''}'.trim()
+        : 'Docente';
+
+    return sesionhorario(
+      identificador: _cadenadefecto(json, 'id', ''),
+      diasemana: _cadenadefecto(json, 'dayOfWeek', 'LUNES'),
+      horainicio: _cadenadefecto(json, 'startTime', '08:00'),
+      horafin: _cadenadefecto(json, 'endTime', '08:45'),
+      periodoindice: json['periodIndex'] is int ? json['periodIndex'] as int : 1,
+      materia: _cadenadefecto(materia, 'name', 'Asignatura'),
+      docente: docentename,
+      aula: json['classroom'] as String?,
+    );
+  }
+
+  static horariomi parsearhorariomi(Map<String, dynamic> json) {
+    final tipo = _cadenadefecto(json, 'type', 'student');
+    final cursoObj = json['course'] is Map<String, dynamic>
+        ? json['course'] as Map<String, dynamic>
+        : <String, dynamic>{};
+    final cursoNombre = _cadenadefecto(cursoObj, 'name', 'Curso asignado');
+
+    final schedulesList = json['schedules'] is List<dynamic>
+        ? (json['schedules'] as List<dynamic>)
+            .whereType<Map<String, dynamic>>()
+            .map(sesion)
+            .toList()
+        : <sesionhorario>[];
+
+    final hijosList = <horariohijo>[];
+    if (json['children'] is List<dynamic>) {
+      for (final hijoJson in (json['children'] as List<dynamic>)) {
+        if (hijoJson is Map<String, dynamic>) {
+          final studentObj = hijoJson['student'] is Map<String, dynamic>
+              ? hijoJson['student'] as Map<String, dynamic>
+              : <String, dynamic>{};
+          final childCourse = hijoJson['course'] is Map<String, dynamic>
+              ? hijoJson['course'] as Map<String, dynamic>
+              : <String, dynamic>{};
+          final childSchedules = hijoJson['schedules'] is List<dynamic>
+              ? (hijoJson['schedules'] as List<dynamic>)
+                  .whereType<Map<String, dynamic>>()
+                  .map(sesion)
+                  .toList()
+              : <sesionhorario>[];
+
+          hijosList.add(
+            horariohijo(
+              idestudiante: _cadenadefecto(studentObj, 'id', ''),
+              nombreestudiante:
+                  '${_cadenadefecto(studentObj, 'firstName', '')} ${_cadenadefecto(studentObj, 'lastName', '')}'.trim(),
+              rude: _cadenadefecto(studentObj, 'rude', ''),
+              nombrecurso: _cadenadefecto(childCourse, 'name', 'Curso regular'),
+              sesiones: childSchedules,
+            ),
+          );
+        }
+      }
+    }
+
+    return horariomi(
+      tipo: tipo,
+      nombrecurso: cursoNombre,
+      sesiones: schedulesList,
+      hijoshorarios: hijosList,
+    );
+  }
 
   static String _cadenarequerida(Map<String, dynamic> json, String key) {
     final valor = json[key];
@@ -99,6 +230,12 @@ class mapeadorregistrosacademicos {
       throw excepcionacademica('Falta el campo $key en la respuesta.');
     }
     return valor;
+  }
+
+  static String _cadenadefecto(Map<String, dynamic> json, String key, String defecto) {
+    final valor = json[key];
+    if (valor is String && valor.trim().isNotEmpty) return valor;
+    return defecto;
   }
 
   static Map<String, dynamic> _objetorequerido(dynamic valor, String key) {
@@ -115,6 +252,15 @@ class mapeadorregistrosacademicos {
       throw excepcionacademica('La fecha $key de la respuesta no es válida.');
     }
     return fecha;
+  }
+
+  static DateTime _fechadefecto(Map<String, dynamic> json, String key) {
+    final valor = json[key];
+    if (valor is String) {
+      final fecha = DateTime.tryParse(valor);
+      if (fecha != null) return fecha;
+    }
+    return DateTime.now();
   }
 
   static bool _booleanorequerido(Map<String, dynamic> json, String key) {

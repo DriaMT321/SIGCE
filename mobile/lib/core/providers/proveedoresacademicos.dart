@@ -45,3 +45,31 @@ final proveedorobtenerasistenciaencache =
 final proveedorobteneralertasencache = Provider<casoobteneralertasencache>(
   (ref) => casoobteneralertasencache(ref.watch(proveedorrepositorioacademico)),
 );
+
+final proveedorobtenerasignacionesencache =
+    Provider<casoobtenerasignacionesencache>(
+      (ref) => casoobtenerasignacionesencache(
+        ref.watch(proveedorrepositorioacademico),
+      ),
+    );
+
+final proveedorobtenercomunicadosencache =
+    Provider<casoobtenercomunicadosencache>(
+      (ref) => casoobtenercomunicadosencache(
+        ref.watch(proveedorrepositorioacademico),
+      ),
+    );
+
+final proveedorobtenermihorarioencache =
+    Provider<casoobtenermihorarioencache>(
+      (ref) => casoobtenermihorarioencache(
+        ref.watch(proveedorrepositorioacademico),
+      ),
+    );
+
+final proveedorcasosolicitarentrevista =
+    Provider<casosolicitarentrevista>(
+      (ref) => casosolicitarentrevista(
+        ref.watch(proveedorrepositorioacademico),
+      ),
+    );

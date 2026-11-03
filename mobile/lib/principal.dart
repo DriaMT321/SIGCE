@@ -20,7 +20,7 @@ class aplicacionmovilacademica extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Portal Académico Familiar',
+      title: 'SIGCE - Colegio Comunidad Cristiana',
       debugShowCheckedModeBanner: false,
       theme: temaaplicacion.temaclara,
       routerConfig: enrutadoraplicacion,

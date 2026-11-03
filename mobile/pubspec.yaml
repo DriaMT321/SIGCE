@@ -1,5 +1,5 @@
-﻿name: mobile_app
-description: "AplicaciÃ³n mÃ³vil para padres y tutores - Sistema de GestiÃ³n AcadÃ©mica"
+name: mobile_app
+description: "Aplicación móvil para familias, estudiantes y docentes - Colegio Comunidad Cristiana"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -28,6 +28,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/brand/logo-sf.png
+    - assets/brand/logo-colegio-full.jpg
   fonts:
     - family: Manrope
       fonts:
