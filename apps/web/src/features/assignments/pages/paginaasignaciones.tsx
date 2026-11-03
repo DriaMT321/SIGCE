@@ -261,10 +261,14 @@ export const AsignacionesPagina = ({
       .map((curso) => curso.section),
   )].sort();
 
-  // Filtered list
+  // Filtered list: si el estudiante ya tiene nota, cuenta como Finalizada/Calificada
   const filtrado = asignaciones.filter((elemento) => {
     if (seleccionadotipo !== 'ALL' && elemento.type !== seleccionadotipo) return false;
-    if (seleccionadoestado !== 'ALL' && elemento.status !== seleccionadoestado) return false;
+    const tieneNota = elemento.submission?.score !== null && elemento.submission?.score !== undefined;
+    const esFinalizada = elemento.status === 'FINALIZADO' || tieneNota;
+
+    if (seleccionadoestado === 'PENDIENTE' && esFinalizada) return false;
+    if (seleccionadoestado === 'FINALIZADO' && !esFinalizada) return false;
     if (cursofiltro && elemento.course?.gradeLevel !== Number(cursofiltro)) return false;
     if (paralelofiltro && elemento.course?.section !== paralelofiltro) return false;
     if (buscar.trim()) {
@@ -280,11 +284,17 @@ export const AsignacionesPagina = ({
     return true;
   });
 
-  // Metrics
+  // Metrics: reflejan el estado del estudiante si tiene nota asignada
   const totalcantidad = asignaciones.length;
   const examencantidad = asignaciones.filter((a) => a.type === 'EXAMEN').length;
-  const pendientecantidad = asignaciones.filter((a) => a.status === 'PENDIENTE').length;
-  const completadocantidad = asignaciones.filter((a) => a.status === 'FINALIZADO').length;
+  const pendientecantidad = asignaciones.filter((a) => {
+    const tieneNota = a.submission?.score !== null && a.submission?.score !== undefined;
+    return a.status !== 'FINALIZADO' && !tieneNota;
+  }).length;
+  const completadocantidad = asignaciones.filter((a) => {
+    const tieneNota = a.submission?.score !== null && a.submission?.score !== undefined;
+    return a.status === 'FINALIZADO' || tieneNota;
+  }).length;
 
   return (
     <div className="space-y-6">
@@ -623,13 +633,15 @@ export const AsignacionesPagina = ({
               constantetipoconfiguracion[elemento.type] ?? constantetipoconfiguracion.TAREA;
             const vencimientoinformacion = formatorelativovencimiento(elemento.dueDate);
             const esexpandido = expandidoid === elemento.id;
-            const escompletado = elemento.status === 'FINALIZADO';
+            const tieneNotaIndividual =
+              elemento.submission?.score !== null && elemento.submission?.score !== undefined;
+            const escompletado = elemento.status === 'FINALIZADO' || tieneNotaIndividual;
 
             return (
               <div
                 key={elemento.id}
                 className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-colors shadow-2xs flex flex-col justify-between ${
-                  escompletado ? 'opacity-75 bg-slate-50/50 dark:bg-slate-900/60' : ''
+                  escompletado ? 'opacity-80 bg-slate-50/50 dark:bg-slate-900/60' : ''
                 }`}
               >
                 <div>
@@ -793,12 +805,14 @@ export const AsignacionesPagina = ({
                     {!puedecrear && (
                       <span
                         className={`px-2 py-0.5 rounded text-[11px] font-medium ${
-                          escompletado
-                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                            : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400'
+                          tieneNotaIndividual
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80'
+                            : elemento.status === 'FINALIZADO'
+                              ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                              : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400'
                         }`}
                       >
-                        {escompletado ? 'Concluida' : 'Pendiente'}
+                        {tieneNotaIndividual ? 'Finalizada' : (elemento.status === 'FINALIZADO' ? 'Concluida' : 'Pendiente')}
                       </span>
                     )}
                   </div>
@@ -870,22 +884,34 @@ export const AsignacionesPagina = ({
                   <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900 shadow-2xs">
                     {planillaConsulta.data?.students.map((estudiante, idx) => {
                       const estData = calificacionesForm[estudiante.id] || { score: '', feedback: '' };
+                      const tieneCalificacion = estData.score.trim() !== '';
 
                       return (
                         <div
                           key={estudiante.id}
                           className="p-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3"
                         >
-                          {/* Student Info */}
+                          {/* Student Info with Status Badge */}
                           <div className="min-w-0 md:w-1/3">
                             <div className="flex items-center gap-2.5">
                               <span className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs font-mono font-medium shrink-0">
                                 {idx + 1}
                               </span>
                               <div className="min-w-0">
-                                <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">
-                                  {estudiante.lastName}, {estudiante.firstName}
-                                </p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">
+                                    {estudiante.lastName}, {estudiante.firstName}
+                                  </p>
+                                  <span
+                                    className={`text-[10px] font-medium px-1.5 py-0.2 rounded ${
+                                      tieneCalificacion
+                                        ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                    }`}
+                                  >
+                                    {tieneCalificacion ? 'Finalizado' : 'Pendiente'}
+                                  </span>
+                                </div>
                                 <p className="text-[10px] text-slate-400 dark:text-slate-500">
                                   RUDE: {estudiante.rude || 'S/R'}
                                 </p>

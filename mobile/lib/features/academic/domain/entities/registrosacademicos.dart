@@ -157,9 +157,10 @@ class resumendeasignacion {
     _ => tipo,
   };
 
-  bool get espendiente => estado == 'PENDIENTE' || estado == 'EN_PROGRESO';
-  bool get esvencida => fechalimite.isBefore(DateTime.now()) && espendiente;
   bool get estaCalificada => notaObtenida != null;
+  bool get espendiente => (estado == 'PENDIENTE' || estado == 'EN_PROGRESO') && !estaCalificada;
+  bool get escompletada => estado == 'FINALIZADO' || estaCalificada;
+  bool get esvencida => fechalimite.isBefore(DateTime.now()) && espendiente;
 }
 
 /// Comunicado o Aviso institucional / de curso

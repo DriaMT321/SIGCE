@@ -406,6 +406,35 @@ class _pantallatareasestado extends ConsumerState<pantallatareas> {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
+                    color: tarea.estaCalificada
+                        ? const Color(0xFFDCFCE7)
+                        : tarea.estado == 'FINALIZADO'
+                            ? const Color(0xFFF1F5F9)
+                            : const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    tarea.estaCalificada
+                        ? 'Finalizada'
+                        : (tarea.estado == 'FINALIZADO' ? 'Concluida' : 'Pendiente'),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: tarea.estaCalificada
+                          ? const Color(0xFF15803D)
+                          : tarea.estado == 'FINALIZADO'
+                              ? const Color(0xFF475569)
+                              : const Color(0xFFB45309),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
                     color: const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(5),
                   ),

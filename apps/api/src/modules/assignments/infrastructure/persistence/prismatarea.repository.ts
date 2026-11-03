@@ -358,6 +358,26 @@ export class repositoriotareaprisma implements repositoriotareas {
           },
         });
       }
+
+      // Si todos los estudiantes inscritos ya tienen nota, actualizamos la tarea a FINALIZADO
+      const tarea = await tx.assignment.findUnique({
+        where: { id: idtarea },
+        select: { courseId: true },
+      });
+      if (tarea?.courseId) {
+        const totalAlumnos = await tx.enrollment.count({
+          where: { courseId: tarea.courseId, status: 'ACTIVE' },
+        });
+        const totalCalificados = await tx.assignmentSubmission.count({
+          where: { assignmentId: idtarea, score: { not: null } },
+        });
+        if (totalAlumnos > 0 && totalCalificados >= totalAlumnos) {
+          await tx.assignment.update({
+            where: { id: idtarea },
+            data: { status: 'FINALIZADO' },
+          });
+        }
+      }
     });
   }
 }
