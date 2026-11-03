@@ -6,6 +6,7 @@ import {
   tokenrepositoriotareas,
   consultatareas,
   repositoriotareas,
+  calificacionestudianteentrada,
 } from '../domain/repositories/tarea.repository.interface';
 import { ordencreartarea, ordenactualizartarea } from './commands/tarea.command';
 
@@ -50,6 +51,7 @@ export class serviciotareas {
       const asignaciones = await this.repositorio.buscartodos({
         ...filtros,
         courseId: estudiante.courseId,
+        studentId: estudiante.id,
       });
       return asignaciones.map((tarea) => ({
         ...tarea,
@@ -79,6 +81,8 @@ export class serviciotareas {
             .map((tarea) => ({
               ...tarea,
               student: { id: hijo.id, firstName: hijo.firstName, lastName: hijo.lastName },
+              // In case the parent is looking at a specific child's score
+              submission: tarea.submission?.id ? tarea.submission : undefined,
             })),
         )
         .sort((restante, derecha) => restante.dueDate.getTime() - derecha.dueDate.getTime());
@@ -152,6 +156,34 @@ export class serviciotareas {
       throw new errornoencontrado('Tarea o examen no encontrado');
     }
     return { message: 'Actividad eliminada exitosamente' };
+  }
+
+  async obtenerplanillatarea(id: string, usuario: actorusuario) {
+    const existente = await this.repositorio.buscarporidentificador(id);
+    if (!existente) throw new errornoencontrado('Tarea o examen no encontrado');
+    await this.exigirdocentepropietariotarea(usuario, existente.teacherId);
+
+    const planilla = await this.repositorio.obtenerplanillaestudiantes(id);
+    if (!planilla) throw new errornoencontrado('No se pudo cargar la planilla de la actividad');
+    return planilla;
+  }
+
+  async guardarcalificacionestarea(
+    id: string,
+    calificaciones: calificacionestudianteentrada[],
+    usuario: actorusuario,
+  ) {
+    const existente = await this.repositorio.buscarporidentificador(id);
+    if (!existente) throw new errornoencontrado('Tarea o examen no encontrado');
+    await this.exigirdocentepropietariotarea(usuario, existente.teacherId);
+
+    const iddocente =
+      usuario.role === rolusuario.TEACHER
+        ? ((await this.repositorio.buscariddocente(usuario.id)) ?? undefined)
+        : undefined;
+
+    await this.repositorio.guardarcalificacioneslote(id, calificaciones, iddocente);
+    return { message: 'Calificaciones y retroalimentación guardadas exitosamente' };
   }
 
   private async exigirdocentepropietariotarea(

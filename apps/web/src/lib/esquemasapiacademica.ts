@@ -254,6 +254,16 @@ export const asignacionesquema = z.object({
   subject: z.object({ id: z.string(), code: z.string(), name: z.string() }).optional(),
   teacher: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).optional(),
   student: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).optional(),
+  submission: z
+    .object({
+      id: z.string().optional(),
+      score: z.number().nullable(),
+      feedback: z.string().nullable().optional(),
+      status: z.string(),
+      gradedAt: z.string().nullable().optional(),
+    })
+    .optional(),
+  gradedCount: z.number().optional(),
   createdAt: z.string().optional(),
 });
 

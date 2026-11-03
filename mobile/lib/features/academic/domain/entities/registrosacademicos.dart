@@ -129,6 +129,9 @@ class resumendeasignacion {
     required this.nombremateria,
     required this.nombredocente,
     this.nombreestudiante,
+    this.notaObtenida,
+    this.retroalimentacion,
+    this.fechaCalificacion,
   });
 
   final String identificador;
@@ -141,6 +144,9 @@ class resumendeasignacion {
   final String nombremateria;
   final String nombredocente;
   final String? nombreestudiante;
+  final double? notaObtenida;
+  final String? retroalimentacion;
+  final DateTime? fechaCalificacion;
 
   String get tiponormalizado => switch (tipo) {
     'TAREA' => 'Tarea',
@@ -153,6 +159,7 @@ class resumendeasignacion {
 
   bool get espendiente => estado == 'PENDIENTE' || estado == 'EN_PROGRESO';
   bool get esvencida => fechalimite.isBefore(DateTime.now()) && espendiente;
+  bool get estaCalificada => notaObtenida != null;
 }
 
 /// Comunicado o Aviso institucional / de curso

@@ -441,6 +441,78 @@ class _pantallatareasestado extends ConsumerState<pantallatareas> {
                 ],
               ),
             ],
+            // Calificación y Retroalimentación individual del profesor
+            if (tarea.notaObtenida != null ||
+                (tarea.retroalimentacion != null &&
+                    tarea.retroalimentacion!.isNotEmpty)) ...[
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: const Color(0xFFFDE68A),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (tarea.notaObtenida != null)
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.military_tech_rounded,
+                            size: 16,
+                            color: tarea.notaObtenida! >= 51
+                                ? const Color(0xFF059669)
+                                : const Color(0xFFDC2626),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Calificación: ${tarea.notaObtenida!.toInt()} / ${tarea.puntajemaximo.toInt()} pts',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: tarea.notaObtenida! >= 51
+                                  ? const Color(0xFF059669)
+                                  : const Color(0xFFDC2626),
+                            ),
+                          ),
+                        ],
+                      ),
+                    if (tarea.retroalimentacion != null &&
+                        tarea.retroalimentacion!.isNotEmpty) ...[
+                      if (tarea.notaObtenida != null) const SizedBox(height: 6),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.chat_bubble_outline_rounded,
+                            size: 13,
+                            color: Color(0xFFB45309),
+                          ),
+                          const SizedBox(width: 5),
+                          Expanded(
+                            child: Text(
+                              '"${tarea.retroalimentacion}"',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontStyle: FontStyle.italic,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF78350F),
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

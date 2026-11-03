@@ -2,6 +2,14 @@ export type asignaciontipo =
   'TAREA' | 'EXAMEN' | 'TRABAJO_PRACTICO' | 'PROYECTO' | 'CONTROL_LECTURA';
 export type asignacionestado = 'PENDIENTE' | 'EN_PROGRESO' | 'FINALIZADO' | 'CANCELADO';
 
+export interface asignacionsubmission {
+  id?: string;
+  score: number | null;
+  feedback: string | null;
+  status: string;
+  gradedAt: string | null;
+}
+
 export interface asignacionregistro {
   id: string;
   title: string;
@@ -14,6 +22,32 @@ export interface asignacionregistro {
   subject?: { id: string; code: string; name: string };
   teacher?: { id: string; firstName: string; lastName: string };
   student?: { id: string; firstName: string; lastName: string };
+  submission?: asignacionsubmission;
+  gradedCount?: number;
+}
+
+export interface estudiantedelanillatarea {
+  id: string;
+  firstName: string;
+  lastName: string;
+  rude?: string | null;
+  ci?: string | null;
+  score: number | null;
+  feedback: string | null;
+  status: string;
+  gradedAt: string | null;
+}
+
+export interface planillaasignaciondatos {
+  assignment: asignacionregistro;
+  students: estudiantedelanillatarea[];
+}
+
+export interface calificacionestudianteentrada {
+  studentId: string;
+  score: number | null;
+  feedback?: string | null;
+  status?: string;
 }
 
 export interface asignacioncursoopcion {
@@ -47,6 +81,8 @@ export interface puertogestionasignacion {
   crearasignacion(entrada: crearasignacionentrada): Promise<void>;
   actualizarestado(id: string, estado: 'FINALIZADO' | 'PENDIENTE'): Promise<void>;
   eliminarasignacion(id: string): Promise<void>;
+  obtenerplanilla(assignmentId: string): Promise<planillaasignaciondatos>;
+  guardarcalificaciones(assignmentId: string, calificaciones: calificacionestudianteentrada[]): Promise<void>;
 }
 
 export class gestionasignacion {
@@ -78,6 +114,14 @@ export class gestionasignacion {
 
   eliminarasignacion(id: string) {
     return this.puerto.eliminarasignacion(this.requeriridentificador(id));
+  }
+
+  obtenerplanilla(assignmentId: string) {
+    return this.puerto.obtenerplanilla(this.requeriridentificador(assignmentId));
+  }
+
+  guardarcalificaciones(assignmentId: string, calificaciones: calificacionestudianteentrada[]) {
+    return this.puerto.guardarcalificaciones(this.requeriridentificador(assignmentId), calificaciones);
   }
 
   private requeriridentificador(valor: string): string {

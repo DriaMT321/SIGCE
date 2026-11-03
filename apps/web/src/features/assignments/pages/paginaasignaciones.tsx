@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -15,10 +15,13 @@ import {
   Search,
   Trash2,
   X,
+  Award,
+  Check,
+  MessageSquare,
 } from 'lucide-react';
 import { Boton } from '../../../components/ui/boton';
 import { Entrada } from '../../../components/ui/entrada';
-import type { gestionasignacion } from '../application/gestionasignacion';
+import type { gestionasignacion, asignacionregistro } from '../application/gestionasignacion';
 import { cursoetiqueta, turnoetiqueta } from '../../../lib/cursoetiqueta';
 import { materiacorrespondealgrado } from '../../../lib/materiaspornivel';
 
@@ -110,6 +113,50 @@ export const AsignacionesPagina = ({
   const [cursosseleccionados, establecercursosseleccionados] = useState<string[]>([]);
   const [materiasseleccionadas, establecermateriasseleccionadas] = useState<string[]>([]);
   const [expandidoid, establecerexpandidoid] = useState<string | null>(null);
+
+  // Estados para Calificación individual de alumnos
+  const [asignacionParaCalificar, setAsignacionParaCalificar] = useState<asignacionregistro | null>(null);
+  const [calificacionesForm, setCalificacionesForm] = useState<Record<string, { score: string; feedback: string }>>({});
+  const [mensajeExitoCalificacion, setMensajeExitoCalificacion] = useState<string | null>(null);
+
+  const planillaConsulta = useQuery({
+    queryKey: ['assignment-submissions', asignacionParaCalificar?.id],
+    queryFn: () => (asignacionParaCalificar ? gestion.obtenerplanilla(asignacionParaCalificar.id) : null),
+    enabled: Boolean(asignacionParaCalificar),
+  });
+
+  useEffect(() => {
+    if (planillaConsulta.data?.students) {
+      const initial: Record<string, { score: string; feedback: string }> = {};
+      planillaConsulta.data.students.forEach((est) => {
+        initial[est.id] = {
+          score: est.score !== null && est.score !== undefined ? String(est.score) : '',
+          feedback: est.feedback || '',
+        };
+      });
+      setCalificacionesForm(initial);
+    }
+  }, [planillaConsulta.data]);
+
+  const guardarCalificacionesMutacion = useMutation({
+    mutationFn: async () => {
+      if (!asignacionParaCalificar) return;
+      const payload = Object.entries(calificacionesForm).map(([studentId, data]) => ({
+        studentId,
+        score: data.score.trim() !== '' ? Number(data.score) : null,
+        feedback: data.feedback.trim() || null,
+      }));
+      await gestion.guardarcalificaciones(asignacionParaCalificar.id, payload);
+    },
+    onSuccess: () => {
+      setMensajeExitoCalificacion('¡Calificaciones y retroalimentación guardadas con éxito!');
+      void clientedeconsultas.invalidateQueries({ queryKey: ['assignments'] });
+      void clientedeconsultas.invalidateQueries({
+        queryKey: ['assignment-submissions', asignacionParaCalificar?.id],
+      });
+      setTimeout(() => setMensajeExitoCalificacion(null), 3500);
+    },
+  });
 
   // Queries
   const asignacionesconsulta = useQuery({
@@ -660,6 +707,42 @@ export const AsignacionesPagina = ({
                     </div>
                   )}
 
+                  {/* Calificación individual y retroalimentación (para estudiante y familia) */}
+                  {elemento.submission && (
+                    <div className="mt-2.5 mb-3 p-3 rounded-xl border bg-gradient-to-r from-amber-50/60 via-white to-brand-50/30 border-amber-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                          <Award className="w-4 h-4 text-brand-600" />
+                          Nota del Estudiante:
+                        </span>
+                        <span
+                          className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
+                            elemento.submission.score !== null && elemento.submission.score !== undefined
+                              ? elemento.submission.score >= 51
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                : 'bg-rose-100 text-rose-800 border border-rose-200'
+                              : 'bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          {elemento.submission.score !== null && elemento.submission.score !== undefined
+                            ? `${elemento.submission.score} / ${elemento.maxScore ?? 100} pts`
+                            : 'Sin calificar'}
+                        </span>
+                      </div>
+                      {elemento.submission.feedback && (
+                        <div className="mt-2.5 pt-2 border-t border-amber-100 text-xs text-slate-700">
+                          <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 mb-1">
+                            <MessageSquare className="w-3.5 h-3.5 text-brand-600" />
+                            <span>Comentario del profesor:</span>
+                          </div>
+                          <p className="italic bg-amber-50/60 p-2.5 rounded-lg border border-amber-200/60 text-slate-800 leading-relaxed">
+                            "{elemento.submission.feedback}"
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Description / Instructions */}
                   {elemento.description && (
                     <div className="text-xs text-slate-600 bg-slate-50 rounded-xl p-3 mb-3 border border-slate-100">
@@ -692,9 +775,26 @@ export const AsignacionesPagina = ({
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    {/* Botón marcar finalizada para profesores */}
+                    {/* Botón calificar y marcar finalizada para profesores */}
                     {puedecrear && (
                       <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAsignacionParaCalificar(elemento);
+                            setMensajeExitoCalificacion(null);
+                          }}
+                          title="Calificar individualmente a cada alumno y dejar retroalimentación"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-50 text-brand-700 hover:bg-brand-100 transition-colors border border-brand-200 shadow-2xs mr-1"
+                        >
+                          <Award className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Calificar</span>
+                          {elemento.gradedCount !== undefined && elemento.gradedCount > 0 && (
+                            <span className="px-1.5 py-0.2 rounded-full bg-brand-200/80 text-[10px] text-brand-900 font-bold">
+                              {elemento.gradedCount}
+                            </span>
+                          )}
+                        </button>
                         <button
                           type="button"
                           onClick={() =>
@@ -748,6 +848,183 @@ export const AsignacionesPagina = ({
           })}
         </div>
       )}
+
+      {/* Modal Calificar Estudiantes */}
+      {asignacionParaCalificar && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs"
+        >
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 bg-brand-100 text-brand-700 rounded-lg">
+                    <Award className="w-4 h-4" />
+                  </span>
+                  <h2 className="text-base font-bold text-slate-900">
+                    Calificar: {asignacionParaCalificar.title}
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  {asignacionParaCalificar.course?.name} · {asignacionParaCalificar.subject?.name} · Ponderación máxima:{' '}
+                  <strong className="text-slate-800">{asignacionParaCalificar.maxScore ?? 100} pts</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAsignacionParaCalificar(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+                title="Cerrar ventana"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content Table */}
+            <div className="p-5 overflow-y-auto flex-1 space-y-4">
+              {mensajeExitoCalificacion && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-xl flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <span>{mensajeExitoCalificacion}</span>
+                </div>
+              )}
+
+              {planillaConsulta.isLoading ? (
+                <div className="p-12 text-center text-slate-500 flex items-center justify-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span className="text-sm">Cargando lista de alumnos del curso...</span>
+                </div>
+              ) : planillaConsulta.isError ? (
+                <div className="p-6 bg-rose-50 text-rose-800 text-sm rounded-xl">
+                  No se pudo cargar la lista de alumnos.
+                </div>
+              ) : (planillaConsulta.data?.students ?? []).length === 0 ? (
+                <div className="p-8 text-center text-slate-500 text-sm">
+                  No hay estudiantes matriculados activos en este curso.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <span>Estudiantes matriculados ({planillaConsulta.data?.students.length ?? 0}):</span>
+                    <span>Introduce la nota numérica y un comentario u observación opcional</span>
+                  </div>
+
+                  <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                    {planillaConsulta.data?.students.map((estudiante, idx) => {
+                      const estData = calificacionesForm[estudiante.id] || { score: '', feedback: '' };
+                      const tieneNota = estData.score.trim() !== '';
+
+                      return (
+                        <div
+                          key={estudiante.id}
+                          className="p-3.5 hover:bg-slate-50/70 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3"
+                        >
+                          {/* Student Info */}
+                          <div className="min-w-0 md:w-1/3">
+                            <div className="flex items-center gap-2.5">
+                              <span className="w-7 h-7 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0">
+                                {idx + 1}
+                              </span>
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-slate-900 truncate">
+                                  {estudiante.lastName}, {estudiante.firstName}
+                                </p>
+                                <p className="text-[10px] text-slate-400">
+                                  RUDE: {estudiante.rude || 'S/R'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Score Input */}
+                          <div className="flex items-center gap-1.5 md:w-1/4">
+                            <label htmlFor={`score-${estudiante.id}`} className="text-xs font-semibold text-slate-600 shrink-0">
+                              Nota:
+                            </label>
+                            <input
+                              id={`score-${estudiante.id}`}
+                              type="number"
+                              min="0"
+                              max={asignacionParaCalificar.maxScore ?? 100}
+                              value={estData.score}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setCalificacionesForm((prev) => ({
+                                  ...prev,
+                                  [estudiante.id]: {
+                                    score: val,
+                                    feedback: prev[estudiante.id]?.feedback || '',
+                                  },
+                                }));
+                              }}
+                              placeholder={`0 - ${asignacionParaCalificar.maxScore ?? 100}`}
+                              className="w-20 h-9 rounded-lg border border-slate-200 px-2.5 text-center text-xs font-bold text-slate-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                            />
+                            <span className="text-xs text-slate-400 font-medium">pts</span>
+                          </div>
+
+                          {/* Feedback Input */}
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              value={estData.feedback}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setCalificacionesForm((prev) => ({
+                                  ...prev,
+                                  [estudiante.id]: {
+                                    score: prev[estudiante.id]?.score || '',
+                                    feedback: val,
+                                  },
+                                }));
+                              }}
+                              placeholder="Observación o retroalimentación (opcional)..."
+                              className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <span className="text-[11px] text-slate-500">
+                Al guardar, la nota y la retroalimentación serán visibles inmediatamente para el estudiante y sus tutores.
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAsignacionParaCalificar(null)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  Cerrar
+                </button>
+                <button
+                  type="button"
+                  disabled={guardarCalificacionesMutacion.isPending}
+                  onClick={() => guardarCalificacionesMutacion.mutate()}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 transition-colors disabled:opacity-50 shadow-xs"
+                >
+                  {guardarCalificacionesMutacion.isPending ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Check className="w-3.5 h-3.5" />
+                  )}
+                  <span>Guardar Calificaciones</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

@@ -104,6 +104,16 @@ class mapeadorregistrosacademicos {
     final estudiante = json['student'] is Map<String, dynamic>
         ? json['student'] as Map<String, dynamic>
         : null;
+    final submission = json['submission'] is Map<String, dynamic>
+        ? json['submission'] as Map<String, dynamic>
+        : null;
+    final notaObtenida = submission != null && submission['score'] is num
+        ? (submission['score'] as num).toDouble()
+        : null;
+    final retroalimentacion = submission?['feedback'] as String?;
+    final fechaCalificacion = submission?['gradedAt'] != null
+        ? DateTime.tryParse(submission!['gradedAt'].toString())
+        : null;
 
     final docentename = docente['firstName'] != null
         ? '${docente['firstName']} ${docente['lastName'] ?? ''}'.trim()
@@ -126,6 +136,9 @@ class mapeadorregistrosacademicos {
       nombreestudiante: estudiante != null
           ? '${estudiante['firstName'] ?? ''} ${estudiante['lastName'] ?? ''}'.trim()
           : null,
+      notaObtenida: notaObtenida,
+      retroalimentacion: retroalimentacion,
+      fechaCalificacion: fechaCalificacion,
     );
   }
 

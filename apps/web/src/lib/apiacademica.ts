@@ -722,6 +722,17 @@ export const academicoapi = {
     const respuesta = await clienteapi.delete(`/assignments/${id}`);
     return respuesta.data as { statusCode: number; message: string };
   },
+  async obtenersubmissionsasignacion(id: string) {
+    const respuesta = await clienteapi.get(`/assignments/${id}/submissions`);
+    return respuesta.data.data;
+  },
+  async guardarcalificacionesasignacion(
+    id: string,
+    calificaciones: Array<{ studentId: string; score: number | null; feedback?: string | null; status?: string }>,
+  ) {
+    const respuesta = await clienteapi.post(`/assignments/${id}/grades`, { grades: calificaciones });
+    return respuesta.data as { statusCode: number; message: string };
+  },
 
   // Horarios - Edición Manual y Generación Automática
   async asignarmateriasdocente(datos: {

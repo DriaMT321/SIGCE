@@ -20,7 +20,11 @@ import { definirroles } from '../../../../common/decorators/roles.decorator';
 import { guardiaautenticacionjwt } from '../../../../common/guards/jwtautenticacion.guard';
 import { guardiaroles } from '../../../../common/guards/roles.guard';
 import { serviciotareas } from '../../application/tareas.service';
-import { dtocreartarea, dtoactualizartarea } from '../dto/tarea.dto';
+import {
+  dtocreartarea,
+  dtoactualizartarea,
+  dtoguardarcalificacioneslote,
+} from '../dto/tarea.dto';
 
 @Controller('assignments')
 @UseGuards(guardiaautenticacionjwt, guardiaroles)
@@ -71,6 +75,38 @@ export class controladortareas {
       statusCode: 201,
       message: 'Actividad académica creada exitosamente',
       data: datos,
+    };
+  }
+
+  @Get(':id/submissions')
+  @definirroles(rolusuario.ADMINISTRATIVE, rolusuario.TEACHER)
+  async obtenerSubmissions(
+    @Param('id') id: string,
+    @usuarioactual() usuario: usuarioautenticado,
+  ) {
+    const datos = await this.asignacionesservicio.obtenerplanillatarea(id, usuario);
+    return {
+      statusCode: 200,
+      message: 'Planilla de alumnos y calificaciones obtenida exitosamente',
+      data: datos,
+    };
+  }
+
+  @Post(':id/grades')
+  @definirroles(rolusuario.ADMINISTRATIVE, rolusuario.TEACHER)
+  async guardarCalificaciones(
+    @Param('id') id: string,
+    @Body() dto: dtoguardarcalificacioneslote,
+    @usuarioactual() usuario: usuarioautenticado,
+  ) {
+    const datos = await this.asignacionesservicio.guardarcalificacionestarea(
+      id,
+      dto.grades,
+      usuario,
+    );
+    return {
+      statusCode: 200,
+      message: datos.message,
     };
   }
 

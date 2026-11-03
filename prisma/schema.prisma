@@ -290,6 +290,7 @@ model Student {
   syncItems           SieSynchronizationItem[]
   documentReferences  StudentDocumentReference[]
   alerts              Alert[]
+  assignmentSubmissions AssignmentSubmission[]
 
   @@index([rude])
   @@index([ci])
@@ -571,6 +572,7 @@ model Assignment {
   course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
   subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  submissions AssignmentSubmission[]
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -582,6 +584,31 @@ model Assignment {
   @@index([dueDate])
   @@map("assignments")
 }
+
+
+model AssignmentSubmission {
+  id           String    @id @default(uuid())
+  assignmentId String    @map("assignment_id")
+  studentId    String    @map("student_id")
+  score        Float?    // Nota asignada sobre maxScore
+  feedback     String?   // Comentario u observación opcional del docente
+  status       String    @default("PENDIENTE") @map("status") // PENDIENTE, ENTREGADO, CALIFICADO
+  gradedAt     DateTime? @map("graded_at")
+  gradedById   String?   @map("graded_by_id")
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@unique([assignmentId, studentId])
+  @@index([assignmentId])
+  @@index([studentId])
+  @@map("assignment_submissions")
+}
+
 
 // ==============================================================================
 // MATRÍCULA Y ASIGNACIONES

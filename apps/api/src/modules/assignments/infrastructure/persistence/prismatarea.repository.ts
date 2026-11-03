@@ -13,10 +13,26 @@ import {
   repositoriotareas,
   datosactualizaciontarea,
   destinatarioestudiantetarea,
+  asignacionconestudiantesysubmissions,
+  calificacionestudianteentrada,
 } from '../../domain/repositories/tarea.repository.interface';
 
 type asignacionconrelations = Prisma.AssignmentGetPayload<{
-  include: { course: true; subject: true; teacher: true };
+  include: {
+    course: true;
+    subject: true;
+    teacher: true;
+    submissions: {
+      select: {
+        id: true;
+        studentId: true;
+        score: true;
+        feedback: true;
+        status: true;
+        gradedAt: true;
+      };
+    };
+  };
 }>;
 
 @Injectable()
@@ -141,10 +157,24 @@ export class repositoriotareaprisma implements repositoriotareas {
     };
     const asignaciones = await this.prisma.assignment.findMany({
       where,
-      include: { course: true, subject: true, teacher: true },
+      include: {
+        course: true,
+        subject: true,
+        teacher: true,
+        submissions: {
+          select: {
+            id: true,
+            studentId: true,
+            score: true,
+            feedback: true,
+            status: true,
+            gradedAt: true,
+          },
+        },
+      },
       orderBy: [{ dueDate: 'asc' }, { createdAt: 'desc' }],
     });
-    return asignaciones.map(mapaasignacion);
+    return asignaciones.map((a) => mapaasignacion(a, consulta.studentId));
   }
 
   async crear(datos: datoscreaciontarea): Promise<registrotarea> {
@@ -154,7 +184,21 @@ export class repositoriotareaprisma implements repositoriotareas {
         type: datos.type as unknown as PrismaAssignmentType,
         status: PrismaAssignmentStatus.PENDIENTE,
       },
-      include: { course: true, subject: true, teacher: true },
+      include: {
+        course: true,
+        subject: true,
+        teacher: true,
+        submissions: {
+          select: {
+            id: true,
+            studentId: true,
+            score: true,
+            feedback: true,
+            status: true,
+            gradedAt: true,
+          },
+        },
+      },
     });
     return mapaasignacion(tarea);
   }
@@ -176,7 +220,21 @@ export class repositoriotareaprisma implements repositoriotareas {
         ...(datos.type ? { type: datos.type as unknown as PrismaAssignmentType } : {}),
         ...(datos.status ? { status: datos.status as unknown as PrismaAssignmentStatus } : {}),
       },
-      include: { course: true, subject: true, teacher: true },
+      include: {
+        course: true,
+        subject: true,
+        teacher: true,
+        submissions: {
+          select: {
+            id: true,
+            studentId: true,
+            score: true,
+            feedback: true,
+            status: true,
+            gradedAt: true,
+          },
+        },
+      },
     });
     return mapaasignacion(tarea);
   }
@@ -188,9 +246,129 @@ export class repositoriotareaprisma implements repositoriotareas {
     });
     return resultado.count === 1;
   }
+
+  async obtenerplanillaestudiantes(
+    idtarea: string,
+  ): Promise<asignacionconestudiantesysubmissions | null> {
+    const tarea = await this.prisma.assignment.findFirst({
+      where: { id: idtarea, deletedAt: null },
+      include: {
+        course: true,
+        subject: true,
+        teacher: true,
+        submissions: {
+          where: { deletedAt: null },
+          select: {
+            id: true,
+            studentId: true,
+            score: true,
+            feedback: true,
+            status: true,
+            gradedAt: true,
+          },
+        },
+      },
+    });
+
+    if (!tarea) return null;
+
+    // Obtener todos los alumnos inscritos y activos en el curso de la tarea
+    const inscripciones = await this.prisma.enrollment.findMany({
+      where: {
+        courseId: tarea.courseId,
+        status: 'ACTIVE',
+      },
+      include: {
+        student: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            rude: true,
+            ci: true,
+          },
+        },
+      },
+      orderBy: [
+        { student: { lastName: 'asc' } },
+        { student: { firstName: 'asc' } },
+      ],
+    });
+
+    const submissionsMap = new Map(
+      tarea.submissions.map((sub) => [sub.studentId, sub]),
+    );
+
+    const estudiantes = inscripciones.map(({ student: est }) => {
+      const sub = submissionsMap.get(est.id);
+      return {
+        id: est.id,
+        firstName: est.firstName,
+        lastName: est.lastName,
+        rude: est.rude,
+        ci: est.ci,
+        score: sub?.score ?? null,
+        feedback: sub?.feedback ?? null,
+        status: sub?.status ?? 'PENDIENTE',
+        gradedAt: sub?.gradedAt ?? null,
+      };
+    });
+
+    return {
+      assignment: mapaasignacion(tarea),
+      students: estudiantes,
+    };
+  }
+
+  async guardarcalificacioneslote(
+    idtarea: string,
+    calificaciones: calificacionestudianteentrada[],
+    iddocentequevalua?: string,
+  ): Promise<void> {
+    const ahora = new Date();
+
+    await this.prisma.$transaction(async (tx) => {
+      for (const item of calificaciones) {
+        const tieneNota = item.score !== null && item.score !== undefined && !isNaN(Number(item.score));
+        const scoreVal = tieneNota ? Number(item.score) : null;
+        const statusVal = tieneNota ? 'CALIFICADO' : (item.status || 'PENDIENTE');
+
+        await tx.assignmentSubmission.upsert({
+          where: {
+            assignmentId_studentId: {
+              assignmentId: idtarea,
+              studentId: item.studentId,
+            },
+          },
+          update: {
+            score: scoreVal,
+            feedback: item.feedback?.trim() || null,
+            status: statusVal,
+            gradedAt: tieneNota ? ahora : undefined,
+            gradedById: iddocentequevalua ?? undefined,
+          },
+          create: {
+            assignmentId: idtarea,
+            studentId: item.studentId,
+            score: scoreVal,
+            feedback: item.feedback?.trim() || null,
+            status: statusVal,
+            gradedAt: tieneNota ? ahora : null,
+            gradedById: iddocentequevalua ?? null,
+          },
+        });
+      }
+    });
+  }
 }
 
-function mapaasignacion(tarea: asignacionconrelations): registrotarea {
+function mapaasignacion(tarea: asignacionconrelations, studentId?: string): registrotarea {
+  const matchingSubmission = studentId
+    ? tarea.submissions.find((s) => s.studentId === studentId)
+    : undefined;
+
+  const gradedCount = tarea.submissions.filter((s) => s.score !== null).length;
+
   return {
     id: tarea.id,
     title: tarea.title,
@@ -223,5 +401,15 @@ function mapaasignacion(tarea: asignacionconrelations): registrotarea {
       lastName: tarea.teacher.lastName,
       specialty: tarea.teacher.specialty,
     },
+    submission: matchingSubmission
+      ? {
+          id: matchingSubmission.id,
+          score: matchingSubmission.score,
+          feedback: matchingSubmission.feedback,
+          status: matchingSubmission.status,
+          gradedAt: matchingSubmission.gradedAt,
+        }
+      : undefined,
+    gradedCount,
   };
 }
