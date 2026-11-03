@@ -163,7 +163,7 @@ async function main() {
       subjectId: subjectMat.id,
       teacherId: teacher.id,
       academicYearId: academicYear.id,
-      dayOfWeek: DayOfWeek.MONDAY,
+      dayOfWeek: DayOfWeek.LUNES,
       startTime: '08:00',
       endTime: '09:30',
       periodIndex: 1,
