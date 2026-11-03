@@ -101,6 +101,14 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
           final resultado = snapshot.data;
           final estudiantes = resultado?.datos ?? [];
 
+          final esUnico = estudiantes.length == 1;
+          final titulo = esUnico
+              ? 'Bienvenido(a), ${estudiantes.first.nombre}'
+              : 'Seguimiento Académico';
+          final descripcion = esUnico
+              ? 'Consulta tus notas, asistencia, horario y tareas.'
+              : 'Consulta notas, asistencia, tareas y horarios de tus hijos/as.';
+
           return RefreshIndicator(
             onRefresh: () async {
               setState(_cargarestudiantes);
@@ -110,10 +118,9 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
               children: [
-                const introduccionpagina(
-                  titulo: 'Seguimiento Académico',
-                  descripcion:
-                      'Consulta notas, asistencia, tareas y horarios de tus estudiantes.',
+                introduccionpagina(
+                  titulo: titulo,
+                  descripcion: descripcion,
                 ),
                 if (resultado?.estaoffline ?? false) ...[
                   avisosinconexion(
@@ -127,10 +134,10 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: temaaplicacion.fondomarca.withOpacity(0.4),
+                    color: temaaplicacion.fondomarca.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: temaaplicacion.marca.withOpacity(0.2),
+                      color: temaaplicacion.marca.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Row(
@@ -148,11 +155,11 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(
+                      const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               '¿Necesitas hablar con un profesor?',
                               style: TextStyle(
                                 fontWeight: FontWeight.w800,
@@ -160,7 +167,7 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
                                 color: temaaplicacion.tinta,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: 2),
                             Text(
                               'Agenda una entrevista presencial o justificación.',
                               style: TextStyle(

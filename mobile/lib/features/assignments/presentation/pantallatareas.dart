@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/providers/proveedoresacademicos.dart';
 import '../../../core/theme/temaaplicacion.dart';
@@ -12,7 +11,9 @@ import '../../../core/widgets/introduccionpagina.dart';
 import '../../academic/domain/entities/registrosacademicos.dart';
 
 class pantallatareas extends ConsumerStatefulWidget {
-  const pantallatareas({super.key});
+  const pantallatareas({super.key, this.materiaInicial});
+
+  final String? materiaInicial;
 
   @override
   ConsumerState<pantallatareas> createState() => _pantallatareasestado();
@@ -21,11 +22,23 @@ class pantallatareas extends ConsumerStatefulWidget {
 class _pantallatareasestado extends ConsumerState<pantallatareas> {
   late Future<resultadoencache<List<resumendeasignacion>>> _futuroasignaciones;
   String _filtro = 'TODAS'; // TODAS, PENDIENTES, EXAMENES, PRACTICOS
+  String? _materiaFiltro;
 
   @override
   void initState() {
     super.initState();
+    _materiaFiltro = widget.materiaInicial;
     _cargartareas();
+  }
+
+  @override
+  void didUpdateWidget(covariant pantallatareas oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.materiaInicial != oldWidget.materiaInicial) {
+      setState(() {
+        _materiaFiltro = widget.materiaInicial;
+      });
+    }
   }
 
   void _cargartareas() {
@@ -48,10 +61,17 @@ class _pantallatareasestado extends ConsumerState<pantallatareas> {
     }
   }
 
+  String _formatearFechaHora(DateTime fecha) {
+    final d = fecha.day.toString().padLeft(2, '0');
+    final m = fecha.month.toString().padLeft(2, '0');
+    final y = fecha.year.toString();
+    final h = fecha.hour.toString().padLeft(2, '0');
+    final min = fecha.minute.toString().padLeft(2, '0');
+    return '$d/$m/$y $h:$min';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd/MM/yyyy HH:mm', 'es');
-
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -63,7 +83,14 @@ class _pantallatareasestado extends ConsumerState<pantallatareas> {
               errorBuilder: (_, __, ___) => const Icon(Icons.school, size: 24),
             ),
             const SizedBox(width: 8),
-            const Text('Tareas y Evaluaciones'),
+            Expanded(
+              child: Text(
+                _materiaFiltro != null && _materiaFiltro!.isNotEmpty
+                    ? 'Tareas: $_materiaFiltro'
+                    : 'Tareas y Evaluaciones',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),
@@ -87,6 +114,13 @@ class _pantallatareasestado extends ConsumerState<pantallatareas> {
           final todas = cache.datos;
 
           final filtradas = todas.where((a) {
+            if (_materiaFiltro != null && _materiaFiltro!.isNotEmpty) {
+              final matA = a.nombremateria.trim().toLowerCase();
+              final matF = _materiaFiltro!.trim().toLowerCase();
+              if (!matA.contains(matF) && !matF.contains(matA)) {
+                return false;
+              }
+            }
             if (_filtro == 'PENDIENTES') return a.espendiente;
             if (_filtro == 'EXAMENES') return a.tipo == 'EXAMEN';
             if (_filtro == 'PRACTICOS') {
@@ -114,6 +148,48 @@ class _pantallatareasestado extends ConsumerState<pantallatareas> {
                     fechaactualizacion: cache.fechaactualizacionformateada,
                   ),
                   const SizedBox(height: 12),
+                ],
+                if (_materiaFiltro != null && _materiaFiltro!.isNotEmpty) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: temaaplicacion.marca.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: temaaplicacion.marca.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.filter_alt,
+                          size: 18,
+                          color: temaaplicacion.marca,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Filtrando por materia: $_materiaFiltro',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: temaaplicacion.marca,
+                            ),
+                          ),
+                        ),
+                        TextButton.icon(
+                          icon: const Icon(Icons.close, size: 16),
+                          label: const Text('Ver todas', style: TextStyle(fontSize: 12)),
+                          onPressed: () => setState(() => _materiaFiltro = null),
+                          style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
                 // Chips de filtro
                 SingleChildScrollView(
@@ -146,23 +222,34 @@ class _pantallatareasestado extends ConsumerState<pantallatareas> {
                         Icon(
                           Icons.check_circle_outline,
                           size: 48,
-                          color: temaaplicacion.exito.withOpacity(0.7),
+                          color: temaaplicacion.exito.withValues(alpha: 0.7),
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          'No hay tareas pendientes en esta sección.',
-                          style: TextStyle(
+                        Text(
+                          _materiaFiltro != null
+                              ? 'No hay tareas registradas para "$_materiaFiltro".'
+                              : 'No hay tareas pendientes en esta sección.',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: temaaplicacion.tintatenue,
                           ),
                         ),
+                        if (_materiaFiltro != null) ...[
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            icon: const Icon(Icons.all_inclusive, size: 16),
+                            label: const Text('Ver tareas de todas las materias'),
+                            onPressed: () => setState(() => _materiaFiltro = null),
+                          ),
+                        ],
                       ],
                     ),
                   )
                 else
                   ...filtradas.map(
-                    (tarea) => _construirTarjetaTarea(tarea, dateFormat),
+                    (tarea) => _construirTarjetaTarea(tarea),
                   ),
               ],
             ),
@@ -191,10 +278,7 @@ class _pantallatareasestado extends ConsumerState<pantallatareas> {
     );
   }
 
-  Widget _construirTarjetaTarea(
-    resumendeasignacion tarea,
-    DateFormat dateFormat,
-  ) {
+  Widget _construirTarjetaTarea(resumendeasignacion tarea) {
     final esExamen = tarea.tipo == 'EXAMEN';
     final esUrgente = tarea.esvencida;
 
@@ -209,12 +293,7 @@ class _pantallatareasestado extends ConsumerState<pantallatareas> {
       badgeFondo = temaaplicacion.fondosecundario;
     }
 
-    String fechaStr;
-    try {
-      fechaStr = dateFormat.format(tarea.fechalimite);
-    } catch (_) {
-      fechaStr = tarea.fechalimite.toString();
-    }
+    final fechaStr = _formatearFechaHora(tarea.fechalimite);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -311,7 +390,7 @@ class _pantallatareasestado extends ConsumerState<pantallatareas> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  fechaStr,
+                  'Vence: $fechaStr',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: esUrgente ? FontWeight.w800 : FontWeight.w600,

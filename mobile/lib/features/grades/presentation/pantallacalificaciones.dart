@@ -201,7 +201,7 @@ class _calificacionespantallaestado
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.18),
+                                color: Colors.white.withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(Icons.school, color: Colors.white, size: 28),
@@ -234,7 +234,7 @@ class _calificacionespantallaestado
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: promedioGeneral >= 51
-                                    ? Colors.white.withOpacity(0.25)
+                                    ? Colors.white.withValues(alpha: 0.25)
                                     : Colors.red.shade900,
                                 borderRadius: BorderRadius.circular(20),
                               ),
@@ -456,8 +456,13 @@ class _calificacionespantallaestado
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.assignment_outlined, size: 16),
-                      label: const Text('Ver tareas de esta materia', style: TextStyle(fontSize: 12)),
-                      onPressed: () => context.push('/assignments'),
+                      label: Text('Ver tareas de ${calificacion.materia}', style: const TextStyle(fontSize: 12)),
+                      onPressed: () => context.push(
+                        Uri(
+                          path: '/assignments',
+                          queryParameters: {'materia': calificacion.materia},
+                        ).toString(),
+                      ),
                     ),
                   ),
                 ],

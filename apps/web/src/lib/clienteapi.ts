@@ -20,14 +20,20 @@ function normalizarapierror(error: unknown): Error {
 
 function resolverapibaseurl(): string {
   const configurado = import.meta.env.VITE_API_URL;
-  if (import.meta.env.PROD) {
-    if (!configurado)
-      throw new Error('VITE_API_URL debe configurarse para la compilación de producción.');
-    const url = new URL(configurado);
-    if (url.protocol !== 'https:') throw new Error('VITE_API_URL debe usar HTTPS en producción.');
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'sigce.lat' || hostname.endsWith('.sigce.lat')) {
+      return 'https://api.sigce.lat/api/v1';
+    }
+    if (window.location.protocol === 'https:' && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      const baseHost = hostname.replace(/^www\./, '');
+      return 'https://api.' + baseHost + '/api/v1';
+    }
+  }
+  if (configurado && (configurado.startsWith('https://') || configurado.startsWith('http://'))) {
     return configurado;
   }
-  return configurado || 'http://localhost:3000/api/v1';
+  return 'http://localhost:3000/api/v1';
 }
 
 const constanteapibaseurl = resolverapibaseurl();

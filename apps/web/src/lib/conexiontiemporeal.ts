@@ -3,24 +3,17 @@ import { autenticacionestado } from '../features/auth/services/estadodeautentica
 
 function resolverwebsocketurl(): string {
   const configurado = import.meta.env.VITE_WS_URL;
-  if (import.meta.env.PROD) {
-    if (!configurado) {
-      const apiUrl = import.meta.env.VITE_API_URL;
-      if (apiUrl) {
-        try {
-          const parsed = new URL(apiUrl);
-          const esquema = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
-          return `${esquema}//${parsed.host}`;
-        } catch {
-          // Fallback al error
-        }
-      }
-      throw new Error('VITE_WS_URL debe configurarse para la compilación de producción.');
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'sigce.lat' || hostname.endsWith('.sigce.lat')) {
+      return 'wss://api.sigce.lat';
     }
-    const url = new URL(configurado);
-    if (url.protocol !== 'https:' && url.protocol !== 'wss:') {
-      throw new Error('VITE_WS_URL debe usar WSS/HTTPS en producción.');
+    if (window.location.protocol === 'https:' && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      const baseHost = hostname.replace(/^www\./, '');
+      return 'wss://api.' + baseHost;
     }
+  }
+  if (configurado && (configurado.startsWith('https://') || configurado.startsWith('wss://'))) {
     return configurado.replace(/^https:/, 'wss:');
   }
   return configurado || 'http://localhost:3000';

@@ -197,9 +197,13 @@ class _pantallahorariosestado extends ConsumerState<pantallahorarios> {
                     alignment: Alignment.center,
                     child: Column(
                       children: [
-                        Icon(Icons.event_busy_outlined, size: 48, color: temaaplicacion.tintatenue.withOpacity(0.5)),
+                        Icon(
+                          Icons.event_busy_outlined,
+                          size: 48,
+                          color: temaaplicacion.tintatenue.withValues(alpha: 0.5),
+                        ),
                         const SizedBox(height: 12),
-                        Text(
+                        const Text(
                           'Sin clases programadas este día',
                           style: TextStyle(
                             fontSize: 14,
@@ -359,3 +363,4 @@ class _pantallahorariosestado extends ConsumerState<pantallahorarios> {
     );
   }
 }
+

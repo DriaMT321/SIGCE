@@ -70,7 +70,8 @@ final GoRouter enrutadoraplicacion = GoRouter(
     GoRoute(
       path: '/assignments',
       builder: (BuildContext contexto, GoRouterState estado) {
-        return const pantallatareas();
+        final filtroMateria = estado.uri.queryParameters['materia'];
+        return pantallatareas(materiaInicial: filtroMateria);
       },
     ),
     GoRoute(

@@ -7,49 +7,32 @@ import '../../../core/theme/temaaplicacion.dart';
 import '../domain/use_cases/casosdeusoautenticacion.dart';
 import '../domain/excepcionautenticacion.dart';
 
-enum _loginrole { familia, estudiante, docente, administrativo }
+enum _loginrole { familia, estudiante }
 
 extension _LoginRoleDetails on _loginrole {
   String get valorapi => switch (this) {
     _loginrole.familia => 'FAMILY',
     _loginrole.estudiante => 'STUDENT',
-    _loginrole.docente => 'TEACHER',
-    _loginrole.administrativo => 'ADMINISTRATIVE',
   };
 
   String get titulo => switch (this) {
-    _loginrole.familia => 'Familia / Tutor',
+    _loginrole.familia => 'Padre / Tutor',
     _loginrole.estudiante => 'Estudiante',
-    _loginrole.docente => 'Docente',
-    _loginrole.administrativo => 'Administrativo',
-  };
-
-  String get subtitulo => switch (this) {
-    _loginrole.familia => 'C.I., Celular y Contraseña',
-    _loginrole.estudiante => 'Código RUDE y Contraseña',
-    _loginrole.docente => 'Código Ítem / C.I. y Contraseña',
-    _loginrole.administrativo => 'Correo institucional',
   };
 
   IconData get icono => switch (this) {
     _loginrole.familia => Icons.family_restroom,
     _loginrole.estudiante => Icons.school,
-    _loginrole.docente => Icons.cast_for_education,
-    _loginrole.administrativo => Icons.admin_panel_settings,
   };
 
   String get etiquetadeidentificador => switch (this) {
     _loginrole.familia => 'Cédula de identidad (C.I.) del Tutor',
     _loginrole.estudiante => 'Código RUDE o Cédula de Identidad',
-    _loginrole.docente => 'Código Ítem, C.I. o Correo',
-    _loginrole.administrativo => 'Correo institucional asignado',
   };
 
   String get ayudadeidentificador => switch (this) {
-    _loginrole.familia => 'Ej. 4567890',
-    _loginrole.estudiante => 'Ej. 807300012026001',
-    _loginrole.docente => 'Ej. DOC-2026',
-    _loginrole.administrativo => 'admin@sigce.lat',
+    _loginrole.familia => 'Ingrese número de C.I.',
+    _loginrole.estudiante => 'Ingrese código RUDE o C.I.',
   };
 
   bool get usaclave => true;
@@ -157,7 +140,7 @@ class _loginpantallaestado extends ConsumerState<pantallaacceso> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Selecciona tu rol institucional e ingresa tus credenciales.',
+                        'Acceso móvil para familias y estudiantes.',
                         style: tematexto.bodyMedium,
                       ),
                       const SizedBox(height: 20),
@@ -167,17 +150,13 @@ class _loginpantallaestado extends ConsumerState<pantallaacceso> {
                         _construirmensajeerror(),
                         const SizedBox(height: 18),
                       ],
-                      // Campo Identificador Principal (CI / RUDE / Item)
+                      // Campo Identificador Principal (C.I. Tutor o RUDE)
                       _construircampotexto(
                         controller: controladoridentificador,
                         label: _rolseleccionado.etiquetadeidentificador,
                         hint: _rolseleccionado.ayudadeidentificador,
                         icon: Icons.badge_outlined,
-                        keyboardType:
-                            _rolseleccionado == _loginrole.familia ||
-                                    _rolseleccionado == _loginrole.estudiante
-                                ? TextInputType.number
-                                : TextInputType.text,
+                        keyboardType: TextInputType.number,
                         validator: (value) =>
                             value == null || value.trim().isEmpty
                             ? 'Ingrese el identificador solicitado.'
@@ -189,7 +168,7 @@ class _loginpantallaestado extends ConsumerState<pantallaacceso> {
                         _construircampotexto(
                           controller: controladoridentificadorsecundario,
                           label: 'Número de celular del tutor',
-                          hint: 'Ej. 71234567',
+                          hint: 'Número de celular',
                           icon: Icons.phone_android_outlined,
                           keyboardType: TextInputType.phone,
                           validator: (value) =>
@@ -265,7 +244,8 @@ class _loginpantallaestado extends ConsumerState<pantallaacceso> {
                           child: const Text('Activar mi cuenta estudiantil'),
                         ),
                       ],
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 20),
+                      // Nota para docentes y administradores
                       Container(
                         padding: const EdgeInsets.symmetric(
                           vertical: 12,
@@ -276,20 +256,18 @@ class _loginpantallaestado extends ConsumerState<pantallaacceso> {
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: temaaplicacion.borde),
                         ),
-                        child: Row(
+                        child: const Row(
                           children: [
-                            const Icon(
-                              Icons.verified_user_outlined,
+                            Icon(
+                              Icons.laptop_chromebook,
                               size: 18,
-                              color: temaaplicacion.marca,
+                              color: temaaplicacion.tintatenue,
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                _rolseleccionado == _loginrole.familia
-                                    ? 'Acceso para Padres y Tutores legales acreditados.'
-                                    : 'Acceso seguro al portal institucional.',
-                                style: const TextStyle(
+                                '¿Eres Docente o Administrativo? Accede al portal de gestión desde tu PC en sigce.lat',
+                                style: TextStyle(
                                   fontSize: 11,
                                   color: temaaplicacion.tintatenue,
                                   fontWeight: FontWeight.w500,
@@ -362,7 +340,7 @@ class _loginpantallaestado extends ConsumerState<pantallaacceso> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'SIGCE · Gestión Escolar Móvil',
+                  'SIGCE · Portal para Familias y Alumnos',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: temaaplicacion.tintatenue,
@@ -377,90 +355,52 @@ class _loginpantallaestado extends ConsumerState<pantallaacceso> {
   }
 
   Widget _construirselectorrol() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const spacing = 8.0;
-        final itemwidth = (constraints.maxWidth - spacing) / 2;
-        return Wrap(
-          spacing: spacing,
-          runSpacing: spacing,
-          children: _loginrole.values.map((role) {
-            final isselected = role == _rolseleccionado;
-            return SizedBox(
-              width: itemwidth,
-              child: Material(
-                color: isselected
-                    ? temaaplicacion.fondomarca
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                child: InkWell(
-                  onTap: () => _seleccionarrol(role),
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 11,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: temaaplicacion.borde),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: _loginrole.values.map((role) {
+          final isselected = role == _rolseleccionado;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => _seleccionarrol(role),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isselected
+                      ? temaaplicacion.marca
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      role.icono,
+                      size: 18,
+                      color: isselected ? Colors.white : temaaplicacion.tintatenue,
                     ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: isselected
-                            ? temaaplicacion.marca
-                            : temaaplicacion.borde,
-                        width: isselected ? 1.6 : 1,
+                    const SizedBox(width: 8),
+                    Text(
+                      role.titulo,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isselected ? FontWeight.w800 : FontWeight.w600,
+                        color: isselected ? Colors.white : temaaplicacion.tintatenue,
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          role.icono,
-                          size: 20,
-                          color: isselected
-                              ? temaaplicacion.marca
-                              : temaaplicacion.tintatenue,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                role.titulo,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 12,
-                                  color: isselected
-                                      ? temaaplicacion.marca
-                                      : temaaplicacion.tinta,
-                                ),
-                              ),
-                              const SizedBox(height: 1),
-                              Text(
-                                role.subtitulo,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: isselected
-                                      ? temaaplicacion.marca.withOpacity(0.8)
-                                      : temaaplicacion.tintatenue,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  ],
                 ),
               ),
-            );
-          }).toList(),
-        );
-      },
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/providers/proveedoresacademicos.dart';
 import '../../../core/theme/temaaplicacion.dart';
@@ -58,10 +57,17 @@ class _pantallacomunicadosestado extends ConsumerState<pantallacomunicados> {
     }
   }
 
+  String _formatearFechaHora(DateTime fecha) {
+    final d = fecha.day.toString().padLeft(2, '0');
+    final m = fecha.month.toString().padLeft(2, '0');
+    final y = fecha.year.toString();
+    final h = fecha.hour.toString().padLeft(2, '0');
+    final min = fecha.minute.toString().padLeft(2, '0');
+    return '$d/$m/$y $h:$min';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd/MM/yyyy HH:mm', 'es');
-
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -203,7 +209,7 @@ class _pantallacomunicadosestado extends ConsumerState<pantallacomunicados> {
                         _construirVacio('No hay comunicados oficiales activos.')
                       else
                         ...comunicados.map(
-                          (c) => _construirTarjetaComunicado(c, dateFormat),
+                          (c) => _construirTarjetaComunicado(c),
                         ),
                     ] else ...[
                       if (alertas.isEmpty)
@@ -212,7 +218,7 @@ class _pantallacomunicadosestado extends ConsumerState<pantallacomunicados> {
                         )
                       else
                         ...alertas.map(
-                          (a) => _construirTarjetaAlerta(a, dateFormat),
+                          (a) => _construirTarjetaAlerta(a),
                         ),
                     ],
                   ],
@@ -236,7 +242,7 @@ class _pantallacomunicadosestado extends ConsumerState<pantallacomunicados> {
           Icon(
             Icons.notifications_off_outlined,
             size: 48,
-            color: temaaplicacion.tintatenue.withOpacity(0.5),
+            color: temaaplicacion.tintatenue.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 12),
           Text(
@@ -252,17 +258,9 @@ class _pantallacomunicadosestado extends ConsumerState<pantallacomunicados> {
     );
   }
 
-  Widget _construirTarjetaComunicado(
-    resumendecomunicado c,
-    DateFormat dateFormat,
-  ) {
+  Widget _construirTarjetaComunicado(resumendecomunicado c) {
     final esUrgente = c.prioridad == 'URGENTE' || c.prioridad == 'ALTA';
-    String fechaStr;
-    try {
-      fechaStr = dateFormat.format(c.fechacreacion);
-    } catch (_) {
-      fechaStr = c.fechacreacion.toString();
-    }
+    final fechaStr = _formatearFechaHora(c.fechacreacion);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -271,7 +269,7 @@ class _pantallacomunicadosestado extends ConsumerState<pantallacomunicados> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: esUrgente
-              ? temaaplicacion.marca.withOpacity(0.4)
+              ? temaaplicacion.marca.withValues(alpha: 0.4)
               : temaaplicacion.borde,
           width: esUrgente ? 1.4 : 1,
         ),
@@ -367,14 +365,9 @@ class _pantallacomunicadosestado extends ConsumerState<pantallacomunicados> {
     );
   }
 
-  Widget _construirTarjetaAlerta(resumendealerta a, DateFormat dateFormat) {
+  Widget _construirTarjetaAlerta(resumendealerta a) {
     final esCritica = a.gravedad == 'CRITICAL' || a.gravedad == 'HIGH';
-    String fechaStr;
-    try {
-      fechaStr = dateFormat.format(a.fechacreacion);
-    } catch (_) {
-      fechaStr = a.fechacreacion.toString();
-    }
+    final fechaStr = _formatearFechaHora(a.fechacreacion);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -383,7 +376,7 @@ class _pantallacomunicadosestado extends ConsumerState<pantallacomunicados> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: esCritica
-              ? temaaplicacion.error.withOpacity(0.4)
+              ? temaaplicacion.error.withValues(alpha: 0.4)
               : temaaplicacion.borde,
           width: esCritica ? 1.4 : 1,
         ),

@@ -16,7 +16,9 @@ import {
   Link2,
   Check,
   Unlink,
+  KeyRound,
 } from 'lucide-react';
+import { academicoapi } from '../../../lib/apiacademica';
 import { Boton } from '../../../components/ui/boton';
 import { Entrada } from '../../../components/ui/entrada';
 import type {
@@ -109,6 +111,36 @@ export function ComunidadPagina({
   // Modals state for Edit and Delete
   const [ediciondocente, establecerediciondocente] = useState<editardocenteestado | null>(null);
   const [edicionfamiliar, estableceredicionfamiliar] = useState<editarfamiliarestado | null>(null);
+  const [restablecerfamiliar, establecerrestablecerfamiliar] = useState<{
+    userId: string;
+    name: string;
+    ci: string;
+  } | null>(null);
+  const [nuevacontrasena, establecernuevacontrasena] = useState('');
+  const [confirmarcontrasena, establecerconfirmarcontrasena] = useState('');
+  const [restablecererror, establecerrestablecererror] = useState<string | null>(null);
+  const [restablecerexito, establecerrestablecerexito] = useState<string | null>(null);
+
+  const restablecercontrasenamutacion = useMutation({
+    mutationFn: async ({ userId, password }: { userId: string; password: string }) => {
+      return academicoapi.restablecerusuariocontrasena(userId, password);
+    },
+    onSuccess: () => {
+      establecerrestablecerexito(
+        `La contraseña de ${restablecerfamiliar?.name} (CI: ${restablecerfamiliar?.ci}) se actualizó con éxito.`,
+      );
+      establecerrestablecerfamiliar(null);
+      establecernuevacontrasena('');
+      establecerconfirmarcontrasena('');
+      establecerrestablecererror(null);
+    },
+    onError: (error: unknown) => {
+      establecerrestablecererror(
+        error instanceof Error ? error.message : 'No se pudo restablecer la contraseña.',
+      );
+    },
+  });
+
   const [familiarparavincular, establecerfamiliarparavincular] =
     useState<vincularfamiliarestado | null>(null);
   const [estudianteparavincular, establecerestudianteparavincular] = useState('');
@@ -435,7 +467,7 @@ export function ComunidadPagina({
               </Campo>
 
               <Campo label="Teléfono" error={docenteformulario.formState.errors.phone?.message}>
-                <Entrada {...docenteformulario.register('phone')} placeholder="71234567" />
+                <Entrada {...docenteformulario.register('phone')} placeholder="Ej. 70000000" />
               </Campo>
 
               <Campo
@@ -577,6 +609,22 @@ export function ComunidadPagina({
         )}
       </div>
 
+      {restablecerexito && (
+        <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+          <div className="flex items-center gap-2">
+            <Check className="h-4 w-4 text-emerald-600" />
+            <span>{restablecerexito}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => establecerrestablecerexito(null)}
+            className="text-emerald-600 hover:text-emerald-900"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
         {escarga ? (
@@ -632,6 +680,17 @@ export function ComunidadPagina({
                 name: `${familiar.firstName} ${familiar.lastName}`,
               })
             }
+            onResetPassword={(familiar) => {
+              establecerrestablecerexito(null);
+              establecerrestablecererror(null);
+              establecernuevacontrasena('');
+              establecerconfirmarcontrasena('');
+              establecerrestablecerfamiliar({
+                userId: familiar.userId,
+                name: `${familiar.firstName} ${familiar.lastName}`,
+                ci: familiar.ci,
+              });
+            }}
             onLink={(familiar) => {
               establecerfamiliarparavincular({
                 id: familiar.id,
@@ -1194,6 +1253,126 @@ export function ComunidadPagina({
       )}
 
       {/* MODAL: CONFIRMAR BAJA LÓGICA (SOFT DELETE) */}
+            {restablecerfamiliar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-restablecer-clave"
+            className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <h2 id="titulo-restablecer-clave" className="font-bold text-slate-900">
+                  Cambiar contraseña de acceso
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Familiar: {restablecerfamiliar.name} (CI: {restablecerfamiliar.ci})
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  establecerrestablecerfamiliar(null);
+                  establecernuevacontrasena('');
+                  establecerconfirmarcontrasena('');
+                  establecerrestablecererror(null);
+                }}
+                aria-label="Cerrar"
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {restablecererror && (
+              <p role="alert" className="mt-4 text-xs font-semibold text-rose-700">
+                {restablecererror}
+              </p>
+            )}
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (nuevacontrasena.length < 8) {
+                  establecerrestablecererror('La contraseña debe tener al menos 8 caracteres.');
+                  return;
+                }
+                if (nuevacontrasena !== confirmarcontrasena) {
+                  establecerrestablecererror('Las contraseñas no coinciden.');
+                  return;
+                }
+                restablecercontrasenamutacion.mutate({
+                  userId: restablecerfamiliar.userId,
+                  password: nuevacontrasena,
+                });
+              }}
+              className="mt-4 space-y-4"
+            >
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">
+                  Nueva contraseña
+                </label>
+                <Entrada
+                  type="password"
+                  value={nuevacontrasena}
+                  onChange={(e) => establecernuevacontrasena(e.target.value)}
+                  placeholder="Mínimo 8 caracteres"
+                  required
+                  autoComplete="new-password"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">
+                  Confirmar contraseña
+                </label>
+                <Entrada
+                  type="password"
+                  value={confirmarcontrasena}
+                  onChange={(e) => establecerconfirmarcontrasena(e.target.value)}
+                  placeholder="Repita la contraseña"
+                  required
+                  autoComplete="new-password"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <Boton
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    establecerrestablecerfamiliar(null);
+                    establecernuevacontrasena('');
+                    establecerconfirmarcontrasena('');
+                    establecerrestablecererror(null);
+                  }}
+                >
+                  Cancelar
+                </Boton>
+                <Boton
+                  type="submit"
+                  disabled={restablecercontrasenamutacion.isPending}
+                  className="bg-amber-600 hover:bg-amber-700 text-white gap-2"
+                >
+                  {restablecercontrasenamutacion.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Guardando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <KeyRound className="w-4 h-4" />
+                      <span>Actualizar contraseña</span>
+                    </>
+                  )}
+                </Boton>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {eliminacionelemento && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-md p-6 shadow-xl animate-in fade-in zoom-in-95">
@@ -1417,10 +1596,12 @@ function FamiliarTabla({
   canManage: puedegestionar,
   onEdit: oneditar,
   onDelete: oneliminar,
+  onResetPassword,
   onLink: onvincular,
 }: {
   data: Array<{
     id: string;
+    userId?: string;
     firstName: string;
     lastName: string;
     ci: string;
@@ -1445,6 +1626,7 @@ function FamiliarTabla({
     occupation?: string | null;
   }) => void;
   onDelete: (familiar: { id: string; firstName: string; lastName: string }) => void;
+  onResetPassword?: (familiar: { userId: string; firstName: string; lastName: string; ci: string }) => void;
   onLink: (familiar: {
     id: string;
     firstName: string;
@@ -1521,6 +1703,17 @@ function FamiliarTabla({
                 {puedegestionar && (
                   <td className="py-3 pl-3 pr-5 text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {onResetPassword && elemento.userId && (
+                        <button
+                          type="button"
+                          onClick={() => onResetPassword(elemento as any)}
+                          className="p-1.5 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                          title="Restablecer / Cambiar contraseña de acceso"
+                          aria-label={`Cambiar contraseña de ${elemento.firstName} ${elemento.lastName}`}
+                        >
+                          <KeyRound className="w-4 h-4" />
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => onvincular(elemento)}
