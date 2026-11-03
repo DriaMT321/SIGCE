@@ -53,9 +53,11 @@ describe('adaptadorpuppeteersiereal', () => {
       close: jest.fn().mockResolvedValue(undefined),
       type: jest.fn(),
     };
-    (adaptador as any).navegador = { newPage: jest.fn().mockResolvedValue(pagina) };
-    jest.spyOn(adaptador as any, 'inicializar').mockResolvedValue(undefined);
-    await expect((adaptador as any).asegurarsesionautenticada()).rejects.toBeInstanceOf(
+    (adaptador as unknown as { navegador: unknown }).navegador = { newPage: jest.fn().mockResolvedValue(pagina) };
+    jest.spyOn(adaptador as unknown as { inicializar: () => Promise<void> }, 'inicializar').mockResolvedValue(undefined);
+    await expect(
+      (adaptador as unknown as { asegurarsesionautenticada: () => Promise<unknown> }).asegurarsesionautenticada(),
+    ).rejects.toBeInstanceOf(
       errorautenticacionsierequerida,
     );
     expect(pagina.type).not.toHaveBeenCalled();
@@ -65,7 +67,9 @@ describe('adaptadorpuppeteersiereal', () => {
   it('calcula correctamente los datos de infoUe para secundaria y paralelo alfanumérico', () => {
     const adaptador = new adaptadorpuppeteersiereal(configBase);
 
-    const datosInfo = (adaptador as any).construirDatosInfoUe({
+    const datosInfo = (
+      adaptador as unknown as { construirDatosInfoUe: (arg: unknown) => unknown }
+    ).construirDatosInfoUe({
       courseGradeLevel: 9, // Primero de secundaria
       courseSection: 'B',
       courseShift: 'MORNING',
@@ -97,7 +101,9 @@ describe('adaptadorpuppeteersiereal', () => {
       nivelPrimariaNombre: 'Primaria Comunitaria Vocacional',
     });
 
-    const datosInfo = (adaptador as any).construirDatosInfoUe({
+    const datosInfo = (
+      adaptador as unknown as { construirDatosInfoUe: (arg: unknown) => unknown }
+    ).construirDatosInfoUe({
       courseGradeLevel: 5, // Tercero de primaria (3=1ro, 4=2do, 5=3ro)
       courseSection: 'A',
       courseShift: 'AFTERNOON',
@@ -172,7 +178,12 @@ describe('adaptadorpuppeteersiereal', () => {
           .mockResolvedValueOnce(respuestaactualizacion)
           .mockResolvedValueOnce(lecturaposterior),
       };
-      jest.spyOn(adaptador as any, 'asegurarsesionautenticada').mockResolvedValue(pagina);
+      jest
+        .spyOn(
+          adaptador as unknown as { asegurarsesionautenticada: () => Promise<unknown> },
+          'asegurarsesionautenticada',
+        )
+        .mockResolvedValue(pagina);
       return { adaptador, pagina };
     }
 

@@ -14,5 +14,5 @@
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
   },
-  "ignorePatterns": ["dist", "build", "node_modules", "coverage", ".eslintrc.json", "mobile"]
+  "ignorePatterns": ["dist", "build", "node_modules", "coverage", ".eslintrc.json", "mobile", "work/**", "scratch/**", "**/work/**", "**/scratch/**"]
 }

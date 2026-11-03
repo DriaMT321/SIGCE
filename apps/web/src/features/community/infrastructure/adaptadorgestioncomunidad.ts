@@ -100,10 +100,17 @@ const puerto: puertogestioncomunidad = {
     return respuesta.data;
   },
   vincularestudiantefamiliar: async (studentId, payload) => {
-    await academicoapi.vincularestudiantefamiliar(studentId, payload as any);
+    await academicoapi.vincularestudiantefamiliar(studentId, {
+      parentId: payload.parentId,
+      relationship: payload.relationship as Parameters<typeof academicoapi.vincularestudiantefamiliar>[1]['relationship'],
+    });
   },
   actualizarvinculofamiliar: async (parentId, studentId, relationship) => {
-    const familiar = await academicoapi.actualizarvinculofamiliar(parentId, studentId, relationship as any);
+    const familiar = await academicoapi.actualizarvinculofamiliar(
+      parentId,
+      studentId,
+      relationship as Parameters<typeof academicoapi.actualizarvinculofamiliar>[2],
+    );
     return {
       id: familiar.id,
       ci: familiar.ci,

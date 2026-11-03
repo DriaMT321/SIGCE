@@ -1503,7 +1503,7 @@ function FamiliarTabla({
                 <td className="px-3 py-3">
                   {elemento.students && elemento.students.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
-                      {elemento.students.map((estado, i) => (
+                      {elemento.students.map((estado) => (
                         <span
                           key={estado.id}
                           className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-medium"

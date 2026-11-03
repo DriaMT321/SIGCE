@@ -1,5 +1,6 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 import request = require('supertest');
 import { servicioprisma } from '../../../../common/database/prisma.service';
 import { guardiaautenticacionjwt } from '../../../../common/guards/jwtautenticacion.guard';

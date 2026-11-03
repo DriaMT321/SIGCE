@@ -13,6 +13,8 @@ module.exports = [
       '**/node_modules/**',
       '**/*.tsbuildinfo',
       'mobile/**',
+      'work/**',
+      'scratch/**',
       '.eslintrc.json',
       'apps/web/vite.config.js',
       '.agents/**',
