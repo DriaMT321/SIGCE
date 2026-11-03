@@ -300,9 +300,9 @@ async function main() {
     data: {
       studentId: student.id,
       courseId: course.id,
-      date: new Date('2026-03-02T08:00:00.000Z'),
+      registeredById: teacherUser.id,
+      date: new Date('2026-03-02'),
       status: AttendanceStatus.PRESENT,
-      remarks: 'Puntual',
     },
   });
   console.log(` Estudiante listo: Mateo Fernández (RUDE: 807300012026001, CI: 10234567)`);
