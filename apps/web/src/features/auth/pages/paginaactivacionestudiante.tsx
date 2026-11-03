@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { GraduationCap, KeyRound, ShieldCheck } from 'lucide-react';
+import { KeyRound, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Boton } from '../../../components/ui/boton';
 import { Entrada } from '../../../components/ui/entrada';
@@ -67,9 +67,7 @@ export function EstudianteActivacionPagina() {
         aria-labelledby="activation-title"
       >
         <div className="mb-6 flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-amber-400">
-            <GraduationCap aria-hidden="true" className="h-6 w-6" />
-          </span>
+          <img src="/logo-sf.png" alt="Logo Colegio Comunidad Cristiana" className="h-11 w-auto object-contain shrink-0" />
           <div>
             <p className="text-sm font-semibold text-slate-900">SIGCE</p>
             <p className="text-xs text-slate-500">U.E. Comunidad Cristiana B</p>

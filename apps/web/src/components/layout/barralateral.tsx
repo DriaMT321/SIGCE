@@ -1,7 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
-  GraduationCap,
   LayoutDashboard,
   Users,
   BookOpen,
@@ -178,9 +177,7 @@ export const Barralateral: React.FC = () => {
     >
       {/* Brand Header */}
       <div className="h-16 flex items-center px-4 border-b border-white/10 gap-3">
-        <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
-          <GraduationCap className="w-5 h-5 text-amber-400" />
-        </div>
+        <img src="/logo-sf.png" alt="Logo Colegio Comunidad Cristiana" className="h-9 w-auto object-contain shrink-0" />
         <div className="min-w-0">
           <span className="text-base font-bold text-white tracking-tight">SIGCE</span>
           <p className="text-[11px] text-slate-400 truncate">U.E. Comunidad Cristiana B</p>

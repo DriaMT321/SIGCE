@@ -64,9 +64,7 @@ export const SesionPagina = () => {
     <div className="min-h-screen w-full bg-[#f7f6f1] text-[#292820] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
       <section className="flex min-h-[18rem] flex-col justify-between border-b border-[#e7e4da] bg-[#fbfaf6] p-6 sm:min-h-[22rem] sm:p-10 lg:min-h-screen lg:border-b-0 lg:border-r lg:p-12 xl:p-16">
         <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-lg border border-[#d4c476] bg-[#f4ebcb] font-extrabold text-[#806719]">
-            S
-          </span>
+          <img src="/logo-sf.png" alt="Logo Colegio Comunidad Cristiana" className="h-11 w-auto object-contain" />
           <div>
             <h1 className="text-lg font-extrabold tracking-tight">SIGCE</h1>
             <p className="text-xs text-[#706e64]">U.E. Comunidad Cristiana B</p>
