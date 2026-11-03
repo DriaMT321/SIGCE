@@ -40,25 +40,157 @@
     --font-mono: 'JetBrains Mono', monospace;
   }
 
-  [data-theme='executive'] {
-    --primary: 222 47% 20%;
-    --primary-foreground: 210 40% 98%;
-    --ring: 222 47% 20%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+  [data-theme='executive'],
+  html.dark {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 352 81% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 33% 15%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 15%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 40%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 352 81% 50%;
+  }
+
+  /* Deep dark corporate shell and surfaces */
+  [data-theme='executive'] body,
+  html.dark body {
+    background-color: #0b0f19;
+    color: #f8fafc;
   }
 
   [data-theme='executive'] .sigce-shell,
-  [data-theme='executive'] .sigce-main {
-    background-color: #eff2f5;
+  [data-theme='executive'] .sigce-main,
+  html.dark .sigce-shell,
+  html.dark .sigce-main {
+    background-color: #0b0f19 !important;
+    color: #f8fafc !important;
   }
 
-  [data-theme='executive'] .sigce-main .bg-brand-600 {
-    background-color: #29405c;
+  /* Navbars, Headers and Modals in dark mode */
+  [data-theme='executive'] header,
+  html.dark header {
+    background-color: #0f172a !important;
+    border-color: #1e293b !important;
   }
 
-  [data-theme='executive'] .sigce-main .text-brand-600 {
-    color: #29405c;
+  [data-theme='executive'] header .text-slate-900,
+  html.dark header .text-slate-900 {
+    color: #f8fafc !important;
+  }
+
+  /* White cards and panels turn into dark cards */
+  [data-theme='executive'] .bg-white,
+  html.dark .bg-white {
+    background-color: #0f172a !important;
+    border-color: #1e293b !important;
+  }
+
+  /* Secondary slate backgrounds */
+  [data-theme='executive'] .bg-slate-50,
+  [data-theme='executive'] .bg-slate-50\/50,
+  [data-theme='executive'] .bg-slate-50\/60,
+  [data-theme='executive'] .bg-slate-50\/70,
+  html.dark .bg-slate-50,
+  html.dark .bg-slate-50\/50,
+  html.dark .bg-slate-50\/60,
+  html.dark .bg-slate-50\/70 {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+  }
+
+  [data-theme='executive'] .bg-slate-100,
+  html.dark .bg-slate-100 {
+    background-color: #1e293b !important;
+    color: #cbd5e1 !important;
+  }
+
+  /* Text hierarchy in dark mode */
+  [data-theme='executive'] .text-slate-900,
+  html.dark .text-slate-900 {
+    color: #f8fafc !important;
+  }
+
+  [data-theme='executive'] .text-slate-800,
+  html.dark .text-slate-800 {
+    color: #f1f5f9 !important;
+  }
+
+  [data-theme='executive'] .text-slate-700,
+  html.dark .text-slate-700 {
+    color: #cbd5e1 !important;
+  }
+
+  [data-theme='executive'] .text-slate-600,
+  html.dark .text-slate-600 {
+    color: #94a3b8 !important;
+  }
+
+  [data-theme='executive'] .text-slate-500,
+  html.dark .text-slate-500 {
+    color: #64748b !important;
+  }
+
+  /* Form controls, inputs, selects, textareas */
+  [data-theme='executive'] input:not([type="checkbox"]):not([type="radio"]),
+  [data-theme='executive'] select,
+  [data-theme='executive'] textarea,
+  html.dark input:not([type="checkbox"]):not([type="radio"]),
+  html.dark select,
+  html.dark textarea {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+  }
+
+  [data-theme='executive'] input::placeholder,
+  [data-theme='executive'] textarea::placeholder,
+  html.dark input::placeholder,
+  html.dark textarea::placeholder {
+    color: #64748b !important;
+  }
+
+  /* Borders */
+  [data-theme='executive'] .border-slate-200,
+  [data-theme='executive'] .border-slate-100,
+  html.dark .border-slate-200,
+  html.dark .border-slate-100 {
+    border-color: #1e293b !important;
+  }
+
+  /* Hover states */
+  [data-theme='executive'] .hover\:bg-slate-50:hover,
+  [data-theme='executive'] .hover\:bg-slate-50\/70:hover,
+  html.dark .hover\:bg-slate-50:hover,
+  html.dark .hover\:bg-slate-50\/70:hover {
+    background-color: #1e293b !important;
+  }
+
+  /* Dividers */
+  [data-theme='executive'] .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+  [data-theme='executive'] .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+  html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+  html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #1e293b !important;
   }
 
   * {

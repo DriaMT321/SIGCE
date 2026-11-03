@@ -32,7 +32,7 @@ export const TableroDisposicion: React.FC = () => {
   }
 
   return (
-    <div className="sigce-shell flex h-screen bg-[#f8fafc] text-slate-900 overflow-hidden flex-col">
+    <div className="sigce-shell flex h-screen bg-[#f8fafc] dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 overflow-hidden flex-col">
       {/* Signature institutional gradient ribbon from school palette */}
       {esinstitucional && (
         <div className="h-[3px] w-full shrink-0 bg-gradient-to-r from-[#ffc54c] via-[#f37022] to-[#b91329] z-30" />
@@ -41,7 +41,7 @@ export const TableroDisposicion: React.FC = () => {
         <Barralateral />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <Barranavegacion />
-          <main className="sigce-main flex-1 overflow-y-auto p-6 lg:p-8 bg-[#f8fafc]">
+          <main className="sigce-main flex-1 overflow-y-auto p-6 lg:p-8 bg-[#f8fafc] dark:bg-[#0b0f19]">
             <div className="max-w-7xl mx-auto space-y-6">
               <Suspense fallback={<RutaCarga />}>
                 <Outlet />

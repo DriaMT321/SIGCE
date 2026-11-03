@@ -12,18 +12,28 @@ export function obtenerinicialtema(): sigcetema {
     : 'institutional';
 }
 
-export function aplicartema(tema: sigcetema) {
+function sincronizardom(tema: sigcetema) {
   if (typeof window === 'undefined') return;
   document.documentElement.setAttribute('data-theme', tema);
+  if (tema === 'executive') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+}
+
+export function aplicartema(tema: sigcetema) {
+  if (typeof window === 'undefined') return;
+  sincronizardom(tema);
   localStorage.setItem(constantealmacenamientoclave, tema);
   oyentes.forEach((oyente) => oyente());
 }
 
 if (typeof window !== 'undefined') {
-  document.documentElement.setAttribute('data-theme', obtenerinicialtema());
+  sincronizardom(obtenerinicialtema());
   window.addEventListener('storage', (evento) => {
     if (evento.key === constantealmacenamientoclave) {
-      document.documentElement.setAttribute('data-theme', obtenerinicialtema());
+      sincronizardom(obtenerinicialtema());
       oyentes.forEach((oyente) => oyente());
     }
   });
@@ -49,5 +59,6 @@ export function usotema() {
     setTheme: aplicartema,
     toggleTheme: alternartema,
     isInstitutional: tema === 'institutional',
+    isDark: tema === 'executive',
   };
 }
