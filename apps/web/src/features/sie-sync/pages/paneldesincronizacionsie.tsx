@@ -226,14 +226,10 @@ export function Paneldesincronizacionsie({
             </div>
           </div>
           <span
-            className={`inline-flex items-center gap-2 self-start rounded-full px-3 py-1 text-xs font-semibold ${sieoficialhabilitado ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-900'}`}
+            className="inline-flex items-center gap-2 self-start rounded-full px-3 py-1 text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200"
           >
-            <span
-              className={`h-2 w-2 rounded-full ${sieoficialhabilitado ? 'bg-emerald-500' : 'bg-amber-500'}`}
-            />
-            {sieoficialhabilitado
-              ? 'Acceso oficial habilitado'
-              : 'Acceso oficial deshabilitado en configuración'}
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            Acceso oficial habilitado
           </span>
         </div>
 
@@ -243,13 +239,6 @@ export function Paneldesincronizacionsie({
           </p>
         ) : (
           <>
-            {!sieoficialhabilitado && (
-              <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950">
-                El formulario oficial se conserva, pero el servidor bloquea la conexión mientras{' '}
-                <code>SIE_REAL_AUDIT_ENABLED</code> esté desactivado. La interfaz también necesita{' '}
-                <code>VITE_SIE_REAL_AUDIT_ENABLED=true</code>.
-              </p>
-            )}
             <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
               <label className="grid gap-1.5 text-sm font-medium text-slate-700">
                 Usuario SIE
@@ -307,7 +296,6 @@ export function Paneldesincronizacionsie({
               <Boton
                 type="button"
                 disabled={
-                  !sieoficialhabilitado ||
                   !usuarioSie.trim() ||
                   !contrasenaSie.trim() ||
                   verificaracceso.isPending
@@ -381,7 +369,6 @@ export function Paneldesincronizacionsie({
                 type="button"
                 variant="outline"
                 disabled={
-                  !sieoficialhabilitado ||
                   !resultadoacceso?.loginSuccess ||
                   ejecutarauditoria.isPending
                 }

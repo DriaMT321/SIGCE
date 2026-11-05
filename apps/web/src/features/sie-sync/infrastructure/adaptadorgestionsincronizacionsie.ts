@@ -1,4 +1,4 @@
-﻿import { academicoapi } from '../../../lib/apiacademica';
+import { academicoapi } from '../../../lib/apiacademica';
 import { clienteapi } from '../../../lib/clienteapi';
 import { obtenersocket } from '../../../lib/conexiontiemporeal';
 import {
@@ -95,4 +95,4 @@ const puerto: puertogestionsiesincronizacion = {
 };
 
 export const instanciagestionsiesincronizacion = new gestionsiesincronizacion(puerto);
-export const esrealsieauditoriahabilitado = import.meta.env.VITE_SIE_REAL_AUDIT_ENABLED === 'true';
+export const esrealsieauditoriahabilitado = import.meta.env.VITE_SIE_REAL_AUDIT_ENABLED !== 'false';
