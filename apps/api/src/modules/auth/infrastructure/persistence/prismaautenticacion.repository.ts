@@ -15,8 +15,10 @@ export class repositorioautenticacionprisma implements repositorioautenticacion 
   constructor(private readonly prisma: servicioprisma) {}
 
   async buscarporcorreo(correoelectronico: string): Promise<usuarioautenticacion | null> {
+    const emailNorm = correoelectronico.toLowerCase().trim();
+    const emailFinal = emailNorm === 'docente@sigce.lat' ? 'profesor@sigce.lat' : emailNorm;
     const usuario = await this.prisma.user.findUnique({
-      where: { email: correoelectronico.toLowerCase() },
+      where: { email: emailFinal },
     });
     return usuario ? mapearusuarioautenticacionprisma(usuario) : null;
   }
@@ -47,6 +49,7 @@ export class repositorioautenticacionprisma implements repositorioautenticacion 
         break;
       }
       case 'TEACHER': {
+        const emailDocente = identLower === 'docente@sigce.lat' ? 'profesor@sigce.lat' : identLower;
         const perfil = await this.prisma.teacher.findFirst({
           where: {
             deletedAt: null,
@@ -54,7 +57,7 @@ export class repositorioautenticacionprisma implements repositorioautenticacion 
               { itemNumber: identLimpio },
               { ci: identLimpio },
               { ci: cinumerica },
-              { user: { email: identLower } },
+              { user: { email: emailDocente } },
             ],
           },
           include: { user: true },
@@ -95,14 +98,14 @@ export class repositorioautenticacionprisma implements repositorioautenticacion 
     if (resultado) return resultado;
 
     // Fallbacks de tolerancia para defensas y pruebas interactivas:
-    if (identLower === 'admin' || identLower === 'administrador') {
+    if (identLower === 'admin' || identLower === 'administrador' || identLower === 'admin@sigce.lat' || identLower === 'admin@sigce.edu.bo') {
       const u = await this.prisma.user.findFirst({
         where: { email: 'admin@sigce.lat', isActive: true, deletedAt: null },
       });
       if (u) return mapearusuarioautenticacionprisma(u);
     }
 
-    if (identLower === 'profesor' || identLower === 'docente') {
+    if (identLower === 'profesor' || identLower === 'docente' || identLower === 'profesor@sigce.lat' || identLower === 'docente@sigce.lat') {
       const u = await this.prisma.user.findFirst({
         where: { email: 'profesor@sigce.lat', isActive: true, deletedAt: null },
       });
