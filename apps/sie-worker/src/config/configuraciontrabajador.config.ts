@@ -263,7 +263,8 @@ export const configuraciontrabajador = {
       if (
         ruta &&
         process.env.NODE_ENV === 'production' &&
-        process.env.ENABLE_SIE_LOCAL_SIMULATION !== 'true'
+        process.env.ENABLE_SIE_LOCAL_SIMULATION !== 'true' &&
+        process.env.SIE_ALLOW_REPLICA_IN_PROD !== 'true'
       ) {
         throw new Error('SIE_LOCAL_REPLICA_PATH solo puede usarse fuera de producción');
       }
