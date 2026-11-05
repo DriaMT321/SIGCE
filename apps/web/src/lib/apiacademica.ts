@@ -398,6 +398,63 @@ export const academicoapi = {
     const respuesta = await clienteapi.post('/attendance', datos);
     return datosrespuesta(asistenciaesquema).parse(respuesta.data).data;
   },
+  async registrarasistenciaclase(datos: {
+    courseId: string;
+    subjectId?: string;
+    subjectName?: string;
+    date: string;
+    attendances: Array<{ studentId: string; status: string; justification?: string }>;
+  }) {
+    const respuesta = await clienteapi.post('/attendance/class', datos);
+    return respuesta.data;
+  },
+  async listadjustificaciones(): Promise<{
+    data: Array<{
+      id: string;
+      studentId: string;
+      studentName: string;
+      studentRude?: string;
+      studentCi?: string;
+      courseId: string;
+      courseName: string;
+      date: string;
+      status: string;
+      subjectName: string;
+      parentReason: string | null;
+      attachmentName: string | null;
+      attachmentUrl: string | null;
+      justificationStatus: 'PENDING_SUBMISSION' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED';
+      reviewNotes: string | null;
+      reviewedBy: string | null;
+      reviewedAt: string | null;
+    }>;
+    total: number;
+  }> {
+    const respuesta = await clienteapi.get('/attendance/justifications');
+    return respuesta.data;
+  },
+  async enviarjustificacion(
+    id: string,
+    datos: {
+      reason: string;
+      attachmentName?: string;
+      attachmentUrl?: string;
+      subjectName?: string;
+    },
+  ) {
+    const respuesta = await clienteapi.post(`/attendance/${id}/justify`, datos);
+    return respuesta.data;
+  },
+  async resolverjustificacion(
+    id: string,
+    datos: {
+      decision: 'APPROVE' | 'REJECT';
+      reviewNotes?: string;
+    },
+  ) {
+    const respuesta = await clienteapi.post(`/attendance/${id}/resolve-justification`, datos);
+    return respuesta.data;
+  },
   async listaralertas(parametros?: { status?: string }) {
     const respuesta = await clienteapi.get('/alerts', { params: { limit: 100, ...parametros } });
     return z
@@ -411,6 +468,7 @@ export const academicoapi = {
             status: z.string().optional(),
             isRead: z.boolean(),
             createdAt: z.string(),
+            metadata: z.record(z.unknown()).optional().nullable(),
           }),
         ),
         total: z.number(),

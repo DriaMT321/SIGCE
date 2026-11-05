@@ -10,6 +10,7 @@ export interface alertaregistro {
   status?: string;
   isRead: boolean;
   createdAt: string;
+  metadata?: Record<string, unknown> | null;
 }
 
 export interface alertaregla {

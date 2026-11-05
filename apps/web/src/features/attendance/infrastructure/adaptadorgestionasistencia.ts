@@ -50,6 +50,22 @@ const puerto: puertogestionasistencia = {
   registroasistencia: async (entrada) => {
     await academicoapi.crearasistencia(entrada);
   },
+  listarmaterias: async (courseId) => {
+    return academicoapi.listarmaterias(undefined, courseId);
+  },
+  registrarasistenciaclase: async (entrada) => {
+    return academicoapi.registrarasistenciaclase(entrada);
+  },
+  listadjustificaciones: async () => {
+    const res = await academicoapi.listadjustificaciones();
+    return res as unknown as Awaited<ReturnType<NonNullable<puertogestionasistencia['listadjustificaciones']>>>;
+  },
+  enviarjustificacion: async (id, entrada) => {
+    await academicoapi.enviarjustificacion(id, entrada);
+  },
+  resolverjustificacion: async (id, entrada) => {
+    await academicoapi.resolverjustificacion(id, entrada);
+  },
 };
 
 export const instanciagestionasistencia = new gestionasistencia(puerto);

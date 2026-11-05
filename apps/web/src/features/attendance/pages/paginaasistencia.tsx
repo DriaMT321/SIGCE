@@ -1,21 +1,32 @@
-import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Calendar,
+  CheckCircle2,
+  Clock,
   Download,
+  Eye,
+  FileCheck,
   FileSpreadsheet,
+  FileText,
   ListFilter,
   Loader2,
+  Paperclip,
   Plus,
   Search,
+  Send,
+  ShieldCheck,
   User,
   Users,
   X,
+  XCircle,
 } from 'lucide-react';
 import type {
   gestionasistencia,
   asistenciaregistro,
   asistenciaestado,
+  asistenciajustificacion,
 } from '../application/gestionasistencia';
 import { cursoetiqueta } from '../../../lib/cursoetiqueta';
 import { Planillaasistenciacurso } from '../components/planillaasistenciacurso';
@@ -93,8 +104,20 @@ export const AsistenciaPagina = ({
   management: gestionasistencia;
   currentRole?: string;
 }) => {
+  const clientedeconsultas = useQueryClient();
+  const [parametros] = useSearchParams();
+  const tabInicial = parametros.get('tab');
+
   // Views
-  const [modovista, establecermodovista] = useState<'lista' | 'matriz' | 'individual'>('matriz');
+  const [modovista, establecermodovista] = useState<
+    'lista' | 'matriz' | 'individual' | 'justificaciones'
+  >(tabInicial === 'justificaciones' ? 'justificaciones' : 'matriz');
+
+  useEffect(() => {
+    if (tabInicial === 'justificaciones') {
+      establecermodovista('justificaciones');
+    }
+  }, [tabInicial]);
 
   // Form
   const [mostrarformulario, establecermostrarformulario] = useState(false);
@@ -116,7 +139,29 @@ export const AsistenciaPagina = ({
   const [individualmesid, establecerindividualmesid] = useState('ALL');
   const [busquedaestudianteindividual, establecerbusquedaestudianteindividual] = useState('');
 
+  // Justificaciones state
+  const [filtroEstadoJustif, establecerfiltroEstadoJustif] = useState<
+    'ALL' | 'PENDING_SUBMISSION' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED'
+  >('ALL');
+  const [busquedaJustif, establecerbusquedaJustif] = useState('');
+  const [justificacionParaRevisar, establecerjustificacionParaRevisar] =
+    useState<asistenciajustificacion | null>(null);
+  const [justificacionParaEnviar, establecerjustificacionParaEnviar] =
+    useState<asistenciajustificacion | null>(null);
+  const [documentoParaVer, establecerdocumentoParaVer] = useState<{
+    nombre: string;
+    url?: string | null;
+    motivo?: string | null;
+    alumno: string;
+  } | null>(null);
+
+  const [motivoEnvio, establecermotivoEnvio] = useState('');
+  const [adjuntoNombre, estableceradjuntoNombre] = useState('Certificado_Medico_Pediatrico.pdf');
+  const [notaRevision, establecernotaRevision] = useState('');
+  const [toastMensaje, establecertoastMensaje] = useState<string | null>(null);
+
   const puedeeditar = ['ADMINISTRATIVE', 'SECRETARY', 'TEACHER'].includes(actualrol ?? '');
+  const esDireccion = ['ADMINISTRATIVE', 'SECRETARY'].includes(actualrol ?? '');
 
   // Base queries
   const cursosconsulta = useQuery({
@@ -399,6 +444,90 @@ export const AsistenciaPagina = ({
     );
   };
 
+  // Justificaciones Queries & Mutations
+  const justificacionesConsulta = useQuery({
+    queryKey: ['justifications'],
+    queryFn: () => gestion.listadjustificaciones(),
+  });
+  const todasJustificaciones = justificacionesConsulta.data?.data ?? [];
+  const totalJustif = todasJustificaciones.length;
+
+  const pendientesSubmisionCount = todasJustificaciones.filter(
+    (j) => j.justificationStatus === 'PENDING_SUBMISSION',
+  ).length;
+  const pendientesRevisionCount = todasJustificaciones.filter(
+    (j) => j.justificationStatus === 'PENDING_REVIEW',
+  ).length;
+  const aprobadasCount = todasJustificaciones.filter(
+    (j) => j.justificationStatus === 'APPROVED',
+  ).length;
+  const rechazadasCount = todasJustificaciones.filter(
+    (j) => j.justificationStatus === 'REJECTED',
+  ).length;
+
+  const filtradasJustificaciones = useMemo(() => {
+    return todasJustificaciones.filter((j) => {
+      if (filtroEstadoJustif !== 'ALL' && j.justificationStatus !== filtroEstadoJustif) {
+        return false;
+      }
+      if (!busquedaJustif.trim()) return true;
+      const term = busquedaJustif.toLowerCase().trim();
+      return (
+        j.studentName.toLowerCase().includes(term) ||
+        (j.studentRude && j.studentRude.toLowerCase().includes(term)) ||
+        j.courseName.toLowerCase().includes(term) ||
+        j.subjectName.toLowerCase().includes(term) ||
+        (j.parentReason && j.parentReason.toLowerCase().includes(term))
+      );
+    });
+  }, [todasJustificaciones, filtroEstadoJustif, busquedaJustif]);
+
+  const resolverJustificacionMutacion = useMutation({
+    mutationFn: (variables: { id: string; decision: 'APPROVE' | 'REJECT'; reviewNotes?: string }) =>
+      gestion.resolverjustificacion(variables.id, {
+        decision: variables.decision,
+        reviewNotes: variables.reviewNotes,
+      }),
+    onSuccess: (_, variables) => {
+      establecerjustificacionParaRevisar(null);
+      establecernotaRevision('');
+      establecertoastMensaje(
+        variables.decision === 'APPROVE'
+          ? '✅ Justificación APROBADA. El registro de asistencia se actualizó a JUSTIFICADO y se notificó al padre y estudiante.'
+          : '❌ Justificación RECHAZADA. Se notificó al padre de familia y al estudiante.',
+      );
+      void clientedeconsultas.invalidateQueries({ queryKey: ['justifications'] });
+      void clientedeconsultas.invalidateQueries({ queryKey: ['attendance'] });
+      void clientedeconsultas.invalidateQueries({ queryKey: ['alerts'] });
+    },
+  });
+
+  const enviarJustificacionMutacion = useMutation({
+    mutationFn: (variables: {
+      id: string;
+      reason: string;
+      attachmentName?: string;
+      attachmentUrl?: string;
+      subjectName?: string;
+    }) =>
+      gestion.enviarjustificacion(variables.id, {
+        reason: variables.reason,
+        attachmentName: variables.attachmentName,
+        attachmentUrl: variables.attachmentUrl,
+        subjectName: variables.subjectName,
+      }),
+    onSuccess: () => {
+      establecerjustificacionParaEnviar(null);
+      establecermotivoEnvio('');
+      establecertoastMensaje(
+        '📨 Justificativo y comprobante enviados exitosamente a Dirección para su revisión.',
+      );
+      void clientedeconsultas.invalidateQueries({ queryKey: ['justifications'] });
+      void clientedeconsultas.invalidateQueries({ queryKey: ['attendance'] });
+      void clientedeconsultas.invalidateQueries({ queryKey: ['alerts'] });
+    },
+  });
+
   return (
     <div className="space-y-5">
       {/* Header - Clean with View Switcher */}
@@ -449,6 +578,23 @@ export const AsistenciaPagina = ({
               <ListFilter className="w-3.5 h-3.5" />
               Partes Diarios
             </button>
+            <button
+              type="button"
+              onClick={() => establecermodovista('justificaciones')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                modovista === 'justificaciones'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <FileCheck className="w-3.5 h-3.5" />
+              Justificaciones
+              {pendientesRevisionCount > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white leading-none">
+                  {pendientesRevisionCount}
+                </span>
+              )}
+            </button>
           </div>
 
           {puedeeditar && (
@@ -463,6 +609,19 @@ export const AsistenciaPagina = ({
           )}
         </div>
       </div>
+
+      {toastMensaje && (
+        <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 font-medium shadow-2xs">
+          <span>{toastMensaje}</span>
+          <button
+            type="button"
+            onClick={() => establecertoastMensaje(null)}
+            className="text-emerald-700 hover:text-emerald-950 font-bold ml-3 text-sm"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Taking attendance daily form modal */}
       {mostrarformulario && puedeeditar && (
@@ -1095,6 +1254,652 @@ export const AsistenciaPagina = ({
                 </table>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* VISTA 4: JUSTIFICACIONES DE FALTA Y FLUJO INSTITUCIONAL                    */}
+      {/* ========================================================================= */}
+      {modovista === 'justificaciones' && (
+        <div className="space-y-4">
+          {/* Metrics summary banner */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
+              <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Total Ausencias
+              </div>
+              <div className="mt-1 text-2xl font-extrabold text-slate-900 font-mono">
+                {totalJustif}
+              </div>
+              <div className="text-[11px] text-slate-400 mt-0.5">En registros de clase</div>
+            </div>
+
+            <div className="bg-amber-50/60 rounded-xl border border-amber-200 p-4 shadow-2xs">
+              <div className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">
+                Pendientes de Justificar
+              </div>
+              <div className="mt-1 text-2xl font-extrabold text-amber-900 font-mono">
+                {pendientesSubmisionCount}
+              </div>
+              <div className="text-[11px] text-amber-700 mt-0.5">Esperando respuesta del tutor</div>
+            </div>
+
+            <div className="bg-blue-50/60 rounded-xl border border-blue-200 p-4 shadow-2xs">
+              <div className="text-[11px] font-bold text-blue-800 uppercase tracking-wider">
+                Por Revisar Dirección
+              </div>
+              <div className="mt-1 text-2xl font-extrabold text-blue-900 font-mono">
+                {pendientesRevisionCount}
+              </div>
+              <div className="text-[11px] text-blue-700 mt-0.5">Con comprobante adjunto</div>
+            </div>
+
+            <div className="bg-emerald-50/60 rounded-xl border border-emerald-200 p-4 shadow-2xs">
+              <div className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
+                Aprobadas (Justificadas)
+              </div>
+              <div className="mt-1 text-2xl font-extrabold text-emerald-900 font-mono">
+                {aprobadasCount}
+              </div>
+              <div className="text-[11px] text-emerald-700 mt-0.5">
+                {rechazadasCount > 0 ? `${rechazadasCount} rechazada(s)` : 'Faltas convalidadas'}
+              </div>
+            </div>
+          </div>
+
+          {/* Search & Filter Bar */}
+          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                value={busquedaJustif}
+                onChange={(e) => establecerbusquedaJustif(e.target.value)}
+                placeholder="Buscar por estudiante, curso, materia o justificativo..."
+                className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Estado:
+              </span>
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg text-xs">
+                <button
+                  type="button"
+                  onClick={() => establecerfiltroEstadoJustif('ALL')}
+                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                    filtroEstadoJustif === 'ALL'
+                      ? 'bg-white text-slate-900 shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Todas ({totalJustif})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => establecerfiltroEstadoJustif('PENDING_REVIEW')}
+                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                    filtroEstadoJustif === 'PENDING_REVIEW'
+                      ? 'bg-white text-blue-900 shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Por Revisar ({pendientesRevisionCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => establecerfiltroEstadoJustif('PENDING_SUBMISSION')}
+                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                    filtroEstadoJustif === 'PENDING_SUBMISSION'
+                      ? 'bg-white text-amber-900 shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Sin Justificar ({pendientesSubmisionCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => establecerfiltroEstadoJustif('APPROVED')}
+                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                    filtroEstadoJustif === 'APPROVED'
+                      ? 'bg-white text-emerald-900 shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Aprobadas ({aprobadasCount})
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Justifications Table */}
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+            {justificacionesConsulta.isLoading ? (
+              <div className="p-12 flex items-center justify-center text-slate-500 text-xs">
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                Cargando registros de justificación...
+              </div>
+            ) : filtradasJustificaciones.length === 0 ? (
+              <div className="p-12 text-center text-slate-500">
+                <ShieldCheck className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="font-semibold text-slate-700 text-sm">
+                  No hay registros de inasistencia en este filtro
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Cuando los docentes registren ausencias, aparecerán automáticamente en esta lista.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-[11px] font-semibold text-slate-600 uppercase tracking-wider border-b border-slate-200">
+                    <tr>
+                      <th className="py-3 px-3 w-10 text-center">#</th>
+                      <th className="py-3 px-4">Estudiante</th>
+                      <th className="py-3 px-3">Curso & Materia</th>
+                      <th className="py-3 px-3">Fecha Falta</th>
+                      <th className="py-3 px-3">Estado del Flujo</th>
+                      <th className="py-3 px-4">Motivo / Explicación</th>
+                      <th className="py-3 px-3">Comprobante</th>
+                      <th className="py-3 px-4 text-right">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filtradasJustificaciones.map((j, idx) => {
+                      const fechaFormatted = formatearFechaBolivia(j.date);
+                      return (
+                        <tr key={j.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-3 px-3 text-center text-slate-400 font-mono text-[11px]">
+                            {idx + 1}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="font-bold text-slate-900">{j.studentName}</div>
+                            {j.studentRude && (
+                              <div className="text-[10px] text-slate-400 font-mono">
+                                RUDE: {j.studentRude}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3 px-3">
+                            <div className="font-semibold text-slate-800">
+                              {cursoetiqueta(j.courseName)}
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-medium">
+                              {j.subjectName}
+                            </div>
+                          </td>
+                          <td className="py-3 px-3 font-mono text-slate-700 whitespace-nowrap">
+                            {fechaFormatted}
+                          </td>
+                          <td className="py-3 px-3">
+                            {j.justificationStatus === 'PENDING_SUBMISSION' && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                                <Clock className="w-3 h-3 text-amber-600" />
+                                Tutor Notificado
+                              </span>
+                            )}
+                            {j.justificationStatus === 'PENDING_REVIEW' && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-800 border border-blue-200 animate-pulse">
+                                <FileCheck className="w-3 h-3 text-blue-600" />
+                                Por Revisar en Dirección
+                              </span>
+                            )}
+                            {j.justificationStatus === 'APPROVED' && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                Justificado (Aprobado)
+                              </span>
+                            )}
+                            {j.justificationStatus === 'REJECTED' && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-200">
+                                <XCircle className="w-3 h-3 text-rose-600" />
+                                Rechazado por Dirección
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 max-w-xs">
+                            {j.parentReason ? (
+                              <div>
+                                <p className="text-slate-800 text-xs italic leading-tight line-clamp-2">
+                                  &quot;{j.parentReason}&quot;
+                                </p>
+                                {j.reviewNotes && (
+                                  <p className="text-[10px] text-slate-500 mt-1">
+                                    <strong>Dictamen Dirección:</strong> {j.reviewNotes}
+                                  </p>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 italic text-[11px]">
+                                Sin justificación presentada
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3">
+                            {j.attachmentName ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  establecerdocumentoParaVer({
+                                    nombre: j.attachmentName!,
+                                    url: j.attachmentUrl,
+                                    motivo: j.parentReason,
+                                    alumno: j.studentName,
+                                  })
+                                }
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium transition-colors"
+                              >
+                                <Paperclip className="w-3 h-3 text-slate-500" />
+                                <span className="max-w-[110px] truncate">{j.attachmentName}</span>
+                                <Eye className="w-3 h-3 text-slate-400 ml-0.5" />
+                              </button>
+                            ) : (
+                              <span className="text-slate-300 text-center block">—</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {/* Direccion action: review pending review */}
+                              {esDireccion && j.justificationStatus === 'PENDING_REVIEW' && (
+                                <Boton
+                                  size="sm"
+                                  onClick={() => {
+                                    establecerjustificacionParaRevisar(j);
+                                    establecernotaRevision(
+                                      'Certificado médico y comprobantes verificados correctamente.',
+                                    );
+                                  }}
+                                  className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1"
+                                >
+                                  <FileCheck className="w-3 h-3" />
+                                  Revisar y Resolver
+                                </Boton>
+                              )}
+
+                              {/* Parent / student or admin action: submit justification if pending submission */}
+                              {j.justificationStatus === 'PENDING_SUBMISSION' && (
+                                <Boton
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    establecerjustificacionParaEnviar(j);
+                                    establecermotivoEnvio('');
+                                    estableceradjuntoNombre('Certificado_Medico.pdf');
+                                  }}
+                                  className="h-7 text-xs text-amber-800 border-amber-300 hover:bg-amber-50 gap-1"
+                                >
+                                  <Send className="w-3 h-3 text-amber-600" />
+                                  Enviar Justificativo
+                                </Boton>
+                              )}
+
+                              {/* Re-review or details button if already resolved */}
+                              {(j.justificationStatus === 'APPROVED' ||
+                                j.justificationStatus === 'REJECTED') && (
+                                <Boton
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    if (esDireccion) {
+                                      establecerjustificacionParaRevisar(j);
+                                      establecernotaRevision(j.reviewNotes || '');
+                                    } else if (j.attachmentName) {
+                                      establecerdocumentoParaVer({
+                                        nombre: j.attachmentName,
+                                        url: j.attachmentUrl,
+                                        motivo: j.parentReason,
+                                        alumno: j.studentName,
+                                      });
+                                    }
+                                  }}
+                                  className="h-7 text-xs text-slate-500 hover:text-slate-800"
+                                >
+                                  {esDireccion ? 'Ver / Reconsiderar' : 'Ver Detalles'}
+                                </Boton>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 1: DIRECCIÓN - REVISIÓN Y RESOLUCIÓN DE JUSTIFICACIÓN                */}
+      {/* ========================================================================= */}
+      {justificacionParaRevisar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border border-slate-200 overflow-hidden">
+            <div className="bg-slate-900 px-5 py-4 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                <h3 className="font-bold text-sm">Dictamen de Inasistencia — Dirección</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => establecerjustificacionParaRevisar(null)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs">
+              {/* Student and course card */}
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Estudiante:</span>
+                  <span className="font-bold text-slate-900 text-sm">
+                    {justificacionParaRevisar.studentName}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Curso & Materia:</span>
+                  <span className="font-semibold text-slate-800">
+                    {cursoetiqueta(justificacionParaRevisar.courseName)} ·{' '}
+                    {justificacionParaRevisar.subjectName}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Fecha de Falta:</span>
+                  <span className="font-mono font-semibold text-slate-800">
+                    {formatearFechaBolivia(justificacionParaRevisar.date)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Tutor explanation */}
+              <div>
+                <label className="block text-slate-600 font-bold uppercase tracking-wider text-[11px] mb-1">
+                  Explicación / Justificativo del Tutor:
+                </label>
+                <div className="rounded-lg bg-amber-50/70 border border-amber-200 p-3 text-slate-800 text-xs italic">
+                  &quot;{justificacionParaRevisar.parentReason || 'Sin motivo detallado'}&quot;
+                </div>
+              </div>
+
+              {/* Document attachment preview button */}
+              {justificacionParaRevisar.attachmentName && (
+                <div>
+                  <label className="block text-slate-600 font-bold uppercase tracking-wider text-[11px] mb-1">
+                    Documento Anexo Presentado:
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      establecerdocumentoParaVer({
+                        nombre: justificacionParaRevisar.attachmentName!,
+                        url: justificacionParaRevisar.attachmentUrl,
+                        motivo: justificacionParaRevisar.parentReason,
+                        alumno: justificacionParaRevisar.studentName,
+                      })
+                    }
+                    className="w-full flex items-center justify-between p-2.5 rounded-lg border border-blue-200 bg-blue-50/60 hover:bg-blue-100/60 text-blue-900 font-medium transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Paperclip className="w-4 h-4 text-blue-600" />
+                      <span>{justificacionParaRevisar.attachmentName}</span>
+                    </div>
+                    <span className="text-[11px] text-blue-700 underline font-semibold flex items-center gap-1">
+                      <Eye className="w-3.5 h-3.5" /> Ver Documento
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              {/* Direction notes input */}
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">
+                  Observaciones / Resolución de Dirección:
+                </label>
+                <textarea
+                  value={notaRevision}
+                  onChange={(e) => establecernotaRevision(e.target.value)}
+                  rows={2}
+                  placeholder="Indica las razones de aprobación o motivo de rechazo..."
+                  className="w-full rounded-lg border border-slate-300 p-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                />
+              </div>
+
+              {/* Action buttons */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  disabled={resolverJustificacionMutacion.isPending}
+                  onClick={() =>
+                    resolverJustificacionMutacion.mutate({
+                      id: justificacionParaRevisar.id,
+                      decision: 'REJECT',
+                      reviewNotes: notaRevision || 'Documentación insuficiente para justificar.',
+                    })
+                  }
+                  className="px-4 py-2 rounded-lg border border-rose-300 text-rose-700 hover:bg-rose-50 font-semibold text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                >
+                  <XCircle className="w-4 h-4 text-rose-600" />
+                  Rechazar Justificación
+                </button>
+
+                <button
+                  type="button"
+                  disabled={resolverJustificacionMutacion.isPending}
+                  onClick={() =>
+                    resolverJustificacionMutacion.mutate({
+                      id: justificacionParaRevisar.id,
+                      decision: 'APPROVE',
+                      reviewNotes: notaRevision || 'Justificación aprobada por Dirección.',
+                    })
+                  }
+                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm transition-colors disabled:opacity-50"
+                >
+                  {resolverJustificacionMutacion.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4" />
+                  )}
+                  Aprobar y Justificar Falta
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 2: TUTOR / ESTUDIANTE - ENVIAR JUSTIFICACIÓN CON ANEXO               */}
+      {/* ========================================================================= */}
+      {justificacionParaEnviar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border border-slate-200 overflow-hidden">
+            <div className="bg-slate-900 px-5 py-4 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Send className="w-5 h-5 text-amber-400" />
+                <h3 className="font-bold text-sm">Presentar Justificación de Falta</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => establecerjustificacionParaEnviar(null)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs">
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-1">
+                <div className="text-slate-500">
+                  Alumno:{' '}
+                  <strong className="text-slate-900">{justificacionParaEnviar.studentName}</strong>
+                </div>
+                <div className="text-slate-500">
+                  Curso: {cursoetiqueta(justificacionParaEnviar.courseName)} · Materia:{' '}
+                  <strong>{justificacionParaEnviar.subjectName}</strong>
+                </div>
+                <div className="text-slate-500 font-mono">
+                  Fecha de inasistencia:{' '}
+                  <strong>{formatearFechaBolivia(justificacionParaEnviar.date)}</strong>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">
+                  Motivo de la Falta (enfermedad, permiso, urgencia familiar):
+                </label>
+                <textarea
+                  value={motivoEnvio}
+                  onChange={(e) => establecermotivoEnvio(e.target.value)}
+                  rows={3}
+                  placeholder="Detalla la razón por la cual el estudiante no pudo asistir a clases..."
+                  className="w-full rounded-lg border border-slate-300 p-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">
+                  Comprobante o Anexo (Certificado médico, captura o PDF):
+                </label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      id="anexo-input"
+                      accept=".pdf,.png,.jpg,.jpeg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          estableceradjuntoNombre(file.name);
+                        }
+                      }}
+                      className="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[11px] text-slate-400">Opciones rápidas de modelo:</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        estableceradjuntoNombre('Certificado_Medico_Pediatrico_CajaNacional.pdf')
+                      }
+                      className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[10px] text-slate-700"
+                    >
+                      📄 Certificado_Médico.pdf
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => estableceradjuntoNombre('Receta_y_Baja_Medica.jpg')}
+                      className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[10px] text-slate-700"
+                    >
+                      🖼️ Receta_Médica.jpg
+                    </button>
+                  </div>
+                  {adjuntoNombre && (
+                    <div className="p-2 rounded bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 flex items-center gap-1.5 font-medium">
+                      <Paperclip className="w-3.5 h-3.5 text-emerald-600" />
+                      Archivo seleccionado: <strong>{adjuntoNombre}</strong>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+                <Boton
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => establecerjustificacionParaEnviar(null)}
+                >
+                  Cancelar
+                </Boton>
+                <Boton
+                  type="button"
+                  size="sm"
+                  disabled={!motivoEnvio.trim() || enviarJustificacionMutacion.isPending}
+                  onClick={() =>
+                    enviarJustificacionMutacion.mutate({
+                      id: justificacionParaEnviar.id,
+                      reason: motivoEnvio.trim(),
+                      attachmentName: adjuntoNombre,
+                      attachmentUrl:
+                        'https://sigce.lat/documents/justificativo-modelo-colegio-ccc.pdf',
+                      subjectName: justificacionParaEnviar.subjectName,
+                    })
+                  }
+                  className="bg-slate-900 hover:bg-slate-800 text-white gap-1.5 text-xs"
+                >
+                  {enviarJustificacionMutacion.isPending ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
+                  Enviar a Dirección
+                </Boton>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 3: VISOR DE DOCUMENTO / COMPROBANTE ANEXO                           */}
+      {/* ========================================================================= */}
+      {documentoParaVer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="bg-slate-900 px-5 py-3.5 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-emerald-400" />
+                <h3 className="font-bold text-xs truncate max-w-sm">{documentoParaVer.nombre}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => establecerdocumentoParaVer(null)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div className="border border-dashed border-slate-300 rounded-xl p-6 bg-slate-50 text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center mx-auto">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div className="font-bold text-slate-800 text-sm">{documentoParaVer.nombre}</div>
+                <div className="text-xs text-slate-500">
+                  Estudiante: <strong>{documentoParaVer.alumno}</strong>
+                </div>
+                {documentoParaVer.motivo && (
+                  <div className="text-xs text-slate-600 italic bg-white p-2 rounded-lg border border-slate-200">
+                    &quot;{documentoParaVer.motivo}&quot;
+                  </div>
+                )}
+                <div className="pt-2">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-semibold">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    Documento Anexo Verificado Digitalmente
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Boton
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => establecerdocumentoParaVer(null)}
+                  className="text-xs"
+                >
+                  Cerrar Visor
+                </Boton>
+              </div>
+            </div>
           </div>
         </div>
       )}

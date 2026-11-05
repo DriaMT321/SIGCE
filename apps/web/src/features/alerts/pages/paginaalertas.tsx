@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   AlertCircle,
   AlertTriangle,
@@ -7,6 +7,7 @@ import {
   Check,
   CheckCircle2,
   Clock,
+  FileCheck,
   Info,
   Loader2,
   RotateCcw,
@@ -52,6 +53,7 @@ export function AlertasPagina({
   management: gestionalertas;
   currentRole?: string;
 }) {
+  const navigate = useNavigate();
   const clientedeconsultas = useQueryClient();
   const [parametros, establecerparametros] = useSearchParams();
   const alertaidobjetivo = parametros.get('alertId');
@@ -281,6 +283,41 @@ export function AlertasPagina({
 
                     <h2 className="text-sm font-semibold text-slate-900">{alerta.title}</h2>
                     <p className="text-sm text-slate-600 leading-relaxed">{alerta.message}</p>
+
+                    {alerta.metadata &&
+                      typeof alerta.metadata === 'object' &&
+                      'type' in alerta.metadata &&
+                      (alerta.metadata as { type: string }).type === 'ATTENDANCE_ABSENCE' && (
+                        <div className="pt-1.5">
+                          <Boton
+                            type="button"
+                            size="sm"
+                            onClick={() => navigate('/attendance?tab=justificaciones')}
+                            className="h-7 text-xs bg-amber-600 hover:bg-amber-700 text-white gap-1.5 shadow-2xs font-semibold"
+                          >
+                            <FileCheck className="w-3.5 h-3.5" />
+                            Presentar Justificación (Foto o PDF)
+                          </Boton>
+                        </div>
+                      )}
+
+                    {alerta.metadata &&
+                      typeof alerta.metadata === 'object' &&
+                      'type' in alerta.metadata &&
+                      (alerta.metadata as { type: string }).type ===
+                        'JUSTIFICATION_PENDING_REVIEW' && (
+                        <div className="pt-1.5">
+                          <Boton
+                            type="button"
+                            size="sm"
+                            onClick={() => navigate('/attendance?tab=justificaciones')}
+                            className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1.5 shadow-2xs font-semibold"
+                          >
+                            <FileCheck className="w-3.5 h-3.5" />
+                            Revisar Justificación en Dirección
+                          </Boton>
+                        </div>
+                      )}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 shrink-0 self-start">

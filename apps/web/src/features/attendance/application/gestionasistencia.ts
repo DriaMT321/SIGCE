@@ -33,6 +33,44 @@ export interface registroasistenciaentrada {
   justification?: string;
 }
 
+export interface asistenciamateriaopcion {
+  id: string;
+  name: string;
+  code?: string;
+}
+
+export interface asistenciajustificacion {
+  id: string;
+  studentId: string;
+  studentName: string;
+  studentRude?: string;
+  studentCi?: string;
+  courseId: string;
+  courseName: string;
+  date: string;
+  status: asistenciaestado;
+  subjectName: string;
+  parentReason: string | null;
+  attachmentName: string | null;
+  attachmentUrl: string | null;
+  justificationStatus: 'PENDING_SUBMISSION' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED';
+  reviewNotes: string | null;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+}
+
+export interface asistenciaclaseentrada {
+  courseId: string;
+  subjectId?: string;
+  subjectName?: string;
+  date: string;
+  attendances: Array<{
+    studentId: string;
+    status: asistenciaestado;
+    justification?: string;
+  }>;
+}
+
 export interface puertogestionasistencia {
   listarasistencia(filtros?: {
     studentId?: string;
@@ -43,7 +81,23 @@ export interface puertogestionasistencia {
   }): Promise<{ data: asistenciaregistro[]; total: number }>;
   listarestudiantes(courseId?: string): Promise<asistenciaestudianteopcion[]>;
   listarcursos(): Promise<asistenciacursoopcion[]>;
+  listarmaterias?(courseId?: string): Promise<asistenciamateriaopcion[]>;
   registroasistencia(entrada: registroasistenciaentrada): Promise<void>;
+  registrarasistenciaclase?(entrada: asistenciaclaseentrada): Promise<unknown>;
+  listadjustificaciones?(): Promise<{ data: asistenciajustificacion[]; total: number }>;
+  enviarjustificacion?(
+    id: string,
+    entrada: {
+      reason: string;
+      attachmentName?: string;
+      attachmentUrl?: string;
+      subjectName?: string;
+    },
+  ): Promise<void>;
+  resolverjustificacion?(
+    id: string,
+    entrada: { decision: 'APPROVE' | 'REJECT'; reviewNotes?: string },
+  ): Promise<void>;
 }
 
 export class gestionasistencia {
@@ -65,6 +119,44 @@ export class gestionasistencia {
 
   listarcursos() {
     return this.puerto.listarcursos();
+  }
+
+  listarmaterias(courseId?: string) {
+    if (this.puerto.listarmaterias) return this.puerto.listarmaterias(courseId);
+    return Promise.resolve([]);
+  }
+
+  registrarasistenciaclase(entrada: asistenciaclaseentrada) {
+    if (this.puerto.registrarasistenciaclase) {
+      return this.puerto.registrarasistenciaclase(entrada);
+    }
+    return Promise.resolve({ totalRegistrados: 0, totalAusencias: 0 });
+  }
+
+  listadjustificaciones() {
+    if (this.puerto.listadjustificaciones) return this.puerto.listadjustificaciones();
+    return Promise.resolve({ data: [], total: 0 });
+  }
+
+  enviarjustificacion(
+    id: string,
+    entrada: {
+      reason: string;
+      attachmentName?: string;
+      attachmentUrl?: string;
+      subjectName?: string;
+    },
+  ) {
+    if (this.puerto.enviarjustificacion) return this.puerto.enviarjustificacion(id, entrada);
+    return Promise.resolve();
+  }
+
+  resolverjustificacion(
+    id: string,
+    entrada: { decision: 'APPROVE' | 'REJECT'; reviewNotes?: string },
+  ) {
+    if (this.puerto.resolverjustificacion) return this.puerto.resolverjustificacion(id, entrada);
+    return Promise.resolve();
   }
 
   async listarasistenciacursofecha(courseId: string, date: string): Promise<asistenciaregistro[]> {
