@@ -260,7 +260,11 @@ export const configuraciontrabajador = {
     },
     rutapaginareplicalocal: (() => {
       const ruta = process.env.SIE_LOCAL_REPLICA_PATH?.trim();
-      if (ruta && process.env.NODE_ENV === 'production') {
+      if (
+        ruta &&
+        process.env.NODE_ENV === 'production' &&
+        process.env.ENABLE_SIE_LOCAL_SIMULATION !== 'true'
+      ) {
         throw new Error('SIE_LOCAL_REPLICA_PATH solo puede usarse fuera de producción');
       }
       return ruta || undefined;
