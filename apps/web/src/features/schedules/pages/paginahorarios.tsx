@@ -1111,7 +1111,7 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                               </div>
                               {esInicioBloque && (
                                 <div className="mt-1 font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-indigo-50 border border-indigo-200 text-indigo-700">
-                                  Bloque continuo (1/2) · {periodo.start} - {horarioperiodos.find((p) => p.index === pIndex + 1)?.end || '08:50'}
+                                  Bloque continuo (1/2) · {periodo.start} - {horarioperiodos.find((p) => p.index === pIndex + 1)?.end || '09:00'}
                                 </div>
                               )}
                               {esFinBloque && (

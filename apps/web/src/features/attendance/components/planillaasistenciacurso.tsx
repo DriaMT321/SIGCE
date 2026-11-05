@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, CheckCircle2, ChevronDown, Loader2, Sparkles, Users } from 'lucide-react';
 import { Boton } from '../../../components/ui/boton';
 import { cursoetiqueta } from '../../../lib/cursoetiqueta';
+import { autenticacionservicio } from '../../auth/services/serviciodeautenticacion';
 import type {
   asistenciaestado,
   asistenciacursoopcion,
@@ -44,9 +45,12 @@ export function Planillaasistenciacurso({
   courses: asistenciacursoopcion[];
 }) {
   const clientedeconsultas = useQueryClient();
+  const usuarioActual = autenticacionservicio.obtenerusuarioactual();
+  const esDocente = usuarioActual?.role === 'TEACHER';
+
   const [cursoid, establecercursoid] = useState('');
   const [fecha, establecerfecha] = useState(fechaactual);
-  const [materiaNombre, establecermateriaNombre] = useState('Matemática');
+  const [materiaNombre, establecermateriaNombre] = useState('');
   const [materiaId, establecermateriaId] = useState<string | undefined>(undefined);
   const [estados, establecerestados] = useState<Record<string, asistenciaestado>>({});
   const [motivos, establecermotivos] = useState<Record<string, string>>({});
@@ -54,6 +58,13 @@ export function Planillaasistenciacurso({
     registrados: number;
     ausencias: number;
   } | null>(null);
+
+  // Auto-select initial course if empty
+  useEffect(() => {
+    if (cursos.length > 0 && !cursoid) {
+      establecercursoid(cursos[0].id);
+    }
+  }, [cursos, cursoid]);
 
   // Load students of selected course
   const estudiantesConsulta = useQuery({
@@ -74,7 +85,7 @@ export function Planillaasistenciacurso({
     [asistenciasConsulta.data],
   );
 
-  // Load curriculum subjects
+  // Load curriculum subjects (if teacher, API filters by teacher assignments)
   const materiasConsulta = useQuery({
     queryKey: ['attendance-subjects', cursoid],
     queryFn: () => gestion.listarmaterias(cursoid),
@@ -82,13 +93,30 @@ export function Planillaasistenciacurso({
   });
   const materiasDisponibles = materiasConsulta.data ?? [];
 
-  // Unified subjects list: API subjects + defaults
+  // Unified subjects list: for teacher only show assigned subjects; for admin fallback to defaults if none defined
   const listaMaterias = useMemo(() => {
     if (materiasDisponibles.length > 0) {
       return materiasDisponibles.map((m) => ({ id: m.id, name: m.name }));
     }
+    if (esDocente) {
+      return [];
+    }
     return MATERIAS_PREDETERMINADAS.map((nombre, idx) => ({ id: `default-${idx}`, name: nombre }));
-  }, [materiasDisponibles]);
+  }, [materiasDisponibles, esDocente]);
+
+  // Synchronize selected subject when available subjects change
+  useEffect(() => {
+    if (listaMaterias.length > 0) {
+      const actualValido = listaMaterias.find((m) => m.name === materiaNombre || m.id === materiaId);
+      if (!actualValido) {
+        establecermateriaNombre(listaMaterias[0].name);
+        establecermateriaId(listaMaterias[0].id.startsWith('default-') ? undefined : listaMaterias[0].id);
+      }
+    } else {
+      establecermateriaNombre('');
+      establecermateriaId(undefined);
+    }
+  }, [listaMaterias, materiaNombre, materiaId]);
 
   // Bulk set all to Present
   const marcarTodosPresentes = () => {
@@ -223,7 +251,7 @@ export function Planillaasistenciacurso({
           <div className="relative">
             <select
               value={materiaNombre}
-              disabled={guardarClase.isPending}
+              disabled={guardarClase.isPending || listaMaterias.length === 0}
               onChange={(evento) => {
                 const nombre = evento.target.value;
                 establecermateriaNombre(nombre);
@@ -232,11 +260,17 @@ export function Planillaasistenciacurso({
               }}
               className="h-9 w-full appearance-none rounded-lg border border-slate-300 bg-white px-3 pr-8 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
             >
-              {listaMaterias.map((m) => (
-                <option key={m.id} value={m.name}>
-                  {m.name}
+              {listaMaterias.length === 0 ? (
+                <option value="">
+                  {esDocente ? 'No tienes materias asignadas en este curso' : 'Sin materias disponibles'}
                 </option>
-              ))}
+              ) : (
+                listaMaterias.map((m) => (
+                  <option key={m.id} value={m.name}>
+                    {m.name}
+                  </option>
+                ))
+              )}
             </select>
             <ChevronDown className="absolute right-2.5 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
           </div>
@@ -421,7 +455,7 @@ export function Planillaasistenciacurso({
             </span>
             <Boton
               type="button"
-              disabled={!estudiantes.length || guardarClase.isPending}
+              disabled={!estudiantes.length || !materiaNombre || guardarClase.isPending}
               onClick={() => guardarClase.mutate()}
               className="bg-slate-900 hover:bg-slate-800 text-white text-xs gap-1.5 shadow-sm"
             >

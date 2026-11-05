@@ -5,11 +5,11 @@ export const gradomaximoprimaria = 8;
 export const gradominimosecundaria = 9;
 export const gradomaximoregular = 14;
 export const gradomaximosecundaria = gradomaximoregular;
-export const minutosperiodopedagogico = 40;
-export const periodosinicialesdiarios = 5;
+export const minutosperiodopedagogico = 45;
+export const periodosinicialesdiarios = 6;
 export const periodosprimariaysecundariosdiarios = 6;
 export const diaslectivospasemana = 5;
-export const minutosrecreopedagogico = 15;
+export const minutosrecreopedagogico = 30;
 
 export type turnoacademico = 'MORNING' | 'AFTERNOON' | 'EVENING';
 
@@ -66,7 +66,7 @@ export function obtenerfranjasperiodosdiarios(
   const franjas: franjaperiodopedagogico[] = [];
 
   for (let indiceperiodo = 1; indiceperiodo <= cantidadperiodos; indiceperiodo++) {
-    if (indiceperiodo === 3 || indiceperiodo === 5) minutostranscurridos += minutosrecreopedagogico;
+    if (indiceperiodo === 4) minutostranscurridos += minutosrecreopedagogico;
     const horainicio = formatearhora(minutostranscurridos);
     minutostranscurridos += minutosperiodo;
     franjas.push({ indiceperiodo, horainicio, horafin: formatearhora(minutostranscurridos) });

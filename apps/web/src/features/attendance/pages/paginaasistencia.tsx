@@ -66,12 +66,86 @@ const estadoconfiguracion: Record<
   },
 };
 
-const constantemeses = [
-  { id: '2026-02', label: 'Febrero 2026', from: '2026-02-01', to: '2026-02-28' },
-  { id: '2026-03', label: 'Marzo 2026', from: '2026-03-01', to: '2026-03-31' },
-  { id: '2026-04', label: 'Abril 2026', from: '2026-04-01', to: '2026-04-30' },
-  { id: '2026-05', label: 'Mayo 2026', from: '2026-05-01', to: '2026-05-31' },
+const MESES_NOMBRES = [
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ];
+
+function generarMesesGestion(anio = 2026) {
+  const meses = [];
+  for (let m = 2; m <= 12; m++) {
+    const mesStr = String(m).padStart(2, '0');
+    const ultimoDia = new Date(anio, m, 0).getDate();
+    meses.push({
+      id: `${anio}-${mesStr}`,
+      label: `${MESES_NOMBRES[m - 1]} ${anio}`,
+      from: `${anio}-${mesStr}-01`,
+      to: `${anio}-${mesStr}-${String(ultimoDia).padStart(2, '0')}`,
+    });
+  }
+  return meses;
+}
+
+const constantemeses = generarMesesGestion(2026);
+
+interface MetadatosJustificacion {
+  subjectName?: string | null;
+  subjectId?: string | null;
+  parentReason?: string | null;
+  justificationStatus?: string | null;
+  registeredAt?: string | null;
+}
+
+function parsearObservacionAsistencia(justificationRaw: string | null | undefined): {
+  esJson: boolean;
+  textoVisible: string;
+  materia?: string | null;
+  estadoJustif?: string | null;
+  motivoPadre?: string | null;
+} {
+  if (!justificationRaw) {
+    return { esJson: false, textoVisible: '—' };
+  }
+  const str = justificationRaw.trim();
+  if (str.startsWith('{') && str.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(str) as MetadatosJustificacion;
+      const materia = parsed.subjectName ? `[${parsed.subjectName}] ` : '';
+      let estadoTexto = '';
+      if (parsed.justificationStatus === 'PENDING_SUBMISSION') {
+        estadoTexto = 'Falta registrada (Pendiente de justificación)';
+      } else if (parsed.justificationStatus === 'PENDING_REVIEW') {
+        estadoTexto = 'Justificación enviada (En revisión por Dirección)';
+      } else if (parsed.justificationStatus === 'APPROVED') {
+        estadoTexto = 'Justificada por Dirección';
+      } else if (parsed.justificationStatus === 'REJECTED') {
+        estadoTexto = 'Justificación rechazada';
+      }
+
+      const motivo = parsed.parentReason ? `Motivo: ${parsed.parentReason}` : estadoTexto;
+      return {
+        esJson: true,
+        textoVisible: `${materia}${motivo}`.trim(),
+        materia: parsed.subjectName,
+        estadoJustif: parsed.justificationStatus,
+        motivoPadre: parsed.parentReason,
+      };
+    } catch {
+      // not json
+    }
+  }
+  return { esJson: false, textoVisible: str };
+}
 
 function escaparCsv(valor: string | number | null | undefined): string {
   if (valor == null) return '""';
@@ -131,8 +205,10 @@ export const AsistenciaPagina = ({
   const [pagina, establecerpagina] = useState(0);
 
   // Matriz state
+  const mesActualId = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+  const mesPredeterminado = constantemeses.find((m) => m.id === mesActualId)?.id ?? '2026-11';
   const [matrizcursoid, establecermatrizcursoid] = useState('');
-  const [matrizmesid, establecermatrizmesid] = useState('2026-05');
+  const [matrizmesid, establecermatrizmesid] = useState(mesPredeterminado);
 
   // Individual report state
   const [individualestudianteid, establecerindividualestudianteid] = useState('');
@@ -210,7 +286,10 @@ export const AsistenciaPagina = ({
   });
 
   // Matriz Queries
-  const mesSeleccionado = constantemeses.find((m) => m.id === matrizmesid) || constantemeses[3];
+  const mesSeleccionado =
+    constantemeses.find((m) => m.id === matrizmesid) ||
+    constantemeses.find((m) => m.id === mesPredeterminado) ||
+    constantemeses[0];
 
   const estudiantesMatrizConsulta = useQuery({
     queryKey: ['attendance', 'matrix-students', matrizcursoid],
@@ -416,7 +495,9 @@ export const AsistenciaPagina = ({
         diaSem,
         cursoetiqueta(r.course.name),
         estadoConfig.label,
-        r.justification || '',
+        parsearObservacionAsistencia(r.justification).textoVisible === '—'
+          ? ''
+          : parsearObservacionAsistencia(r.justification).textoVisible,
       ].map(escaparCsv).join(',');
     });
 
@@ -806,7 +887,7 @@ export const AsistenciaPagina = ({
                                 key={dia.fechaIso}
                                 title={
                                   reg
-                                    ? `${dia.fechaIso}: ${cfg?.label}${reg.justification ? ` (${reg.justification})` : ''}`
+                                    ? `${dia.fechaIso}: ${cfg?.label}${reg.justification ? ` (${parsearObservacionAsistencia(reg.justification).textoVisible})` : ''}`
                                     : `${dia.fechaIso}: Sin registro`
                                 }
                                 className="py-1 px-0.5 text-center border-r border-slate-100 align-middle"
@@ -1071,8 +1152,11 @@ export const AsistenciaPagina = ({
                         </td>
                         <td className="py-2.5 px-4 text-slate-600">
                           {r.justification ? (
-                            <span className="italic font-medium text-slate-800">
-                              {r.justification}
+                            <span
+                              className="italic font-medium text-slate-800 text-xs"
+                              title={parsearObservacionAsistencia(r.justification).textoVisible}
+                            >
+                              {parsearObservacionAsistencia(r.justification).textoVisible}
                             </span>
                           ) : (
                             <span className="text-slate-300">—</span>
@@ -1244,8 +1328,14 @@ export const AsistenciaPagina = ({
                               {cfg.label}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-slate-500">
-                            {r.justification || <span className="text-slate-300">—</span>}
+                          <td className="py-3 px-4 text-slate-500 text-xs">
+                            {r.justification ? (
+                              <span className="text-slate-800 font-medium">
+                                {parsearObservacionAsistencia(r.justification).textoVisible}
+                              </span>
+                            ) : (
+                              <span className="text-slate-300">—</span>
+                            )}
                           </td>
                         </tr>
                       );
