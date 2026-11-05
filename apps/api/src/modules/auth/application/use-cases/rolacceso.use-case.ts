@@ -40,13 +40,26 @@ export class casousoiniciarsesionporrol {
       dto.secondaryIdentifier?.trim(),
     );
 
+    const match = usuario && dto.secret ? await this.seguridadcredenciales.verificarcontrasena(dto.secret, usuario.passwordHash) : false;
+    console.log('[DEBUG_LOGIN_ATTEMPT]', {
+      role: dto.role,
+      identifier: identificador,
+      found: Boolean(usuario),
+      userEmail: usuario?.email,
+      userRole: usuario?.role,
+      isActive: usuario?.isActive,
+      deletedAt: usuario?.deletedAt,
+      setupPending: usuario?.passwordSetupPending,
+      passwordMatches: match,
+    });
+
     if (!usuario || !usuario.isActive || usuario.deletedAt || usuario.passwordSetupPending) {
       throw new errornoautorizado('Las credenciales no son válidas o la cuenta está inactiva');
     }
 
     if (
       !dto.secret ||
-      !(await this.seguridadcredenciales.verificarcontrasena(dto.secret, usuario.passwordHash))
+      !match
     ) {
       throw new errornoautorizado('Las credenciales no son válidas o la cuenta está inactiva');
     }
