@@ -1,6 +1,6 @@
 import { estadosincronizacionsie } from '@academic/domain-kernel';
 
-export const constantetamanomaximolotesincronizacionsie = 50;
+export const constantetamanomaximolotesincronizacionsie = 10000;
 
 export function calcularestadoreanudacionsie(entrada: {
   elementosencola: number;

@@ -5,7 +5,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AuditAction as PrismaAuditAction, Prisma } from '@prisma/client';
+import {
+  AlertSeverity as PrismaAlertSeverity,
+  AuditAction as PrismaAuditAction,
+  Prisma,
+} from '@prisma/client';
 import { servicioprisma } from '../../../../common/database/prisma.service';
 import { grade } from '../../domain/entities/grade.entity';
 import {
@@ -571,6 +575,39 @@ export class prismagraderepository implements repositoriocalificaciones {
           correlationId: auditoria.correlationId,
         },
       });
+      // Generate alerts/notifications for students and parents
+      const studentIds = [...new Set(calificaciones.map((c) => c.studentId))];
+      const students = await tx.student.findMany({
+        where: { id: { in: studentIds } },
+        select: {
+          id: true,
+          userId: true,
+          studentParents: { select: { parent: { select: { userId: true } } } },
+        },
+      });
+
+      const userIdsToNotify = new Set<string>();
+      for (const st of students) {
+        if (st.userId) userIdsToNotify.add(st.userId);
+        for (const sp of st.studentParents) {
+          if (sp.parent?.userId) userIdsToNotify.add(sp.parent.userId);
+        }
+      }
+
+      if (userIdsToNotify.size > 0) {
+        await tx.alert.createMany({
+          data: Array.from(userIdsToNotify).map((uId) => ({
+            userId: uId,
+            title: 'Calificaciones Publicadas',
+            message:
+              'Se han publicado nuevas calificaciones oficiales correspondientes al periodo académico. Ya puedes consultarlas en la app móvil.',
+            severity: PrismaAlertSeverity.INFO,
+            deduplicationKey: `grade_pub_${alcance.courseId}_${alcance.subjectId}_${alcance.periodId}_${uId}`,
+          })),
+          skipDuplicates: true,
+        });
+      }
+
       return { publishedCount: calificaciones.length, publishedAt };
     });
   }

@@ -5,15 +5,21 @@ const puerto: puertogestioninscripcion = {
   listarinscripciones: async () => (await academicoapi.listarinscripciones()).data,
   listarestudiantes: async () => {
     const respuesta = await academicoapi.listarestudiantes();
-    return respuesta.data.map(({ id, firstName: nombres, lastName: apellidos }) => ({
+    return respuesta.data.map(({ id, firstName: nombres, lastName: apellidos, rude }) => ({
       id,
       firstName: nombres,
       lastName: apellidos,
+      rude,
     }));
   },
   listarcursos: async () => {
     const respuesta = await academicoapi.listarcursos();
-    return respuesta.data.map(({ id, name: nombre }) => ({ id, name: nombre }));
+    return respuesta.data.map(({ id, name: nombre, gradeLevel, section }) => ({
+      id,
+      name: nombre,
+      gradeLevel,
+      section,
+    }));
   },
   listaracademicogestiones: () => academicoapi.listaracademicogestiones(),
   crearinscripcion: async (entrada) => {

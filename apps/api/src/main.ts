@@ -26,7 +26,16 @@ async function iniciarAplicacion() {
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-SIGCE-Web', 'X-SIGCE-Tab'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-SIGCE-Web',
+      'X-SIGCE-Tab',
+      'idempotency-key',
+      'Idempotency-Key',
+      'x-correlation-id',
+      'X-Correlation-Id',
+    ],
   });
 
   app.getHttpAdapter().getInstance().set('trust proxy', proxiesconfiables);

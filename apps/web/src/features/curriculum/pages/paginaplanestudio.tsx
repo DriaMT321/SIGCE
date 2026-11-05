@@ -441,7 +441,7 @@ export const CurriculoPagina: React.FC<{ planning: curriculoplanificacion }> = (
                                 : 'bg-slate-100 text-slate-600'
                           }`}
                         >
-                          {tema.status}
+                          {tema.status.replace(/_/g, ' ')}
                         </span>
                         <span className="font-mono font-semibold text-slate-900">
                           {tema.progressPercent}%

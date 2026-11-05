@@ -149,8 +149,8 @@ describe('TriggerSieSyncUseCase', () => {
     const usocaso = new casousoiniciarsincronizacionsie(repositorio, cola, publicador);
 
     await expect(
-      usocaso.ejecutar({ ...filtros, cantidadcalificacionesesperada: 51 }),
-    ).rejects.toThrow('máximo de 50 calificaciones');
+      usocaso.ejecutar({ ...filtros, cantidadcalificacionesesperada: 10001 }),
+    ).rejects.toThrow('máximo de 10000 calificaciones');
     expect(repositorio.creardesdecalificaciones).not.toHaveBeenCalled();
     expect(cola.encolar).not.toHaveBeenCalled();
   });

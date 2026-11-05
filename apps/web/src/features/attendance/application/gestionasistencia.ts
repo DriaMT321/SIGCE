@@ -9,7 +9,7 @@ export interface asistenciaregistro {
   date: string;
   status: asistenciaestado;
   justification: string | null;
-  student: { firstName: string; lastName: string };
+  student: { id?: string; rude?: string; firstName: string; lastName: string };
   course: { id: string; name: string };
 }
 
@@ -17,6 +17,7 @@ export interface asistenciaestudianteopcion {
   id: string;
   firstName: string;
   lastName: string;
+  rude?: string;
 }
 
 export interface asistenciacursoopcion {
@@ -34,6 +35,7 @@ export interface registroasistenciaentrada {
 
 export interface puertogestionasistencia {
   listarasistencia(filtros?: {
+    studentId?: string;
     courseId?: string;
     from?: string;
     to?: string;
@@ -47,7 +49,13 @@ export interface puertogestionasistencia {
 export class gestionasistencia {
   constructor(private readonly puerto: puertogestionasistencia) {}
 
-  listarasistencia(filtros?: { courseId?: string; from?: string; to?: string; offset?: number }) {
+  listarasistencia(filtros?: {
+    studentId?: string;
+    courseId?: string;
+    from?: string;
+    to?: string;
+    offset?: number;
+  }) {
     return this.puerto.listarasistencia(filtros);
   }
 
@@ -79,6 +87,26 @@ export class gestionasistencia {
       }
     } while (registros.length < total);
     return registros.filter((registro) => registro.courseId === courseId);
+  }
+
+  async listartodaasistencia(filtros?: {
+    courseId?: string;
+    studentId?: string;
+    from?: string;
+    to?: string;
+  }): Promise<asistenciaregistro[]> {
+    const registros: asistenciaregistro[] = [];
+    let offset = 0;
+    while (true) {
+      const pagina = await this.puerto.listarasistencia({
+        ...filtros,
+        offset,
+      });
+      registros.push(...pagina.data);
+      if (pagina.data.length === 0 || registros.length >= pagina.total) break;
+      offset += pagina.data.length;
+    }
+    return registros;
   }
 
   private normalizarregistro(entrada: registroasistenciaentrada): registroasistenciaentrada {

@@ -792,7 +792,7 @@ export const CalificacionesPagina = ({
                   >
                     {periodos.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} {p.isClosed ? '🔒 CERRADO' : '🟢 ABIERTO'}
+                        {p.name} {p.isClosed ? '(Cerrado)' : '(Abierto)'}
                       </option>
                     ))}
                   </select>
@@ -833,7 +833,7 @@ export const CalificacionesPagina = ({
                         ? 'Todas las calificaciones registradas están publicadas para consulta de familias'
                         : estadopublicacion.alguna
                           ? 'Algunas calificaciones están publicadas y otras en borrador'
-                          : 'Las calificaciones están en borrador interno y no son visibles a familias'
+                          : 'Las calificaciones están sin publicar y no son visibles a familias'
                     }
                   >
                     {estadopublicacion.todas ? (
@@ -845,7 +845,7 @@ export const CalificacionesPagina = ({
                       ? 'Publicado a Familias'
                       : estadopublicacion.alguna
                         ? `Parcial (${estadopublicacion.total}/${calificacionesdelcurso.length})`
-                        : 'Borrador Interno'}
+                        : 'Sin Publicar'}
                   </div>
                 )}
 

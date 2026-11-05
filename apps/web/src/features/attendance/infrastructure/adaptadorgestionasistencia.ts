@@ -24,10 +24,11 @@ const puerto: puertogestionasistencia = {
     } while (estudiantes.length < total);
     return estudiantes
       .filter((estudiante) => estudiante.isActive)
-      .map(({ id, firstName: nombres, lastName: apellidos }) => ({
+      .map(({ id, firstName: nombres, lastName: apellidos, rude }) => ({
         id,
         firstName: nombres,
         lastName: apellidos,
+        rude,
       }));
   },
   listarcursos: async () => {

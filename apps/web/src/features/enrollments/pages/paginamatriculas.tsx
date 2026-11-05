@@ -6,7 +6,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { ClipboardList, Loader2, Plus, Search, X } from 'lucide-react';
 import { Boton } from '../../../components/ui/boton';
-import type { gestioninscripcion, inscripcionestado } from '../application/gestionmatricula';
+import type {
+  gestioninscripcion,
+  inscripcionestado,
+  inscripcionestudianteopcion,
+} from '../application/gestionmatricula';
 import { cursoetiqueta } from '../../../lib/cursoetiqueta';
 
 const inscripcionformularioesquema = z.object({
@@ -64,6 +68,9 @@ export function InscripcionesPagina({
 }) {
   const clientedeconsultas = useQueryClient();
   const [mostrarformulario, establecermostrarformulario] = useState(false);
+  const [estudianteBuscador, establecerEstudianteBuscador] = useState('');
+  const [estudianteSeleccionado, establecerEstudianteSeleccionado] = useState<inscripcionestudianteopcion | null>(null);
+  const [mostrarResultadosEstudiante, establecerMostrarResultadosEstudiante] = useState(false);
   const [buscar, establecerbuscar] = useState('');
   const [cursofiltro, establecercursofiltro] = useState('');
   const [paralelofiltro, establecerparalelofiltro] = useState('');
@@ -135,6 +142,32 @@ export function InscripcionesPagina({
       void clientedeconsultas.invalidateQueries({ queryKey: ['enrollments'] });
     },
   });
+
+  const estudiantesFiltrados = (estudiantesconsulta.data ?? []).filter((est) => {
+    if (!estudianteBuscador.trim()) return false;
+    const q = estudianteBuscador.toLowerCase().trim();
+    const nombreCompleto = `${est.firstName} ${est.lastName}`.toLowerCase();
+    const apellidosNombres = `${est.lastName} ${est.firstName}`.toLowerCase();
+    const rude = est.rude?.toLowerCase() ?? '';
+    return nombreCompleto.includes(q) || apellidosNombres.includes(q) || rude.includes(q);
+  }).slice(0, 10);
+
+  const seleccionarEstudiante = (est: inscripcionestudianteopcion) => {
+    establecerEstudianteSeleccionado(est);
+    establecerEstudianteBuscador('');
+    establecerMostrarResultadosEstudiante(false);
+    formulario.setValue('studentId', est.id);
+
+    const ultimaInscripcion = inscripciones.find((ins) => ins.student.id === est.id);
+    if (ultimaInscripcion) {
+      formulario.setValue('courseId', ultimaInscripcion.course.id);
+    }
+
+    const gestionActiva = gestionesconsulta.data?.find((g) => g.year === 2026) || gestionesconsulta.data?.[0];
+    if (gestionActiva) {
+      formulario.setValue('academicYearId', gestionActiva.id);
+    }
+  };
 
   const inscripciones = inscripcionesconsulta.data ?? [];
   const filtradoinscripciones = inscripciones.filter((elemento) => {
@@ -224,30 +257,126 @@ export function InscripcionesPagina({
               </p>
             )}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <SeleccionarCampo
-                label="Estudiante"
-                error={formulario.formState.errors.studentId?.message}
-                {...formulario.register('studentId')}
-              >
-                <option value="">Seleccione...</option>
-                {(estudiantesconsulta.data ?? []).map((elemento) => (
-                  <option key={elemento.id} value={elemento.id}>
-                    {elemento.firstName} {elemento.lastName}
-                  </option>
-                ))}
-              </SeleccionarCampo>
+              {estudianteSeleccionado ? (
+                <div className="sm:col-span-2 flex items-center justify-between p-3 rounded-lg bg-indigo-50/80 border border-indigo-200">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-600 text-white font-mono">
+                        {estudianteSeleccionado.rude || 'RUDE'}
+                      </span>
+                      <span className="text-sm font-bold text-slate-900">
+                        {estudianteSeleccionado.lastName} {estudianteSeleccionado.firstName}
+                      </span>
+                    </div>
+                    {inscripciones.find((ins) => ins.student.id === estudianteSeleccionado.id) && (
+                      <p className="text-xs text-indigo-700 mt-1">
+                        Curso asignado sugerido:{' '}
+                        <strong>
+                          {cursoetiqueta(
+                            inscripciones.find((ins) => ins.student.id === estudianteSeleccionado.id)!.course.name,
+                          )}
+                        </strong>
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      establecerEstudianteSeleccionado(null);
+                      formulario.setValue('studentId', '');
+                    }}
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline ml-2 cursor-pointer"
+                  >
+                    Cambiar
+                  </button>
+                </div>
+              ) : (
+                <div className="relative sm:col-span-2">
+                  <label className="grid gap-1.5 text-sm font-medium text-slate-700">
+                    <span>Buscar Estudiante (Nombre o RUDE)</span>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        type="text"
+                        value={estudianteBuscador}
+                        onChange={(e) => {
+                          establecerEstudianteBuscador(e.target.value);
+                          establecerMostrarResultadosEstudiante(true);
+                        }}
+                        onFocus={() => establecerMostrarResultadosEstudiante(true)}
+                        placeholder="Escribe apellido, nombre o RUDE para autocompletar..."
+                        className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                      />
+                    </div>
+                  </label>
+                  {mostrarResultadosEstudiante && estudiantesFiltrados.length > 0 && (
+                    <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-56 overflow-y-auto divide-y divide-slate-100">
+                      {estudiantesFiltrados.map((est) => {
+                        const inscripcionPrevia = inscripciones.find((ins) => ins.student.id === est.id);
+                        return (
+                          <button
+                            key={est.id}
+                            type="button"
+                            onClick={() => seleccionarEstudiante(est)}
+                            className="w-full text-left px-3 py-2 hover:bg-slate-50 transition-colors flex items-center justify-between gap-2"
+                          >
+                            <div>
+                              <div className="text-sm font-medium text-slate-800">
+                                {est.lastName} {est.firstName}
+                              </div>
+                              {est.rude && <div className="text-xs font-mono text-slate-400">RUDE: {est.rude}</div>}
+                            </div>
+                            {inscripcionPrevia && (
+                              <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-600 shrink-0">
+                                {cursoetiqueta(inscripcionPrevia.course.name)}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {formulario.formState.errors.studentId && (
+                    <span className="text-xs text-rose-600 block mt-1">
+                      {formulario.formState.errors.studentId.message}
+                    </span>
+                  )}
+                </div>
+              )}
 
               <SeleccionarCampo
                 label="Curso"
                 error={formulario.formState.errors.courseId?.message}
                 {...formulario.register('courseId')}
               >
-                <option value="">Seleccione...</option>
-                {(cursosconsulta.data ?? []).map((elemento) => (
-                  <option key={elemento.id} value={elemento.id}>
-                    {elemento.name}
-                  </option>
-                ))}
+                <option value="">Seleccione curso...</option>
+                <optgroup label="Inicial">
+                  {(cursosconsulta.data ?? [])
+                    .filter((c) => c.gradeLevel && c.gradeLevel <= 2)
+                    .map((elemento) => (
+                      <option key={elemento.id} value={elemento.id}>
+                        {cursoetiqueta(elemento.name)} ({elemento.section || 'U'})
+                      </option>
+                    ))}
+                </optgroup>
+                <optgroup label="Primaria">
+                  {(cursosconsulta.data ?? [])
+                    .filter((c) => c.gradeLevel && c.gradeLevel >= 3 && c.gradeLevel <= 8)
+                    .map((elemento) => (
+                      <option key={elemento.id} value={elemento.id}>
+                        {cursoetiqueta(elemento.name)} ({elemento.section || 'U'})
+                      </option>
+                    ))}
+                </optgroup>
+                <optgroup label="Secundaria">
+                  {(cursosconsulta.data ?? [])
+                    .filter((c) => !c.gradeLevel || c.gradeLevel >= 9)
+                    .map((elemento) => (
+                      <option key={elemento.id} value={elemento.id}>
+                        {cursoetiqueta(elemento.name)} ({elemento.section || 'U'})
+                      </option>
+                    ))}
+                </optgroup>
               </SeleccionarCampo>
 
               <SeleccionarCampo
@@ -263,12 +392,12 @@ export function InscripcionesPagina({
                 ))}
               </SeleccionarCampo>
 
-              <label className="grid gap-1.5 text-sm font-medium text-slate-700">
+              <label className="grid gap-1.5 text-sm font-medium text-slate-700 sm:col-span-2 lg:col-span-4">
                 <span>Observaciones</span>
                 <input
                   {...formulario.register('remarks')}
                   className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
-                  placeholder="Opcional"
+                  placeholder="Opcional (ej: Alumno nuevo, pase de colegio, etc.)"
                 />
               </label>
 

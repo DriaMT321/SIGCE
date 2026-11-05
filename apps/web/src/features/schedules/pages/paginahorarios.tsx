@@ -116,6 +116,7 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
   const puedegestionar = ['ADMINISTRATIVE', 'SECRETARY'].includes(actualrol);
 
   const [vistamodo, establecervistamodo] = useState<'course' | 'teacher'>('course');
+  const [seleccionadonivel, establecerseleccionadonivel] = useState<'INITIAL' | 'PRIMARY' | 'SECONDARY'>('SECONDARY');
   const [seleccionadocursoid, establecerseleccionadocursoid] = useState<string>('');
   const [seleccionadodocenteid, establecerseleccionadodocenteid] = useState<string>('');
   const [asignaciondocenteid, establecerasignaciondocenteid] = useState<string>('');
@@ -261,6 +262,13 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
   const activocurso = esfamiliaroestudiante
     ? actualhijo?.course || mydatos?.course
     : cursos.find((c) => c.id === seleccionadocursoid);
+
+  React.useEffect(() => {
+    if (activocurso) {
+      const nivel = obtenierniveleducativoregular(activocurso.gradeLevel);
+      if (nivel) establecerseleccionadonivel(nivel);
+    }
+  }, [activocurso]);
   const materiasdelcurso = todaslasmaterias.filter((materia) =>
     activocurso && materiacorrespondealgrado(materia.code, activocurso.gradeLevel),
   );
@@ -595,48 +603,132 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 p-4">
           {vistamodo === 'course' ? (
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3 flex-1">
-                <label className="text-sm font-medium text-slate-700 shrink-0">Curso:</label>
-                <select
-                  value={seleccionadocursoid}
-                  onChange={(e) => {
-                    establecerseleccionadocursoid(e.target.value);
-                    establecerasignacionmateriaid('');
-                    establecerasignaciondocenteid('');
-                    establecerasignacioncargasemanal('');
-                  }}
-                  className="flex-1 max-w-md h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                >
-                  <optgroup label="Inicial">
-                    {inicialcursos.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {cursoetiqueta(c.name)}
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Primaria">
-                    {primariacursos.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {cursoetiqueta(c.name)}
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Secundaria">
-                    {secundariacursos.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {cursoetiqueta(c.name)}
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
+            <div className="space-y-3">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
+                    {([
+                      { id: 'INITIAL', label: 'Inicial' },
+                      { id: 'PRIMARY', label: 'Primaria' },
+                      { id: 'SECONDARY', label: 'Secundaria' },
+                    ] as const).map((nivel) => {
+                      const activo = seleccionadonivel === nivel.id;
+                      return (
+                        <button
+                          key={nivel.id}
+                          type="button"
+                          onClick={() => {
+                            establecerseleccionadonivel(nivel.id);
+                            const cursosNivel =
+                              nivel.id === 'INITIAL'
+                                ? inicialcursos
+                                : nivel.id === 'PRIMARY'
+                                  ? primariacursos
+                                  : secundariacursos;
+                            if (cursosNivel.length > 0 && !cursosNivel.some((c) => c.id === seleccionadocursoid)) {
+                              establecerseleccionadocursoid(cursosNivel[0].id);
+                              establecerasignacionmateriaid('');
+                              establecerasignaciondocenteid('');
+                              establecerasignacioncargasemanal('');
+                            }
+                          }}
+                          className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                            activo
+                              ? 'bg-slate-900 text-white shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                          }`}
+                        >
+                          {nivel.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Curso:
+                    </label>
+                    <select
+                      value={seleccionadocursoid}
+                      onChange={(e) => {
+                        const nuevoId = e.target.value;
+                        establecerseleccionadocursoid(nuevoId);
+                        establecerasignacionmateriaid('');
+                        establecerasignaciondocenteid('');
+                        establecerasignacioncargasemanal('');
+                        const cSel = cursos.find((c) => c.id === nuevoId);
+                        if (cSel) {
+                          const n = obtenierniveleducativoregular(cSel.gradeLevel);
+                          if (n) establecerseleccionadonivel(n);
+                        }
+                      }}
+                      className="h-9 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                    >
+                      <optgroup label="Inicial">
+                        {inicialcursos.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {cursoetiqueta(c.name)}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Primaria">
+                        {primariacursos.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {cursoetiqueta(c.name)}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Secundaria">
+                        {secundariacursos.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {cursoetiqueta(c.name)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+                </div>
+
+                {puedegestionar && (
+                  <span className="text-xs text-slate-500 hidden md:inline font-mono">
+                    * Haz clic en cualquier celda para editar o asignar manualmente
+                  </span>
+                )}
               </div>
 
-              {puedegestionar && (
-                <span className="text-xs text-slate-500 hidden sm:inline font-mono">
-                  * Haz clic en cualquier celda para editar o asignar manualmente
+              {/* Course Quick Selection Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 border-t border-slate-100">
+                <span className="text-xs font-medium text-slate-400 shrink-0 mr-1">
+                  Cursos de {seleccionadonivel === 'INITIAL' ? 'Inicial' : seleccionadonivel === 'PRIMARY' ? 'Primaria' : 'Secundaria'}:
                 </span>
-              )}
+                {(seleccionadonivel === 'INITIAL'
+                  ? inicialcursos
+                  : seleccionadonivel === 'PRIMARY'
+                    ? primariacursos
+                    : secundariacursos
+                ).map((c) => {
+                  const seleccionado = c.id === seleccionadocursoid;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        establecerseleccionadocursoid(c.id);
+                        establecerasignacionmateriaid('');
+                        establecerasignaciondocenteid('');
+                        establecerasignacioncargasemanal('');
+                      }}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
+                        seleccionado
+                          ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 shadow-2xs'
+                          : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      {cursoetiqueta(c.name)}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">

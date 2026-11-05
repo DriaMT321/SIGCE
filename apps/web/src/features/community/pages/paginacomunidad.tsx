@@ -1388,7 +1388,7 @@ export function ComunidadPagina({
               <strong className="text-slate-900">{eliminacionelemento.name}</strong>.
             </p>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mt-3 text-xs text-amber-800 leading-relaxed">
-              <strong>Baja Lógica (Soft Delete):</strong> El registro quedará archivado y la cuenta
+              El registro quedará archivado y la cuenta
               de usuario vinculada será desactivada automáticamente, preservando la integridad del
               historial académico.
             </div>

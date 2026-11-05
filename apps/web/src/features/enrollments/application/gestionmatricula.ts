@@ -14,11 +14,14 @@ export interface inscripcionestudianteopcion {
   id: string;
   firstName: string;
   lastName: string;
+  rude?: string;
 }
 
 export interface inscripcioncursoopcion {
   id: string;
   name: string;
+  gradeLevel?: number;
+  section?: string;
 }
 
 export interface inscripcionacademicogestionopcion {
