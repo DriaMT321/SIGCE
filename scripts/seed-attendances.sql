@@ -32,3 +32,4 @@ SELECT
 FROM student_courses sc
 CROSS JOIN school_days sd
 ON CONFLICT (student_id, course_id, date) DO NOTHING;
+

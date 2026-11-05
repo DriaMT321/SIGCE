@@ -28,24 +28,27 @@ export class repositorioautenticacionprisma implements repositorioautenticacion 
   ): Promise<usuarioautenticacion | null> {
     switch (rol) {
       case 'STUDENT': {
+        const cinumerica = identificador.split('-')[0].trim();
         const perfil = await this.prisma.student.findFirst({
           where: {
             deletedAt: null,
             userId: { not: null },
             user: { role: PrismaUserRole.STUDENT },
-            OR: [{ rude: identificador }, { ci: identificador }],
+            OR: [{ rude: identificador }, { ci: identificador }, { ci: cinumerica }],
           },
           include: { user: true },
         });
         return perfil?.user ? mapearusuarioautenticacionprisma(perfil.user) : null;
       }
       case 'TEACHER': {
+        const cinumerica = identificador.split('-')[0].trim();
         const perfil = await this.prisma.teacher.findFirst({
           where: {
             deletedAt: null,
             OR: [
               { itemNumber: identificador },
               { ci: identificador },
+              { ci: cinumerica },
               { user: { email: identificador.toLowerCase() } },
             ],
           },
@@ -55,8 +58,13 @@ export class repositorioautenticacionprisma implements repositorioautenticacion 
       }
       case 'FAMILY': {
         if (!identificadorsecundario) return null;
+        const cinumerica = identificador.split('-')[0].trim();
         const perfil = await this.prisma.parent.findFirst({
-          where: { ci: identificador, phone: identificadorsecundario, deletedAt: null },
+          where: {
+            OR: [{ ci: identificador }, { ci: cinumerica }],
+            phone: identificadorsecundario,
+            deletedAt: null,
+          },
           include: { user: true },
         });
         return perfil?.user ? mapearusuarioautenticacionprisma(perfil.user) : null;

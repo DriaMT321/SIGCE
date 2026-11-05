@@ -376,7 +376,7 @@ export const AsistenciaPagina = ({
     });
 
     const csvCompleto = [
-      escaparCsv('UNIDAD EDUCATIVA SAN FRANCISCO — SISTEMA DE GESTIÓN ACADÉMICA SIGCE'),
+      escaparCsv('COLEGIO COMUNIDAD CRISTIANA — SISTEMA DE GESTIÓN ACADÉMICA SIGCE'),
       escaparCsv('INFORME DETALLADO DE ASISTENCIA INDIVIDUAL'),
       '',
       [escaparCsv('Estudiante:'), escaparCsv(`${estudianteActualIndividual.lastName} ${estudianteActualIndividual.firstName}`)].join(','),
