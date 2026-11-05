@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { existsSync } from 'node:fs';
 import { readFile, stat } from 'node:fs/promises';
-import { extname, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import puppeteer from 'puppeteer';
 import {
   type verificadorreplicalocalsie,
@@ -11,7 +11,7 @@ import {
 @Injectable()
 export class adaptadornavegadorreplicalocalsie implements verificadorreplicalocalsie {
   async verificar(htmlsubido?: string): Promise<resultadoverificacionreplicalocalsie> {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' && process.env.SIE_ALLOW_REPLICA_IN_PROD !== 'true') {
       throw new ForbiddenException(
         'La verificación de la réplica local está disponible solo en desarrollo.',
       );
@@ -19,15 +19,25 @@ export class adaptadornavegadorreplicalocalsie implements verificadorreplicaloca
 
     let html = htmlsubido?.trim();
     if (!html) {
-      const ruta = process.env.SIE_LOCAL_REPLICA_PATH?.trim();
-      if (!ruta) {
-        throw new BadRequestException('Selecciona el archivo HTML de la réplica local.');
+      const posiblesRutas = [
+        process.env.SIE_LOCAL_REPLICA_PATH?.trim(),
+        resolve(process.cwd(), 'fixtures/sie-replica/replica-calificaciones.html'),
+        resolve(process.cwd(), '../../fixtures/sie-replica/replica-calificaciones.html'),
+        resolve(__dirname, '../../../../../../../fixtures/sie-replica/replica-calificaciones.html'),
+        '/home/ubuntu/sigce/fixtures/sie-replica/replica-calificaciones.html',
+      ].filter((r): r is string => Boolean(r));
+
+      let rutaresuelta: string | undefined;
+      for (const r of posiblesRutas) {
+        const absoluta = resolve(r);
+        if (existsSync(absoluta)) {
+          rutaresuelta = absoluta;
+          break;
+        }
       }
-      const rutaresuelta = resolve(ruta);
-      if (extname(rutaresuelta).toLowerCase() !== '.html' || !existsSync(rutaresuelta)) {
-        throw new BadRequestException(
-          'La ruta de la réplica debe apuntar a un archivo HTML local existente.',
-        );
+
+      if (!rutaresuelta) {
+        throw new BadRequestException('No se encontró el archivo HTML de la réplica local.');
       }
       const informacion = await stat(rutaresuelta);
       if (!informacion.isFile() || informacion.size > 500_000) {

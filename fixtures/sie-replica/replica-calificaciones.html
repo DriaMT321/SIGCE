@@ -1,0 +1,1095 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173b59">
+  <title>SIE · Sistema Académico Educación Regular (réplica local)</title>
+  <style>
+    :root {
+      --navy: #173c5c;
+      --navy-dark: #102d46;
+      --navy-soft: #214c70;
+      --blue: #3c5f9f;
+      --cyan: #10a9c9;
+      --cyan-dark: #078eaf;
+      --red: #ed513e;
+      --purple: #8d5b91;
+      --green: #82bc45;
+      --gold: #f1bd31;
+      --paper: #fff;
+      --page: #eff0f2;
+      --line: #d7d9dc;
+      --ink: #313a42;
+      --muted: #7c858d;
+      --shadow: 0 2px 8px rgba(18, 37, 54, .12);
+    }
+
+    * { box-sizing: border-box; }
+    .local-test-label {
+      position: fixed;
+      z-index: 10000;
+      top: 8px;
+      right: 8px;
+      padding: 7px 11px;
+      border: 1px solid #a87900;
+      border-radius: 5px;
+      background: #fff2bf;
+      color: #594000;
+      font: 700 11px/1.2 Arial, sans-serif;
+      letter-spacing: .04em;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .16);
+    }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--page);
+      font-family: "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
+      font-size: 13px;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
+
+    /* Pantalla de acceso */
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      overflow: auto;
+      padding: 28px;
+      background: #fff;
+    }
+    .login-stack { width: min(330px, 100%); text-align: center; }
+    .ministry-mark {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 9px;
+      min-height: 78px;
+      margin-bottom: 12px;
+      color: #4d5054;
+      text-align: left;
+    }
+    .coat {
+      width: 40px;
+      height: 60px;
+      flex: none;
+    }
+    .ministry-wordmark {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      font-size: 10px;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+    .ministry-wordmark strong { display: block; font-size: 16px; }
+    .ministry-wordmark span + span { border-left: 1px solid #b9bdc1; padding-left: 12px; }
+    .login-card {
+      overflow: hidden;
+      border: 1px solid #315571;
+      background: #eceff2;
+      box-shadow: 0 2px 6px rgba(0,0,0,.08);
+      text-align: left;
+    }
+    .login-heading {
+      padding: 21px 14px 10px;
+      background: var(--navy);
+      color: #f7fbff;
+      text-align: center;
+    }
+    .sie-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid rgba(255,255,255,.5);
+      font-size: 30px;
+      font-weight: 300;
+      line-height: 1;
+    }
+    .sie-mark span { font-size: 26px; }
+    .login-heading p {
+      margin: 12px 0 0;
+      font-size: 14px;
+      line-height: 1.45;
+      text-transform: uppercase;
+    }
+    .login-form { padding: 12px 14px 13px; }
+    .login-field {
+      display: flex;
+      align-items: center;
+      height: 54px;
+      margin-bottom: 14px;
+      border: 1px solid #aab6c1;
+      background: #f5f8fc;
+    }
+    .login-field input {
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      padding: 0 12px;
+      color: #33404b;
+      background: transparent;
+      border: 0;
+      outline: 0;
+    }
+    .login-field input:focus { box-shadow: inset 0 0 0 2px #5b9bd5; }
+    .field-icon {
+      display: grid;
+      width: 38px;
+      height: 100%;
+      place-items: center;
+      color: #304b5e;
+      font-size: 18px;
+      background: #e4ebf2;
+    }
+    .remember-row { display: flex; align-items: center; gap: 8px; margin: 20px 0 35px; color: #5b6269; font-size: 14px; }
+    .remember-row input { width: 16px; height: 16px; margin: 0; accent-color: #1682d4; }
+    .login-submit {
+      width: 100%;
+      height: 59px;
+      border: 0;
+      border-radius: 6px;
+      color: #f3f5f7;
+      background: var(--navy);
+      font-size: 16px;
+    }
+    .login-submit:hover { background: #204c70; }
+    .login-links { display: flex; justify-content: space-between; margin-top: 24px; color: #52606a; font-size: 12px; }
+    .login-links button { padding: 0; border: 0; background: none; color: inherit; }
+    .local-note { margin: 13px 0 0; color: #75808a; font-size: 11px; line-height: 1.4; }
+    .login-warning { min-height: 18px; margin: 7px 0 0; color: #a33d32; font-size: 12px; text-align: center; }
+
+    /* Estructura del portal */
+    .portal { min-height: 100vh; background: var(--page); }
+    .topbar {
+      position: fixed;
+      z-index: 5;
+      top: 0;
+      right: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      height: 48px;
+      padding: 0 18px;
+      color: #e8eff5;
+      background: var(--navy-dark);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 198px;
+      min-width: 198px;
+      color: #eaf3f8;
+      font-size: 14px;
+      letter-spacing: .25px;
+    }
+    .brand-emblem {
+      display: grid;
+      width: 27px;
+      height: 27px;
+      place-items: center;
+      color: white;
+      border: 1px solid rgba(255,255,255,.48);
+      border-radius: 50%;
+      font-size: 13px;
+    }
+    .brand small { display: block; color: #a9c0d0; font-size: 9px; }
+    .collapse-btn {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border: 0;
+      color: #fff;
+      background: transparent;
+      font-size: 21px;
+    }
+    .top-spacer { flex: 1; }
+    .demo-tag {
+      margin-right: 20px;
+      color: #cedbe4;
+      font-size: 10px;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+    }
+    .user-menu { display: flex; align-items: center; gap: 7px; color: #f6f8fa; font-size: 12px; }
+    .user-avatar {
+      display: grid;
+      width: 27px;
+      height: 27px;
+      place-items: center;
+      color: #fff;
+      border: 2px solid rgba(255,255,255,.6);
+      border-radius: 50%;
+      background: #74a94a;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .sidebar {
+      position: fixed;
+      z-index: 4;
+      top: 48px;
+      bottom: 0;
+      left: 0;
+      width: 210px;
+      overflow-y: auto;
+      color: #f0f5f8;
+      background: var(--navy);
+      transition: width .18s ease;
+    }
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 84px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.2);
+    }
+    .profile .user-avatar { width: 38px; height: 38px; font-size: 16px; }
+    .profile-name { font-size: 13px; }
+    .profile-role { display: block; margin-top: 3px; color: #d1dce5; font-size: 10px; }
+    .nav-list { padding: 6px 0 18px; }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 39px;
+      padding: 5px 10px;
+      border: 0;
+      border-left: 3px solid transparent;
+      color: #e8eff4;
+      background: transparent;
+      text-align: left;
+      font-size: 12px;
+    }
+    .nav-link:hover, .nav-link.active { border-left-color: #1bb8d6; background: rgba(255,255,255,.09); }
+    .nav-icon {
+      display: grid;
+      width: 22px;
+      height: 22px;
+      flex: none;
+      place-items: center;
+      color: #fff;
+      border-radius: 50%;
+      background: #727e87;
+      font-size: 12px;
+    }
+    .nav-chevron { margin-left: auto; color: #bfd1dd; }
+    .nav-submenu { display: none; padding: 1px 0 5px 40px; background: rgba(9,28,45,.2); }
+    .nav-submenu.open { display: block; }
+    .nav-submenu button {
+      display: block;
+      width: 100%;
+      padding: 8px 8px;
+      border: 0;
+      color: #dbe7ee;
+      background: transparent;
+      text-align: left;
+      font-size: 11px;
+    }
+    .nav-submenu button:hover { color: #fff; background: rgba(255,255,255,.08); }
+    .workspace {
+      min-height: 100vh;
+      margin-left: 210px;
+      padding: 48px 0 26px;
+      transition: margin-left .18s ease;
+    }
+    .pagebar {
+      display: flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 18px;
+      background: #fff;
+      border-bottom: 1px solid #d4d7d9;
+    }
+    .page-title { margin: 0; color: #303b44; font-size: 18px; font-weight: 500; }
+    .page-title::before { content: "▦"; margin-right: 10px; color: #365f79; font-size: 17px; }
+    .page-subtitle { margin-left: 10px; color: #926b8d; font-size: 11px; font-style: italic; }
+    .crumbs { display: flex; align-items: center; gap: 8px; margin-left: auto; color: #6e7479; font-size: 10px; }
+    .crumbs span + span::before { content: "›"; margin-right: 8px; color: #a5aaad; }
+    .content { padding: 15px; }
+    .school-banner {
+      display: grid;
+      grid-template-columns: 1fr 1.8fr 1fr;
+      align-items: center;
+      min-height: 83px;
+      margin-bottom: 14px;
+      padding: 12px 17px;
+      color: #eef4fa;
+      background: var(--blue);
+      border-radius: 2px;
+    }
+    .school-code { font-size: 10px; }
+    .school-name { text-align: center; font-size: 15px; font-weight: 600; }
+    .school-name small { display: block; margin-top: 8px; font-size: 10px; font-weight: 400; }
+    .school-year { display: inline-block; margin-left: 4px; padding: 5px 7px; color: #fff; background: var(--cyan); }
+    .school-type { text-align: right; font-size: 10px; }
+    .screen { min-height: 520px; }
+
+    /* Inicio y opciones intermedias */
+    .dashboard-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 13px; }
+    .panel {
+      border: 1px solid #d5d7d9;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07);
+    }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 43px;
+      padding: 0 12px;
+      color: #fff;
+      background: var(--cyan);
+      font-weight: 600;
+    }
+    .panel-head.gold { color: #3d3d3d; background: #efb83b; }
+    .panel-body { padding: 15px; }
+    .welcome {
+      display: grid;
+      min-height: 158px;
+      place-items: center;
+      padding: 20px;
+      color: #527084;
+      background: #f9fafb;
+      text-align: center;
+    }
+    .welcome-mark { font-size: 42px; color: #a8b8c1; }
+    .welcome strong { display: block; margin-top: 5px; color: #4d6676; font-size: 18px; }
+    .quick-grid { display: grid; grid-template-columns: repeat(2, minmax(130px, 1fr)); gap: 8px; }
+    .quick-card {
+      min-height: 104px;
+      padding: 12px;
+      border: 1px solid #d8dde0;
+      color: #52606a;
+      background: #fff;
+      text-align: left;
+    }
+    .quick-card:hover { border-color: var(--cyan); box-shadow: 0 1px 5px rgba(0,0,0,.1); }
+    .quick-card .big-icon { display: block; margin-bottom: 8px; color: var(--cyan-dark); font-size: 22px; }
+    .quick-card strong { display: block; color: #435260; font-size: 13px; }
+    .quick-card small { display: block; margin-top: 5px; color: #8a9298; font-size: 11px; }
+    .notice-strip { margin-top: 13px; padding: 12px 15px; color: #685977; background: #eee6f0; border-left: 4px solid #9b6f9d; }
+    .module-tiles { display: grid; grid-template-columns: repeat(3, minmax(140px, 1fr)); gap: 12px; }
+    .module-tile {
+      min-height: 135px;
+      padding: 15px 12px 12px;
+      border: 1px solid #d5dadd;
+      background: #fff;
+      color: #4c5a64;
+      text-align: center;
+    }
+    .module-tile:hover { border-color: #56bcd0; background: #f8fcfd; }
+    .module-tile .tile-icon { display: block; height: 57px; color: #5294ad; font-size: 40px; }
+    .module-tile strong { display: block; padding: 7px 4px; color: #fff; background: var(--cyan); font-size: 12px; font-weight: 500; }
+    .module-tile small { display: block; margin-top: 8px; color: #88939b; }
+
+    /* Cursos y lista de inscritos */
+    .course-layout { display: grid; grid-template-columns: minmax(260px, 30%) minmax(670px, 1fr); align-items: start; gap: 14px; }
+    .course-panel { overflow: hidden; border: 1px solid #c9cdd0; background: #fff; }
+    .course-panel-head { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 0 10px; color: white; background: var(--cyan); font-weight: 600; }
+    .options-btn { border: 0; padding: 8px 10px; color: white; background: #327b9a; font-size: 11px; }
+    .options-menu { position: absolute; z-index: 2; display: none; min-width: 150px; margin-top: 1px; border: 1px solid #ccc; background: #fff; box-shadow: var(--shadow); }
+    .options-menu.open { display: block; }
+    .options-menu button { display: block; width: 100%; padding: 8px 10px; border: 0; background: white; color: #4a555d; text-align: left; font-size: 11px; }
+    .options-menu button:hover { background: #edf5f7; }
+    .course-tree { min-height: 440px; padding: 14px 10px 18px 18px; overflow: auto; }
+    .tree-root { position: relative; margin-left: 22px; padding-left: 14px; border-left: 1px solid #a8adb0; }
+    .tree-root::before { content: ""; position: absolute; top: 15px; left: -22px; width: 22px; border-top: 1px solid #a8adb0; }
+    .tree-node { position: relative; padding: 4px 0 4px 13px; }
+    .tree-node::before { content: ""; position: absolute; top: 17px; left: -1px; width: 14px; border-top: 1px solid #a8adb0; }
+    .tree-node button {
+      max-width: 100%;
+      min-height: 27px;
+      padding: 4px 8px;
+      border: 1px solid #aab1b6;
+      border-radius: 4px;
+      color: #52606a;
+      background: #fff;
+      font-size: 10px;
+      white-space: normal;
+    }
+    .tree-node button:hover, .tree-node button.selected { border-color: #7aaec0; background: #eef8fa; }
+    .grade-branches { display: none; margin: 3px 0 4px 27px; padding-left: 13px; border-left: 1px solid #a8adb0; }
+    .grade-branches.open { display: block; }
+    .section-row { display: flex; align-items: center; gap: 4px; min-height: 36px; }
+    .section-btn { width: 28px; min-width: 28px; padding: 4px !important; font-weight: 600; }
+    .tree-action {
+      display: grid;
+      width: 27px;
+      height: 27px;
+      place-items: center;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      color: var(--red);
+      background: white;
+      font-size: 12px;
+    }
+    .tree-action.blue { color: var(--cyan); }
+    .tree-action:hover { color: white; background: var(--red); }
+    .course-summary { min-height: 61px; padding: 15px 13px; border-bottom: 1px solid #dedfe1; background: #fff; }
+    .course-summary strong { color: #58636b; font-size: 14px; font-weight: 500; }
+    .course-summary small { float: right; padding-top: 3px; color: #667078; font-size: 10px; }
+    .roster-head { display: flex; align-items: center; justify-content: space-between; min-height: 41px; padding: 0 10px; color: white; background: var(--cyan); }
+    .roster-head strong { font-weight: 600; }
+    .roster-actions { display: flex; align-items: center; gap: 5px; color: #e9f7fa; font-size: 11px; }
+    .circle-action {
+      display: grid;
+      width: 27px;
+      height: 27px;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.8);
+      border-radius: 50%;
+      color: white;
+      background: transparent;
+    }
+    .roster-wrap { overflow: auto; }
+    .roster-table { width: 100%; min-width: 1020px; border-collapse: collapse; background: #fff; font-size: 10px; }
+    .roster-table th, .roster-table td { padding: 8px 6px; border: 1px solid #dadcde; text-align: left; vertical-align: top; }
+    .roster-table th { color: #59626a; background: #f0f0f1; font-weight: 500; text-transform: uppercase; }
+    .roster-table td { height: 54px; color: #4b5258; }
+    .roster-table tr:hover td { background: #fcfdfe; }
+    .grade-value { text-align: center !important; font-weight: 700; }
+    .sync-cell { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .sync-check { display: grid; width: 14px; height: 14px; place-items: center; border: 1px solid #aeb5bb; border-radius: 2px; color: transparent; background: #fff; font: 700 11px/1 Arial, sans-serif; }
+    .sync-verified .sync-check { border-color: #71a943; color: #fff; background: #71a943; }
+    .sync-verified .sync-check::before { content: "✓"; }
+    .sync-label { font-size: 9px; font-weight: 600; }
+    .sync-verified .sync-label { color: #4e8730; }
+    .sync-discrepancy .sync-label { color: #9a6800; }
+    .sync-missing .sync-label { color: #b64035; }
+    .sync-pending .sync-label { color: #70777d; }
+    .status-label { display: inline-block; padding: 3px 5px; color: #70a840; border: 1px solid #87bf4f; font-size: 9px; }
+    .segip-label { display: inline-block; padding: 4px 6px; color: white; background: #86bd4a; font-size: 9px; white-space: nowrap; }
+    .row-actions { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .row-action {
+      display: grid;
+      width: 25px;
+      height: 25px;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      color: white;
+      background: var(--purple);
+      font-size: 12px;
+    }
+    .row-action.grade { background: var(--red); }
+    .row-action:hover { filter: brightness(.9); transform: scale(1.04); }
+    .table-note { margin: 0; padding: 10px 12px; color: #7b858b; background: #fff; font-size: 10px; }
+
+    /* Registro de notas */
+    .modal-backdrop {
+      position: fixed;
+      z-index: 20;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(0,0,0,.52);
+    }
+    .grade-modal {
+      display: flex;
+      width: min(650px, 100%);
+      max-height: 90vh;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #aaa;
+      background: #fdfdfd;
+      box-shadow: 0 9px 30px rgba(0,0,0,.32);
+    }
+    .modal-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 46px;
+      padding: 0 13px;
+      color: white;
+      background: var(--red);
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .modal-close-x { border: 0; color: white; background: transparent; font-size: 22px; }
+    .modal-scroll { overflow: auto; padding: 12px; }
+    .modal-section-title { margin: 6px 0 5px; color: #987593; font-size: 11px; }
+    .modal-section-title.cyan { color: #31a9c0; }
+    .modal-section-title.green { color: #79af43; }
+    .meta-table { width: 100%; margin-bottom: 12px; border-collapse: collapse; font-size: 10px; }
+    .meta-table td { padding: 6px 7px; border: 1px solid #ddd; }
+    .meta-table td:first-child { width: 30%; background: #f0f0f0; }
+    .meta-table td:nth-child(3) { width: 13%; background: #f0f0f0; }
+    .meta-value { color: #3784b5; }
+    .marks-caption { display: flex; justify-content: space-between; align-items: center; padding: 4px 0 7px; color: #7fb047; font-size: 10px; }
+    .marks-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+    .marks-table th, .marks-table td { padding: 8px 7px; border: 1px solid #ddd; }
+    .marks-table th { color: #666; background: #ebebeb; text-align: left; font-weight: 500; }
+    .marks-table th:last-child, .marks-table td:last-child { width: 80px; text-align: center; }
+    .marks-table td { height: 37px; }
+    .marks-table input { width: 47px; height: 28px; padding: 3px 5px; border: 1px solid #d5d5d5; background: #fff; text-align: center; }
+    .marks-table input:focus { border-color: #329cba; outline: 1px solid #329cba; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 7px; padding: 10px 12px; border-top: 1px solid #ddd; background: #f8f8f8; }
+    .btn-muted, .btn-save { min-height: 34px; padding: 0 12px; border: 1px solid #ccc; color: #666; background: #f5f5f5; }
+    .btn-save { color: #fff; border-color: #3768a9; background: #3d70b6; }
+    .btn-save:hover { background: #315d98; }
+    .toast {
+      position: fixed;
+      z-index: 30;
+      right: 22px;
+      bottom: 20px;
+      max-width: min(370px, calc(100vw - 44px));
+      padding: 12px 16px;
+      color: #fff;
+      background: #2f7154;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: .2s ease;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .collapsed .sidebar { width: 58px; overflow-x: hidden; }
+    .collapsed .workspace { margin-left: 58px; }
+    .collapsed .profile > div:last-child, .collapsed .nav-label, .collapsed .nav-chevron, .collapsed .nav-submenu { display: none !important; }
+    .collapsed .profile { justify-content: center; padding: 9px 5px; }
+    .collapsed .nav-link { justify-content: center; padding: 5px 3px; }
+    .collapsed .brand { width: auto; min-width: 44px; }
+    .collapsed .brand > span:last-child { display: none; }
+
+    @media (max-width: 1040px) {
+      .sidebar { width: 58px; overflow-x: hidden; }
+      .workspace { margin-left: 58px; }
+      .profile { justify-content: center; padding: 9px 5px; }
+      .profile > div:last-child, .nav-label, .nav-chevron { display: none; }
+      .nav-link { justify-content: center; padding: 5px 3px; }
+      .nav-submenu { display: none !important; }
+      .brand { width: auto; min-width: 44px; }
+      .brand > span:last-child { display: none; }
+      .course-layout { grid-template-columns: minmax(230px, 31%) minmax(580px, 1fr); }
+    }
+    @media (max-width: 760px) {
+      .topbar { padding: 0 8px; }
+      .brand { min-width: 36px; width: 36px; }
+      .demo-tag { margin-right: 7px; font-size: 8px; }
+      .content { padding: 10px; }
+      .crumbs { display: none; }
+      .school-banner { grid-template-columns: 1fr; gap: 7px; text-align: center; }
+      .school-code, .school-type { text-align: center; }
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .module-tiles { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+      .course-layout { grid-template-columns: minmax(210px, 1fr); }
+      .course-tree { min-height: 0; max-height: 240px; }
+    .roster-table { min-width: 1020px; }
+      .pagebar { padding: 0 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="local-test-label">RÉPLICA LOCAL · DATOS DE PRUEBA</div>
+  <main id="login-view" class="login-screen">
+    <div class="login-stack">
+      <div class="ministry-mark" aria-label="Estado Plurinacional de Bolivia, Ministerio de Educación">
+        <svg class="coat" viewBox="0 0 48 68" role="img" aria-hidden="true">
+          <path d="M24 2 39 10v20c0 13-7 24-15 31C16 54 9 43 9 30V10z" fill="#d9b447" stroke="#815d20" stroke-width="1.4"/>
+          <path d="M24 7 34 13v16c0 10-4 18-10 24-6-6-10-14-10-24V13z" fill="#fff" stroke="#a4a4a4"/>
+          <path d="M24 8v43" stroke="#ca463c" stroke-width="7"/>
+          <path d="M14 23h20v7H14z" fill="#35765b"/>
+          <path d="M18 16h4v4h-4zm8 1h5v3h-5zM17 35h5v4h-5zm9 4h5v4h-5z" fill="#e4b444"/>
+          <path d="M13 56 7 64l10-2 7 4 7-4 10 2-6-8" fill="#2c6c4b" stroke="#23503a" stroke-width="1"/>
+          <circle cx="24" cy="5" r="3" fill="#c64137"/>
+        </svg>
+        <div class="ministry-wordmark">
+          <span>Estado Plurinacional<strong>Bolivia</strong></span>
+          <span><strong>Ministerio</strong> de Educación</span>
+        </div>
+      </div>
+      <section class="login-card" aria-label="Acceso al Sistema Académico">
+        <div class="login-heading">
+          <div class="sie-mark"><span aria-hidden="true">♟</span> SIE</div>
+          <p>Sistema Académico Educación<br>Regular</p>
+        </div>
+        <form id="login-form" class="login-form">
+          <label class="login-field">
+            <input id="username" type="text" autocomplete="off" aria-label="Usuario" placeholder="Usuario">
+            <span class="field-icon" aria-hidden="true">♟</span>
+          </label>
+          <label class="login-field">
+            <input id="password" type="password" autocomplete="new-password" aria-label="Contraseña" placeholder="Contraseña">
+            <span class="field-icon" aria-hidden="true">▣</span>
+          </label>
+          <label class="remember-row"><input type="checkbox" checked> Validar los datos</label>
+          <button class="login-submit" type="submit">▣ Aceptar</button>
+          <div class="login-warning" id="login-warning" aria-live="polite"></div>
+          <div class="login-links"><button type="button" data-login-info="Apertura RUE">▤ Apertura RUE</button><button type="button" data-login-info="Reapertura RUE">▤ Reapertura RUE</button></div>
+          <p class="local-note">Réplica local de demostración. No se conecta al sistema oficial ni guarda las credenciales.</p>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <div id="portal" class="portal hidden">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-emblem" aria-hidden="true">S</span>
+        <span>SIGED <small>Herramienta web</small></span>
+      </div>
+      <button id="collapse-sidebar" class="collapse-btn" type="button" aria-label="Contraer menú">☰</button>
+      <div class="top-spacer"></div>
+      <span class="demo-tag">Réplica local · datos de demostración</span>
+      <button id="logout" class="user-menu" type="button" title="Volver al acceso">
+        <span class="user-avatar">D</span> DIRECCIÓN <span aria-hidden="true">⌄</span>
+      </button>
+    </header>
+
+    <aside class="sidebar">
+      <div class="profile">
+        <span class="user-avatar">D</span>
+        <div><span class="profile-name">Hola, DIRECCIÓN</span><span class="profile-role">Director (Inst. Educativa)</span></div>
+      </div>
+      <nav class="nav-list" aria-label="Menú principal">
+        <button class="nav-link" type="button" data-screen="home"><span class="nav-icon">⌂</span><span class="nav-label">Inicio</span></button>
+        <button class="nav-link" type="button" data-screen="regular"><span class="nav-icon">▣</span><span class="nav-label">Operativo Salud de Estudiantes</span><span class="nav-chevron">›</span></button>
+        <button class="nav-link" type="button" data-screen="received"><span class="nav-icon">▤</span><span class="nav-label">Recibidos</span><span class="nav-chevron">›</span></button>
+        <button class="nav-link" type="button" data-screen="received"><span class="nav-icon">✉</span><span class="nav-label">Solicitud</span><span class="nav-chevron">›</span></button>
+        <button class="nav-link" type="button" data-screen="regular"><span class="nav-icon">⚙</span><span class="nav-label">Herramientas</span><span class="nav-chevron">›</span></button>
+        <button class="nav-link" type="button" data-screen="regular"><span class="nav-icon">♙</span><span class="nav-label">Gestión Personal U.E.</span><span class="nav-chevron">›</span></button>
+        <button class="nav-link" type="button" data-screen="regular"><span class="nav-icon">▧</span><span class="nav-label">Trámites</span><span class="nav-chevron">›</span></button>
+        <button class="nav-link" id="student-nav" type="button" aria-expanded="false"><span class="nav-icon">♧</span><span class="nav-label">Estudiante</span><span class="nav-chevron">›</span></button>
+        <div id="student-submenu" class="nav-submenu">
+          <button type="button" data-screen="module">UE Regular</button>
+          <button type="button" data-screen="students">ESTUDIANTES</button>
+        </div>
+        <button class="nav-link" type="button" data-screen="regular"><span class="nav-icon">☷</span><span class="nav-label">Inscripciones</span><span class="nav-chevron">›</span></button>
+        <button class="nav-link" type="button" data-screen="regular"><span class="nav-icon">◇</span><span class="nav-label">Situación de Vulnerabilidad</span><span class="nav-chevron">›</span></button>
+        <button class="nav-link" type="button" data-screen="regular"><span class="nav-icon">▧</span><span class="nav-label">RUE</span><span class="nav-chevron">›</span></button>
+      </nav>
+    </aside>
+
+    <main class="workspace">
+      <div class="pagebar">
+        <h1 class="page-title" id="page-title">Principal</h1>
+        <span class="page-subtitle" id="page-subtitle"></span>
+        <div class="crumbs"><span>USTED ESTÁ AQUÍ:</span><span id="crumb-one">Inicio</span><span id="crumb-two">Principal</span></div>
+      </div>
+      <div class="content">
+        <section class="school-banner" aria-label="Unidad educativa seleccionada">
+          <div class="school-code">SIE: 81981191</div>
+      <div class="school-name">Administración Unidad Educativa · <span class="school-year">2026</span><small>Institución Educativa: COMUNIDAD CRISTIANA B</small></div>
+          <div class="school-type">Opción: Información Estudiante</div>
+        </section>
+
+        <section id="home-screen" class="screen">
+          <div class="dashboard-grid">
+            <article class="panel">
+              <div class="panel-head">Bienvenido al sistema</div>
+          <div class="welcome"><div><span class="welcome-mark" aria-hidden="true">◉</span><strong>Administración Unidad Educativa</strong><span>Gestión académica · 2026 · demostración</span></div></div>
+            </article>
+            <article class="panel">
+              <div class="panel-head gold">Estudiantes de la unidad educativa</div>
+              <div class="panel-body quick-grid">
+                <button class="quick-card" type="button" data-screen="module"><span class="big-icon">♧</span><strong>Estudiantes</strong><small>Consultar cursos e inscritos</small></button>
+                <button class="quick-card" type="button" data-screen="received"><span class="big-icon">▤</span><strong>Recibidos</strong><small>Solicitudes y módulos</small></button>
+                <button class="quick-card" type="button" data-screen="regular"><span class="big-icon">▧</span><strong>Inscripciones</strong><small>Información estudiantil</small></button>
+                <button class="quick-card" type="button" data-screen="module"><span class="big-icon">▦</span><strong>Calificaciones</strong><small>Registro del primer trimestre</small></button>
+              </div>
+            </article>
+          </div>
+          <div class="notice-strip">Sistema Académico de Educación Regular · seleccione un módulo para continuar.</div>
+        </section>
+
+        <section id="received-screen" class="screen hidden">
+          <article class="panel">
+            <div class="panel-head">Recibidos <span style="font-size:11px;font-weight:400">Solicitudes usuario</span></div>
+            <div class="panel-body">
+              <div class="module-tiles">
+                <button class="module-tile" type="button" data-screen="regular"><span class="tile-icon">▤</span><strong>U.E. REGULAR</strong><small>Administración de educación regular</small></button>
+                <button class="module-tile" type="button" data-screen="module"><span class="tile-icon">♧</span><strong>ESTUDIANTES</strong><small>Información de estudiantes</small></button>
+                <button class="module-tile" type="button" data-screen="regular"><span class="tile-icon">▧</span><strong>Gestión educativa</strong><small>Opciones de la unidad educativa</small></button>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section id="regular-screen" class="screen hidden">
+          <article class="panel">
+            <div class="panel-head">U.E. REGULAR <span style="font-size:11px;font-weight:400">Seleccione un módulo</span></div>
+            <div class="panel-body">
+              <div class="module-tiles">
+                <button class="module-tile" type="button" data-screen="students"><span class="tile-icon">🏫</span><strong>ESTUDIANTES</strong><small>Lista de inscritos y calificaciones</small></button>
+                <button class="module-tile" type="button" data-screen="students"><span class="tile-icon">▤</span><strong>INFORMACIÓN ESTUDIANTIL</strong><small>Registro académico</small></button>
+                <button class="module-tile" type="button" data-screen="students"><span class="tile-icon">♙</span><strong>DOCENTES</strong><small>Personal educativo</small></button>
+                <button class="module-tile" type="button" data-screen="students"><span class="tile-icon">▥</span><strong>CALIFICACIONES</strong><small>Registro por curso</small></button>
+                <button class="module-tile" type="button" data-screen="students"><span class="tile-icon">⟳</span><strong>REPORTES</strong><small>Boletines y listados</small></button>
+                <button class="module-tile" type="button" data-screen="students"><span class="tile-icon">⌂</span><strong>UNIDAD EDUCATIVA</strong><small>Datos institucionales</small></button>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section id="module-screen" class="screen hidden">
+          <article class="panel">
+            <div class="panel-head">Estudiante <span style="font-size:11px;font-weight:400">Seleccione el módulo</span></div>
+            <div class="panel-body">
+              <div class="module-tiles">
+                <button class="module-tile" type="button" data-screen="students"><span class="tile-icon">♧</span><strong>ESTUDIANTES</strong><small>Lista de inscritos</small></button>
+                <button class="module-tile" type="button" data-screen="students"><span class="tile-icon">▥</span><strong>CALIFICACIONES</strong><small>Primer trimestre</small></button>
+                <button class="module-tile" type="button" data-screen="regular"><span class="tile-icon">▧</span><strong>INSCRIPCIONES</strong><small>Gestión de estudiantes</small></button>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section id="students-screen" class="screen hidden">
+          <div class="course-layout">
+            <article class="course-panel">
+              <div class="course-panel-head">
+                <span>Cursos</span>
+                <div style="position:relative">
+                  <button id="options-toggle" class="options-btn" type="button">Opciones ▾</button>
+                  <div id="options-menu" class="options-menu">
+                    <button type="button" data-action="list">Lista de inscritos</button>
+                    <button type="button" data-action="grades">Registrar calificaciones</button>
+                    <button type="button" data-action="export">Descargar listado</button>
+                  </div>
+                </div>
+              </div>
+              <div class="course-tree">
+                <div class="tree-node"><button type="button" class="selected" data-turn="Mañana">MAÑANA</button></div>
+                <div class="tree-root">
+                  <div class="tree-node"><button type="button" data-level="Inicial en Familia Comunitaria">Inicial en Familia Comunitaria</button></div>
+                  <div class="tree-node"><button type="button" data-level="Primaria Comunitaria Vocacional" class="selected">Primaria Comunitaria Vocacional</button>
+                    <div class="tree-root">
+                      <div class="tree-node"><button type="button" data-grade="Primero">Primero</button></div>
+                      <div class="tree-node"><button type="button" data-grade="Segundo" class="selected">Segundo</button>
+                        <div class="grade-branches open" id="section-options"></div>
+                      </div>
+                      <div class="tree-node"><button type="button" data-grade="Tercero">Tercero</button></div>
+                      <div class="tree-node"><button type="button" data-grade="Cuarto">Cuarto</button></div>
+                      <div class="tree-node"><button type="button" data-grade="Quinto">Quinto</button></div>
+                      <div class="tree-node"><button type="button" data-grade="Sexto">Sexto</button></div>
+                    </div>
+                  </div>
+                  <div class="tree-node"><button type="button" data-level="Secundaria Comunitaria Productiva">Secundaria Comunitaria Productiva</button></div>
+                </div>
+              </div>
+            </article>
+            <article class="course-panel">
+              <div class="course-summary"><strong id="course-label">▤ &nbsp; Segundo - B</strong><small>NIVEL: <span id="level-label">Primaria Comunitaria Vocacional</span></small></div>
+              <div class="roster-head">
+                <strong>Lista de inscritos</strong>
+                <div class="roster-actions">Opciones del curso:
+                  <button class="circle-action" type="button" data-action="export" title="Descargar listado" aria-label="Descargar listado">♧</button>
+                  <button class="circle-action" type="button" data-action="export" title="Imprimir" aria-label="Imprimir">▤</button>
+                </div>
+              </div>
+              <div class="roster-wrap">
+                <table class="roster-table">
+                  <thead><tr>
+                    <th>#</th><th>Código Rude</th><th>C.I.</th><th>Paterno</th><th>Materno</th><th>Nombre(s)</th><th>Fecha nac.</th><th>Estado de matrícula</th><th>Obs. SEGIP</th><th>Nota Matemáticas · 1T</th><th>Sincronización</th><th>Opciones</th>
+                  </tr></thead>
+                  <tbody id="student-rows"></tbody>
+                </table>
+              </div>
+              <p class="table-note">Demostración local con datos sintéticos. La casilla marcada indica coincidencia verificada; los demás estados requieren revisión o no se han procesado. No representa una conexión con el SIE oficial.</p>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="grade-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <section class="grade-modal">
+      <header class="modal-title"><span id="modal-title">Notas del Estudiante</span><button class="modal-close-x" type="button" data-close-modal aria-label="Cerrar">×</button></header>
+      <div class="modal-scroll">
+        <div class="modal-section-title">Datos del Curso</div>
+        <table class="meta-table">
+          <tr><td>Nivel</td><td id="modal-level">PRIMARIA COMUNITARIA VOCACIONAL</td><td>Turno</td><td id="modal-turn">MAÑANA</td></tr>
+          <tr><td>Grado</td><td id="modal-grade">SEGUNDO</td><td>Paralelo</td><td id="modal-section">B</td></tr>
+        </table>
+        <div class="modal-section-title cyan">Datos del Estudiante</div>
+        <table class="meta-table">
+          <tr><td>Código Rude</td><td colspan="3" class="meta-value" id="modal-code">—</td></tr>
+          <tr><td>Estudiante</td><td colspan="3" class="meta-value" id="modal-student">—</td></tr>
+          <tr><td>Estado de matrícula</td><td colspan="3">EFECTIVO</td></tr>
+        </table>
+        <div class="marks-caption"><span class="modal-section-title green">Notas</span><span id="sie-demo-metadata" data-year="2026" data-period="1">Gestión: 2026 | Primer trimestre · demostración</span></div>
+        <table class="marks-table">
+          <thead><tr><th>Área</th><th>1 Trimestre</th></tr></thead>
+          <tbody id="marks-rows"></tbody>
+        </table>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn-muted" type="button" data-close-modal>Cerrar</button>
+        <button class="btn-save" id="save-grades" type="button">Guardar Cambios</button>
+      </footer>
+    </section>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const students = [
+      { code: "DEMO-RUDE-001", ci: "DEMO-CI-001", paternal: "Estudiante", maternal: "Uno", first: "Demostración", birth: "—" },
+      { code: "DEMO-RUDE-002", ci: "DEMO-CI-002", paternal: "Estudiante", maternal: "Dos", first: "Demostración", birth: "—" },
+      { code: "DEMO-RUDE-003", ci: "DEMO-CI-003", paternal: "Estudiante", maternal: "Tres", first: "Demostración", birth: "—" },
+      { code: "DEMO-RUDE-004", ci: "DEMO-CI-004", paternal: "Estudiante", maternal: "Cuatro", first: "Demostración", birth: "—" },
+      { code: "DEMO-RUDE-005", ci: "DEMO-CI-005", paternal: "Estudiante", maternal: "Cinco", first: "Demostración", birth: "—" },
+      { code: "DEMO-RUDE-006", ci: "DEMO-CI-006", paternal: "Estudiante", maternal: "Seis", first: "Demostración", birth: "—" }
+    ];
+    const subjects = [
+      "COMUNICACIÓN Y LENGUAJES (CASTELLANA, ORIGINARIA Y LENGUA EXTRANJERA)",
+      "CIENCIAS SOCIALES",
+      "EDUCACIÓN FÍSICA Y DEPORTES",
+      "EDUCACIÓN MUSICAL",
+      "ARTES PLÁSTICAS Y VISUALES",
+      "MATEMÁTICAS",
+      "TÉCNICA TECNOLÓGICA",
+      "CIENCIAS NATURALES",
+      "VALORES, ESPIRITUALIDAD Y RELIGIONES"
+    ];
+    const subjectCodes = ["COM-LEN", "SOC-SEC", "EDU-FIS", "EDU-MUS", "ART-VIS", "MAT-SEC", "TEC-TEC", "CIEN-NAT", "VAL-REL"];
+    const screens = ["home", "received", "regular", "module", "students"];
+    const titles = {
+      home: ["Principal", "", "Inicio", "Principal"],
+      received: ["Recibidos", "Solicitudes usuario", "Recibidos", "Menú"],
+      regular: ["U.E. Regular", "Módulos disponibles", "Recibidos", "U.E. Regular"],
+      module: ["Estudiante", "Seleccione módulo", "Estudiante", "U.E. Regular"],
+      students: ["Recibidos", "Solicitudes usuario", "Recibidos", "Estudiante"]
+    };
+    const gradesByStudent = {
+      "DEMO-RUDE-001:0": 82, "DEMO-RUDE-001:1": 78, "DEMO-RUDE-001:2": 90,
+      "DEMO-RUDE-001:3": 86, "DEMO-RUDE-001:4": 88, "DEMO-RUDE-001:5": 85,
+      "DEMO-RUDE-001:6": 91, "DEMO-RUDE-001:7": 84, "DEMO-RUDE-001:8": 89,
+      "DEMO-RUDE-002:0": 76, "DEMO-RUDE-002:1": 70, "DEMO-RUDE-002:2": 82,
+      "DEMO-RUDE-002:3": 79, "DEMO-RUDE-002:4": 88, "DEMO-RUDE-002:5": 72,
+      "DEMO-RUDE-002:6": 73, "DEMO-RUDE-002:7": 84, "DEMO-RUDE-002:8": 77,
+      "DEMO-RUDE-003:0": 92, "DEMO-RUDE-003:1": 87, "DEMO-RUDE-003:2": 89,
+      "DEMO-RUDE-003:3": 91, "DEMO-RUDE-003:4": 94, "DEMO-RUDE-003:5": 61,
+      "DEMO-RUDE-003:6": 82, "DEMO-RUDE-003:7": 88, "DEMO-RUDE-003:8": 90,
+      "DEMO-RUDE-004:0": 70, "DEMO-RUDE-004:1": 73, "DEMO-RUDE-004:2": 80,
+      "DEMO-RUDE-004:3": 75, "DEMO-RUDE-004:4": 82, "DEMO-RUDE-004:6": 77,
+      "DEMO-RUDE-004:7": 78, "DEMO-RUDE-004:8": 81,
+      "DEMO-RUDE-005:0": 88, "DEMO-RUDE-005:1": 79, "DEMO-RUDE-005:2": 84,
+      "DEMO-RUDE-005:3": 91, "DEMO-RUDE-005:4": 85, "DEMO-RUDE-005:5": 89,
+      "DEMO-RUDE-005:6": 90, "DEMO-RUDE-005:7": 82, "DEMO-RUDE-005:8": 86,
+      "DEMO-RUDE-006:0": 73, "DEMO-RUDE-006:1": 81, "DEMO-RUDE-006:2": 78,
+      "DEMO-RUDE-006:3": 85, "DEMO-RUDE-006:4": 80, "DEMO-RUDE-006:5": 76,
+      "DEMO-RUDE-006:6": 88, "DEMO-RUDE-006:7": 83, "DEMO-RUDE-006:8": 79
+    };
+    const syncStatusByStudent = {
+      "DEMO-RUDE-001": "verified",
+      "DEMO-RUDE-002": "discrepancy",
+      "DEMO-RUDE-003": "verified",
+      "DEMO-RUDE-004": "missing",
+      "DEMO-RUDE-005": "pending",
+      "DEMO-RUDE-006": "pending"
+    };
+    const syncStatusLabels = {
+      verified: "Verificada",
+      discrepancy: "Diferencia",
+      missing: "Sin nota",
+      pending: "Pendiente"
+    };
+    let currentStudent = null;
+    let currentGrade = "Segundo";
+    let currentSection = "B";
+    let currentLevel = "Primaria Comunitaria Vocacional";
+    let currentTurn = "Mañana";
+    let toastTimer;
+
+    const loginView = document.getElementById("login-view");
+    const portal = document.getElementById("portal");
+    const gradeBackdrop = document.getElementById("grade-backdrop");
+    const localTestLabel = document.querySelector(".local-test-label");
+
+    document.querySelectorAll("[data-login-info]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.getElementById("login-warning").textContent = button.dataset.loginInfo + " no está conectada en esta réplica local.";
+      });
+    });
+
+    function navigate(screen) {
+      if (!screens.includes(screen)) return;
+      for (const name of screens) document.getElementById(name + "-screen").classList.toggle("hidden", name !== screen);
+      const [title, subtitle, crumbOne, crumbTwo] = titles[screen];
+      document.getElementById("page-title").textContent = title;
+      document.getElementById("page-subtitle").textContent = subtitle;
+      document.getElementById("crumb-one").textContent = crumbOne;
+      document.getElementById("crumb-two").textContent = crumbTwo;
+      document.querySelectorAll(".nav-link").forEach(link => link.classList.remove("active"));
+      if (screen === "students" || screen === "module") document.getElementById("student-nav").classList.add("active");
+    }
+
+    document.getElementById("login-form").addEventListener("submit", event => {
+      event.preventDefault();
+      document.getElementById("username").value = "";
+      document.getElementById("password").value = "";
+      loginView.classList.add("hidden");
+      portal.classList.remove("hidden");
+      localTestLabel.classList.add("hidden");
+      navigate("home");
+    });
+
+    document.getElementById("logout").addEventListener("click", () => {
+      portal.classList.add("hidden");
+      loginView.classList.remove("hidden");
+      localTestLabel.classList.remove("hidden");
+    });
+    document.getElementById("collapse-sidebar").addEventListener("click", () => document.body.classList.toggle("collapsed"));
+    document.getElementById("student-nav").addEventListener("click", () => {
+      const submenu = document.getElementById("student-submenu");
+      const open = submenu.classList.toggle("open");
+      document.getElementById("student-nav").setAttribute("aria-expanded", String(open));
+    });
+    document.querySelectorAll("[data-screen]").forEach(button => {
+      button.addEventListener("click", () => navigate(button.dataset.screen));
+    });
+    document.getElementById("options-toggle").addEventListener("click", () => document.getElementById("options-menu").classList.toggle("open"));
+    document.addEventListener("click", event => {
+      if (!event.target.closest("#options-toggle") && !event.target.closest("#options-menu")) document.getElementById("options-menu").classList.remove("open");
+      const actionButton = event.target.closest("[data-action]");
+      if (actionButton) performAction(actionButton.dataset.action, actionButton.dataset.studentIndex);
+      const levelButton = event.target.closest("[data-level]");
+      if (levelButton) {
+        currentLevel = levelButton.dataset.level;
+        document.querySelectorAll("[data-level]").forEach(node => node.classList.toggle("selected", node === levelButton));
+        document.getElementById("level-label").textContent = currentLevel;
+        showToast("Nivel seleccionado: " + currentLevel);
+      }
+      const gradeButton = event.target.closest("[data-grade]");
+      if (gradeButton) {
+        currentGrade = gradeButton.dataset.grade;
+        document.querySelectorAll("[data-grade]").forEach(node => node.classList.toggle("selected", node === gradeButton));
+        gradeButton.parentElement.appendChild(document.getElementById("section-options"));
+        document.getElementById("section-options").classList.add("open");
+        updateCourseLabel();
+        showToast("Curso seleccionado: " + currentGrade);
+      }
+      const sectionButton = event.target.closest("[data-section]");
+      if (sectionButton) {
+        currentSection = sectionButton.dataset.section;
+        document.querySelectorAll("[data-section]").forEach(node => node.classList.toggle("selected", node === sectionButton));
+        updateCourseLabel();
+      }
+      const turnButton = event.target.closest("[data-turn]");
+      if (turnButton) {
+        currentTurn = turnButton.dataset.turn;
+        showToast("Turno seleccionado: " + currentTurn);
+      }
+    });
+
+    function updateCourseLabel() {
+      document.getElementById("course-label").textContent = "▤   " + currentGrade + " - " + currentSection;
+      document.getElementById("modal-grade").textContent = currentGrade.toUpperCase();
+      document.getElementById("modal-section").textContent = currentSection;
+      document.getElementById("modal-level").textContent = currentLevel.toUpperCase();
+      document.getElementById("modal-turn").textContent = currentTurn.toUpperCase();
+    }
+
+    function renderStudents() {
+      document.getElementById("student-rows").innerHTML = students.map((student, index) =>
+        (() => {
+          const syncStatus = syncStatusByStudent[student.code] || "pending";
+          const isVerified = syncStatus === "verified";
+          const grade = gradesByStudent[student.code + ":5"];
+          return '<tr>' +
+          '<td>' + (index + 1) + '</td>' +
+          '<td>' + student.code + '</td>' +
+          '<td>' + student.ci + '</td>' +
+          '<td>' + student.paternal.toUpperCase() + '</td>' +
+          '<td>' + student.maternal.toUpperCase() + '</td>' +
+          '<td>' + student.first.toUpperCase() + '</td>' +
+          '<td>' + student.birth + '</td>' +
+          '<td><span class="status-label">EFECTIVO</span></td>' +
+          '<td><span class="segip-label">✓ Válido SEGIP</span></td>' +
+          '<td class="grade-value">' + (grade == null || grade === "" ? "—" : grade) + '</td>' +
+          '<td><span class="sync-cell sync-' + syncStatus + '"><span class="sync-check" role="checkbox" aria-checked="' + (isVerified ? 'true' : 'false') + '" aria-disabled="true" aria-label="' + (isVerified ? 'Sincronización verificada' : 'Sincronización no verificada') + '"></span><span class="sync-label">' + syncStatusLabels[syncStatus] + '</span></span></td>' +
+          '<td><div class="row-actions">' +
+            '<button class="row-action" type="button" data-action="list" title="Información del estudiante" aria-label="Información del estudiante">▣</button>' +
+            '<button class="row-action grade" type="button" data-action="grade" data-student-index="' + index + '" title="Registrar calificaciones" aria-label="Registrar calificaciones">☷</button>' +
+          '</div></td>' +
+        '</tr>';
+        })()
+      ).join("");
+    }
+
+    function renderSections() {
+      document.getElementById("section-options").innerHTML = ["A", "B"].map(section =>
+        '<div class="section-row">' +
+          '<button class="section-btn' + (section === currentSection ? ' selected' : '') + '" type="button" data-section="' + section + '">' + section + '</button>' +
+          '<button class="tree-action" type="button" data-action="list" title="Lista de inscritos" aria-label="Lista de inscritos">♧</button>' +
+          '<button class="tree-action" type="button" data-action="grades" title="Registrar calificaciones" aria-label="Registrar calificaciones">☷</button>' +
+          '<button class="tree-action blue" type="button" data-action="list" title="Información del curso" aria-label="Información del curso">⌂</button>' +
+          '<button class="tree-action" type="button" data-action="export" title="Reporte" aria-label="Reporte">▣</button>' +
+        '</div>'
+      ).join("");
+    }
+
+    function performAction(action, index) {
+      if (action === "grade") {
+        openGradeModal(Number(index));
+      } else if (action === "grades") {
+        openGradeModal(0);
+      } else if (action === "list") {
+        showToast("Lista de inscritos · " + currentGrade + " - " + currentSection);
+      } else if (action === "export") {
+        const csv = ["N°,Código Rude,C.I.,Paterno,Materno,Nombre(s),Fecha nac.,Estado", ...students.map((s, i) =>
+          [i + 1, s.code, s.ci, s.paternal, s.maternal, s.first, s.birth, "EFECTIVO"].join(",")
+        )].join("\n");
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }));
+        link.download = "lista-inscritos-demostracion.csv";
+        link.click();
+        URL.revokeObjectURL(link.href);
+        showToast("Se descargó el listado de demostración.");
+      }
+    }
+
+    function openGradeModal(index) {
+      currentStudent = students[index];
+      document.getElementById("modal-code").textContent = currentStudent.code;
+      document.getElementById("modal-student").textContent =
+        currentStudent.first.toUpperCase() + " " + currentStudent.paternal.toUpperCase() + " " + currentStudent.maternal.toUpperCase();
+      updateCourseLabel();
+      document.getElementById("marks-rows").innerHTML = subjects.map((subject, subjectIndex) => {
+        const key = currentStudent.code + ":" + subjectIndex;
+        const value = gradesByStudent[key] == null ? "" : gradesByStudent[key];
+        return '<tr><td>' + subject + '</td><td><input type="number" min="0" max="100" inputmode="numeric" aria-label="' + subject + ', primer trimestre" data-subject-index="' + subjectIndex + '" data-sie-subject-code="' + subjectCodes[subjectIndex] + '" value="' + value + '"></td></tr>';
+      }).join("");
+      gradeBackdrop.classList.remove("hidden");
+      document.querySelector("#marks-rows input")?.focus();
+    }
+
+    function closeGradeModal() { gradeBackdrop.classList.add("hidden"); }
+    document.querySelectorAll("[data-close-modal]").forEach(button => button.addEventListener("click", closeGradeModal));
+    gradeBackdrop.addEventListener("click", event => { if (event.target === gradeBackdrop) closeGradeModal(); });
+    document.addEventListener("keydown", event => { if (event.key === "Escape") closeGradeModal(); });
+    document.getElementById("save-grades").addEventListener("click", () => {
+      if (!currentStudent) return;
+      document.querySelectorAll("#marks-rows input").forEach(input => {
+        const key = currentStudent.code + ":" + input.dataset.subjectIndex;
+        gradesByStudent[key] = input.value;
+      });
+      closeGradeModal();
+      showToast("Cambios guardados en esta demostración local.");
+    });
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+    }
+
+    renderStudents();
+    renderSections();
+    updateCourseLabel();
+  </script>
+</body>
+</html>

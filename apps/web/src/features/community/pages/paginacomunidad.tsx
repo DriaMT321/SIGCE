@@ -1706,7 +1706,14 @@ function FamiliarTabla({
                       {onResetPassword && elemento.userId && (
                         <button
                           type="button"
-                          onClick={() => onResetPassword(elemento as any)}
+                          onClick={() =>
+                            onResetPassword({
+                              userId: elemento.userId!,
+                              firstName: elemento.firstName,
+                              lastName: elemento.lastName,
+                              ci: elemento.ci,
+                            })
+                          }
                           className="p-1.5 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
                           title="Restablecer / Cambiar contraseña de acceso"
                           aria-label={`Cambiar contraseña de ${elemento.firstName} ${elemento.lastName}`}

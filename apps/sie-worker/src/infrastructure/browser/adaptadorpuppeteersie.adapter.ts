@@ -23,7 +23,7 @@ export class adaptadorpuppeteersie implements puertoautomatizacionsie {
     private readonly calificacioneslocales: ReadonlyArray<calificacionesielocal> = calificacionessielocales,
     private readonly rutapaginareplicalocal = configuraciontrabajador.sie.rutapaginareplicalocal,
   ) {
-    if (this.rutapaginareplicalocal && process.env.NODE_ENV === 'production') {
+    if (this.rutapaginareplicalocal && process.env.NODE_ENV === 'production' && process.env.SIE_ALLOW_REPLICA_IN_PROD !== 'true') {
       throw new Error('La réplica HTML local no puede usarse en producción');
     }
   }
@@ -61,8 +61,8 @@ export class adaptadorpuppeteersie implements puertoautomatizacionsie {
   async procesarsincronizacioncalificacion(
     datostrabajo: trabajoprocesamientosie,
   ): Promise<resultadoprocesamientosie> {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('La comparación local de prueba solo está disponible en desarrollo');
+    if (process.env.NODE_ENV === 'production' && process.env.SIE_REAL_ACCESS_ENABLED === 'true') {
+      throw new Error('La comparación local de prueba solo está disponible en modo simulación');
     }
     await this.inicializar();
     if (!this.navegador) {
@@ -106,7 +106,26 @@ export class adaptadorpuppeteersie implements puertoautomatizacionsie {
   }
 
   private async leerreplicalocal(pagina: import('puppeteer').Page): Promise<filasielocal[]> {
-    const rutaresuelta = resolve(this.rutapaginareplicalocal!);
+    const posiblesRutas = [
+      this.rutapaginareplicalocal,
+      resolve(process.cwd(), 'fixtures/sie-replica/replica-calificaciones.html'),
+      resolve(process.cwd(), '../../fixtures/sie-replica/replica-calificaciones.html'),
+      resolve(__dirname, '../../../../fixtures/sie-replica/replica-calificaciones.html'),
+      '/home/ubuntu/sigce/fixtures/sie-replica/replica-calificaciones.html',
+    ].filter((r): r is string => Boolean(r));
+
+    let rutaresuelta: string | undefined;
+    for (const r of posiblesRutas) {
+      const absoluta = resolve(r);
+      if (existsSync(absoluta)) {
+        rutaresuelta = absoluta;
+        break;
+      }
+    }
+
+    if (!rutaresuelta) {
+      return this.leerfixturelocal(pagina);
+    }
     if (extname(rutaresuelta).toLowerCase() !== '.html' || !existsSync(rutaresuelta)) {
       throw new Error('La ruta de la réplica local debe apuntar a un archivo HTML existente');
     }
