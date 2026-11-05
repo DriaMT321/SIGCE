@@ -12,6 +12,7 @@ import {
   Plus,
   Trash2,
   X,
+  Search,
   Loader2,
   CheckCircle2,
   AlertCircle,
@@ -27,6 +28,7 @@ import {
 import { Boton } from '../../../components/ui/boton';
 import { cursoetiqueta } from '../../../lib/cursoetiqueta';
 import { materiacorrespondealgrado } from '../../../lib/materiaspornivel';
+import { autenticacionservicio } from '../../auth/services/serviciodeautenticacion';
 
 const constantedias = [
   { key: 'LUNES', label: 'Lunes' },
@@ -147,6 +149,23 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
   const [bloqueaula, establecerbloqueaula] = useState<string>('');
   const [manualerror, establecermanualerror] = useState<string | null>(null);
 
+  // Teacher search state
+  const [busquedadocente, establecerbusquedadocente] = useState('');
+  const [mostrardropdowndocente, establecermostrardropdowndocente] = useState(false);
+  const dropdowndocenteref = React.useRef<HTMLDivElement>(null);
+  const usuarioActual = autenticacionservicio.obtenerusuarioactual();
+
+  // Close teacher dropdown on outside click
+  React.useEffect(() => {
+    function manejarClicFuera(event: MouseEvent) {
+      if (dropdowndocenteref.current && !dropdowndocenteref.current.contains(event.target as Node)) {
+        establecermostrardropdowndocente(false);
+      }
+    }
+    document.addEventListener('mousedown', manejarClicFuera);
+    return () => document.removeEventListener('mousedown', manejarClicFuera);
+  }, []);
+
   // Queries
   const { data: myhorariodatos, isLoading: cargamyhorario } = useQuery({
     queryKey: ['schedules', 'my-schedule'],
@@ -162,9 +181,13 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
   const cursos = cursosdatos ?? [];
 
   React.useEffect(() => {
-    if (cursos.length > 0 && !seleccionadocursoid) {
-      const predeterminadocurso = cursos.find((c) => c.gradeLevel === 11) || cursos[0];
-      establecerseleccionadocursoid(predeterminadocurso.id);
+    if (cursos.length > 0) {
+      if (!seleccionadocursoid) {
+        const predeterminadocurso = cursos.find((c) => c.gradeLevel === 11) || cursos[0];
+        establecerseleccionadocursoid(predeterminadocurso.id);
+      } else if (!cursos.some((c) => c.id === seleccionadocursoid)) {
+        establecerseleccionadocursoid(cursos[0].id);
+      }
     }
   }, [cursos, seleccionadocursoid]);
 
@@ -177,9 +200,27 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
 
   React.useEffect(() => {
     if (docentes.length > 0 && !seleccionadodocenteid) {
-      establecerseleccionadodocenteid(docentes[0].id);
+      const docentePropio = docentes.find((d) => d.userId === usuarioActual?.id);
+      establecerseleccionadodocenteid(docentePropio ? docentePropio.id : docentes[0].id);
     }
-  }, [docentes, seleccionadodocenteid]);
+  }, [docentes, seleccionadodocenteid, usuarioActual]);
+
+  const docentesFiltrados = React.useMemo(() => {
+    if (!busquedadocente.trim()) return docentes;
+    const termino = busquedadocente
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+    return docentes.filter((d) => {
+      const nombreCompleto = `${d.firstName} ${d.lastName} ${d.specialty}`
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+      return nombreCompleto.includes(termino);
+    });
+  }, [docentes, busquedadocente]);
+
+  const docenteSeleccionado = docentes.find((t) => t.id === seleccionadodocenteid);
 
   const { data: materiasdatos } = useQuery({
     queryKey: ['subjects'],
@@ -389,18 +430,7 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
     activoturno,
   );
   const esdocentevista = !esfamiliaroestudiante && vistamodo === 'teacher';
-  const docenteperiodocantidad = activohorarios.length
-    ? Math.max(...activohorarios.map((horario) => horario.periodIndex))
-    : 6;
-  const mostrarperiodos: horarioperiodofila[] = esdocentevista
-    ? Array.from({ length: docenteperiodocantidad }, (_, indice) => ({
-        index: indice + 1,
-        start: '',
-        end: '',
-        label: `${indice + 1}º`,
-        isBreak: false,
-      }))
-    : horarioperiodos;
+  const mostrarperiodos: horarioperiodofila[] = horarioperiodos;
   const semanalcursocapacidad = diaslectivospasemana * diarioperiodocantidad;
 
   const activoestudiante = esfamiliaroestudiante ? actualhijo?.student || mydatos?.student : null;
@@ -731,19 +761,107 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
               </div>
             </div>
           ) : (
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <label className="text-sm font-medium text-slate-700 shrink-0">Docente:</label>
-              <select
-                value={seleccionadodocenteid}
-                onChange={(e) => establecerseleccionadodocenteid(e.target.value)}
-                className="flex-1 max-w-md h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
-              >
-                {docentes.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.lastName} {t.firstName} — {t.specialty}
-                  </option>
-                ))}
-              </select>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider shrink-0">
+                  Docente:
+                </label>
+                <div ref={dropdowndocenteref} className="relative flex-1 max-w-lg">
+                  <div className="relative flex items-center">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={busquedadocente}
+                      onChange={(e) => {
+                        establecerbusquedadocente(e.target.value);
+                        establecermostrardropdowndocente(true);
+                      }}
+                      onFocus={() => establecermostrardropdowndocente(true)}
+                      placeholder={
+                        docenteSeleccionado
+                          ? `${docenteSeleccionado.lastName} ${docenteSeleccionado.firstName} (${docenteSeleccionado.specialty})`
+                          : 'Escribe para buscar docente...'
+                      }
+                      className="w-full h-10 pl-9 pr-8 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all"
+                    />
+                    {busquedadocente && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          establecerbusquedadocente('');
+                          establecermostrardropdowndocente(false);
+                        }}
+                        className="absolute right-2.5 p-1 text-slate-400 hover:text-slate-600 rounded"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {mostrardropdowndocente && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto z-50 divide-y divide-slate-100">
+                      {docentesFiltrados.length === 0 ? (
+                        <div className="p-3 text-xs text-slate-500 text-center">
+                          No se encontraron docentes con ese nombre o especialidad
+                        </div>
+                      ) : (
+                        docentesFiltrados.map((t) => {
+                          const activo = t.id === seleccionadodocenteid;
+                          const esPropio = t.userId === usuarioActual?.id;
+                          return (
+                            <button
+                              key={t.id}
+                              type="button"
+                              onClick={() => {
+                                establecerseleccionadodocenteid(t.id);
+                                establecerbusquedadocente('');
+                                establecermostrardropdowndocente(false);
+                              }}
+                              className={`w-full px-3 py-2.5 text-left flex items-center justify-between gap-2 text-xs transition-colors ${
+                                activo
+                                  ? 'bg-slate-900 text-white'
+                                  : 'hover:bg-slate-50 text-slate-800'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <User className={`w-3.5 h-3.5 shrink-0 ${activo ? 'text-indigo-300' : 'text-slate-400'}`} />
+                                <div className="truncate">
+                                  <span className="font-semibold">{t.lastName} {t.firstName}</span>
+                                  <span className={`ml-2 text-[11px] ${activo ? 'text-slate-300' : 'text-slate-500'}`}>
+                                    · {t.specialty}
+                                  </span>
+                                </div>
+                              </div>
+                              {esPropio && (
+                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase shrink-0 ${
+                                  activo ? 'bg-indigo-500 text-white' : 'bg-indigo-100 text-indigo-700'
+                                }`}>
+                                  Tú
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {docenteSeleccionado && (
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-medium shadow-2xs">
+                    <User className="w-3.5 h-3.5 text-indigo-600" />
+                    <span className="font-bold">{docenteSeleccionado.lastName} {docenteSeleccionado.firstName}</span>
+                    <span className="text-indigo-600/70">· {docenteSeleccionado.specialty}</span>
+                    {docenteSeleccionado.userId === usuarioActual?.id && (
+                      <span className="ml-1 px-1.5 py-0.5 rounded bg-indigo-600 text-white text-[10px] font-bold">
+                        Mi Horario
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -910,6 +1028,23 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
 
                       {constantedias.map((dia) => {
                         const sesion = horariomatriz.get(`${dia.key}_${periodo.index}`);
+                        const pIndex = Number(periodo.index);
+                        const sesionSiguiente = horariomatriz.get(`${dia.key}_${pIndex + 1}`);
+                        const sesionAnterior = horariomatriz.get(`${dia.key}_${pIndex - 1}`);
+
+                        const esInicioBloque =
+                          Boolean(sesion) &&
+                          Boolean(sesionSiguiente) &&
+                          sesion?.subjectId === sesionSiguiente?.subjectId &&
+                          sesion?.teacherId === sesionSiguiente?.teacherId &&
+                          (pIndex === 1 || pIndex === 3 || pIndex === 5);
+
+                        const esFinBloque =
+                          Boolean(sesion) &&
+                          Boolean(sesionAnterior) &&
+                          sesion?.subjectId === sesionAnterior?.subjectId &&
+                          sesion?.teacherId === sesionAnterior?.teacherId &&
+                          (pIndex === 2 || pIndex === 4 || pIndex === 6);
 
                         if (!sesion) {
                           return (
@@ -955,7 +1090,9 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                             }`}
                           >
                             <div
-                              className={`p-2 rounded-lg border ${color.bg} ${color.border} min-h-[64px] relative group shadow-2xs`}
+                              className={`p-2 rounded-lg border ${color.bg} ${color.border} min-h-[64px] relative group shadow-2xs ${
+                                esInicioBloque ? 'border-b-dashed' : esFinBloque ? 'border-t-dashed' : ''
+                              }`}
                             >
                               <div className="flex items-center justify-between gap-1 mb-1">
                                 <span
@@ -972,16 +1109,26 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                               <div className={`font-semibold text-xs leading-tight ${color.text}`}>
                                 {sesion.subject?.name}
                               </div>
+                              {esInicioBloque && (
+                                <div className="mt-1 font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-indigo-50 border border-indigo-200 text-indigo-700">
+                                  Bloque continuo (1/2) · {periodo.start} - {horarioperiodos.find((p) => p.index === pIndex + 1)?.end || '08:50'}
+                                </div>
+                              )}
+                              {esFinBloque && (
+                                <div className="mt-1 font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600">
+                                  Bloque continuo (2/2) · {periodo.start} - {periodo.end}
+                                </div>
+                              )}
                               {esdocentevista && (
                                 <div className="mt-1 font-mono text-[10px] text-slate-500">
-                                  {sesion.startTime} - {sesion.endTime}
+                                  {periodo.start || sesion.startTime} - {periodo.end || sesion.endTime}
                                 </div>
                               )}
                               <div className="mt-1.5 pt-1 border-t border-black/5 text-[11px] text-slate-600 flex items-center justify-between">
                                 {esfamiliaroestudiante || vistamodo === 'course' ? (
-                                  <span>Prof. {sesion.teacher?.lastName}</span>
+                                  <span>Prof. {sesion.teacher?.lastName} {sesion.teacher?.firstName?.[0] ? `${sesion.teacher.firstName[0]}.` : ''}</span>
                                 ) : (
-                                  <span>{sesion.course?.name}</span>
+                                  <span className="font-semibold text-slate-700">{cursoetiqueta(sesion.course?.name || '') || 'Curso'}</span>
                                 )}
 
                                 {puedegestionar && vistamodo === 'course' && (

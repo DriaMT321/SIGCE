@@ -1,6 +1,13 @@
 import { Transform } from 'class-transformer';
 import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { genero, tiporelacion } from '@academic/shared-types';
+import { dtopaginacion } from '../../../../common/dto/paginacion.dto';
+
+export class dtofiltrosestudiante extends dtopaginacion {
+  @IsOptional()
+  @IsString()
+  courseId?: string;
+}
 
 export class dtocrearestudiante {
   @IsString()

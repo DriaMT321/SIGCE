@@ -39,8 +39,9 @@ const puerto: puertogestionhorario = {
   listardocentes: async () => {
     const respuesta = await academicoapi.listardocentes();
     return respuesta.data.map(
-      ({ id, firstName: nombres, lastName: apellidos, specialty: especialidad }) => ({
+      ({ id, userId, firstName: nombres, lastName: apellidos, specialty: especialidad }) => ({
         id,
+        userId,
         firstName: nombres,
         lastName: apellidos,
         specialty: especialidad,

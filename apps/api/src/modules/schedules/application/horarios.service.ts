@@ -38,19 +38,6 @@ export class serviciohorarios {
   }
 
   async obtenerhorariocurso(idcurso: string, usuario: actorusuario) {
-    if (usuario.role === rolusuario.TEACHER) {
-      const iddocente = await this.repositorio.buscariddocenteporusuario(usuario.id);
-      if (!iddocente) throw new errorprohibido('No tienes una asignación vigente para este curso');
-      const propio = await this.repositorio.obtenerhorariodocente(iddocente, true);
-      const asignaciones = propio.assignments.filter((asignacion) => asignacion.courseId === idcurso);
-      if (asignaciones.length === 0) throw new errorprohibido('No tienes una asignación vigente para este curso');
-      const horario = await this.repositorio.obtenerhorariocurso(idcurso);
-      return {
-        ...horario,
-        schedules: horario.schedules.filter((bloque) => bloque.teacherId === iddocente && asignaciones.some((asignacion) => asignacion.subjectId === bloque.subjectId && asignacion.academicYearId === bloque.academicYearId)),
-        teacherSubjects: horario.teacherSubjects.filter((asignacion) => asignaciones.some((propia) => propia.id === asignacion.id)),
-      };
-    }
     if (usuario.role === rolusuario.PARENT || usuario.role === rolusuario.STUDENT) {
       const [perfilestudiante, perfilfamiliar] = await Promise.all([
         this.repositorio.buscarperfilhorarioestudiante(usuario.id),
@@ -81,12 +68,6 @@ export class serviciohorarios {
   }
 
   async obtenerhorariodocente(iddocente: string, usuario: actorusuario) {
-    if (usuario.role === rolusuario.TEACHER) {
-      const iddocentepropio = await this.repositorio.buscariddocenteporusuario(usuario.id);
-      if (iddocentepropio !== iddocente) {
-        throw new errorprohibido('Solo puedes consultar tu propio horario docente');
-      }
-    }
     return this.repositorio.obtenerhorariodocente(iddocente, usuario.role === rolusuario.TEACHER);
   }
 

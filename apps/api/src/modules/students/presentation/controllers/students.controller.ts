@@ -12,7 +12,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { dtopaginacion } from '../../../../common/dto/paginacion.dto';
 import { rolusuario } from '@academic/shared-types';
 import { usuarioactual } from '../../../../common/decorators/usuarioactual.decorator';
 import { definirpermisos } from '../../../../common/decorators/permisos.decorator';
@@ -21,7 +20,12 @@ import { guardiapermisos } from '../../../../common/guards/permisos.guard';
 import { guardiaautenticacionjwt } from '../../../../common/guards/jwtautenticacion.guard';
 import { guardiaroles } from '../../../../common/guards/roles.guard';
 import { usuarioautenticado } from '@academic/shared-types';
-import { dtocrearestudiante, dtoactualizarestudiante, dtobuscarcoincidenciasestudiante } from '../dto/estudiante.dto';
+import {
+  dtocrearestudiante,
+  dtoactualizarestudiante,
+  dtobuscarcoincidenciasestudiante,
+  dtofiltrosestudiante,
+} from '../dto/estudiante.dto';
 import { dtocrearreferenciadocumentoestudiante } from '../dto/referenciadocumentoestudiante.dto';
 import {
   casousocrearestudiante,
@@ -63,12 +67,11 @@ export class StudentsController {
   @definirpermisos('students:read')
   async listar(
     @usuarioactual() usuario: usuarioautenticado,
-    @Query() filtros: dtopaginacion,
-    @Query('courseId') courseId?: string,
+    @Query() filtros: dtofiltrosestudiante,
   ) {
     const resultado = await this.listarestudiantes.ejecutar({
       search: filtros.search,
-      courseId,
+      courseId: filtros.courseId,
       parentUserId: [rolusuario.PARENT, rolusuario.STUDENT].includes(usuario.role)
         ? usuario.id
         : undefined,

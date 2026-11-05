@@ -42,21 +42,20 @@ describe('serviciohorarios', () => {
     expect(repositorio.listar).not.toHaveBeenCalled();
   });
 
-  it('prevents a teacher from requesting another teacher schedule', async () => {
+  it('permite al docente consultar el horario de otro docente en la gestión activa', async () => {
     const repositorio = {
       buscariddocenteporusuario: jest.fn().mockResolvedValue('teacher-own'),
-      obtenerhorariodocente: jest.fn(),
+      obtenerhorariodocente: jest.fn().mockResolvedValue({ schedules: [] }),
     } as unknown as repositoriohorarios;
     const servicio = new serviciohorarios(repositorio, {} as never, {} as never);
 
-    await expect(
-      servicio.obtenerhorariodocente('teacher-other', {
-        id: 'user-teacher',
-        role: rolusuario.TEACHER,
-      }),
-    ).rejects.toBeInstanceOf(errorprohibido);
+    const resultado = await servicio.obtenerhorariodocente('teacher-other', {
+      id: 'user-teacher',
+      role: rolusuario.TEACHER,
+    });
 
-    expect(repositorio.obtenerhorariodocente).not.toHaveBeenCalled();
+    expect(repositorio.obtenerhorariodocente).toHaveBeenCalledWith('teacher-other', true);
+    expect(resultado).toEqual({ schedules: [] });
   });
 
   it('limits a teacher own schedule to the active academic year', async () => {
@@ -74,10 +73,8 @@ describe('serviciohorarios', () => {
     expect(repositorio.obtenerhorariodocente).toHaveBeenCalledWith('teacher-own', true);
   });
 
-  it('permite al docente solo consultar un curso asignado y oculta materias ajenas', async () => {
+  it('permite al docente consultar el horario completo del curso institucional', async () => {
     const repositorio = {
-      buscariddocenteporusuario: jest.fn().mockResolvedValue('teacher-1'),
-      obtenerhorariodocente: jest.fn().mockResolvedValue({ assignments: [{ id: 'asig-1', courseId: 'curso-1', subjectId: 'mat-1', academicYearId: 'gestion-1' }] }),
       obtenerhorariocurso: jest.fn().mockResolvedValue({ course: { id: 'curso-1' }, schedules: [
         { teacherId: 'teacher-1', subjectId: 'mat-1', academicYearId: 'gestion-1' },
         { teacherId: 'teacher-2', subjectId: 'mat-2', academicYearId: 'gestion-1' },
@@ -85,10 +82,9 @@ describe('serviciohorarios', () => {
     } as unknown as repositoriohorarios;
     const servicio = new serviciohorarios(repositorio, {} as never, {} as never);
     const resultado = await servicio.obtenerhorariocurso('curso-1', { id: 'usuario', role: rolusuario.TEACHER });
-    expect(resultado.schedules).toHaveLength(1);
-    expect(resultado.teacherSubjects).toEqual([{ id: 'asig-1' }]);
-    await expect(servicio.obtenerhorariocurso('curso-2', { id: 'usuario', role: rolusuario.TEACHER })).rejects.toBeInstanceOf(errorprohibido);
-    expect(repositorio.obtenerhorariocurso).toHaveBeenCalledTimes(1);
+    expect(resultado.schedules).toHaveLength(2);
+    expect(resultado.teacherSubjects).toHaveLength(2);
+    expect(repositorio.obtenerhorariocurso).toHaveBeenCalledWith('curso-1');
   });
 
   it('permite a familiares únicamente los cursos de estudiantes vinculados', async () => {

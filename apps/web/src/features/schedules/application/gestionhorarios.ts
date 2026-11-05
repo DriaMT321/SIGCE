@@ -8,6 +8,7 @@ export interface horariocursoopcion {
 
 export interface horariodocenteopcion {
   id: string;
+  userId?: string;
   firstName: string;
   lastName: string;
   specialty: string;

@@ -43,8 +43,9 @@ export class controladorcursos {
   @definirroles(rolusuario.ADMINISTRATIVE, rolusuario.SECRETARY, rolusuario.TEACHER)
   @definirpermisos('courses:read')
   async listar(@Query() filtros: dtofiltroscursos, @usuarioactual() usuario: usuarioautenticado) {
+    const filtrarPorDocente = usuario.role === rolusuario.TEACHER && filtros.onlyAssigned === true;
     const resultado = await this.listarcursos.ejecutar({
-      teacherUserId: usuario.role === rolusuario.TEACHER ? usuario.id : undefined,
+      teacherUserId: filtrarPorDocente ? usuario.id : undefined,
       academicYearId: filtros.academicYearId,
       search: filtros.search,
       limit: Math.min(filtros.limit ?? 50, 100),
