@@ -115,9 +115,9 @@ async function main() {
     // Módulo Auditoría
     { name: 'audit:read', description: 'Ver bitácora de auditoría', module: 'audit' },
 
-    // Módulo Sincronización SIE
-    { name: 'sie:read', description: 'Ver estado de sincronizaciones SIE', module: 'sie-sync' },
-    { name: 'sie:execute', description: 'Ejecutar sincronización con el SIE', module: 'sie-sync' },
+    // Módulo de carga asistida SIE
+    { name: 'sie:read', description: 'Preparar notas publicadas para carga asistida', module: 'sie-sync' },
+    { name: 'sie:execute', description: 'Registrar revisión de la carga asistida', module: 'sie-sync' },
   ];
 
   console.log('  -> Insertando permisos base...');
@@ -177,7 +177,6 @@ async function main() {
       'attendance:read',
       'attendance:create',
       'attendance:update',
-      'sie:read',
       'academic-years:read',
       'periods:read',
       'subjects:read',

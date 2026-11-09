@@ -260,11 +260,13 @@ export const TableroResumenPagina: React.FC<{
               <FileSpreadsheet className="h-4 w-4" /> Reportes
             </Boton>
           </Link>
-          <Link to="/dashboard/sie-sync">
-            <Boton variant="outline" size="sm" className="gap-2">
-              <RefreshCw className="h-4 w-4" /> Estado SIE
-            </Boton>
-          </Link>
+          {['ADMINISTRATIVE', 'SECRETARY'].includes(rol ?? '') && (
+            <Link to="/dashboard/sie-sync">
+              <Boton variant="outline" size="sm" className="gap-2">
+                <RefreshCw className="h-4 w-4" /> Carga SIE
+              </Boton>
+            </Link>
+          )}
         </div>
       </div>
 

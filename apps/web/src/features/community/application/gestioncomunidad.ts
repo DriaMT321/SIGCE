@@ -93,6 +93,7 @@ export interface puertogestioncomunidad {
   listaracademicogestiones(): Promise<Array<{ id: string; year: number; name: string; isActive: boolean }>>;
   listarcursos(): Promise<Array<{ id: string; name: string; gradeLevel: number; section: string; shift?: string | null; academicYearId: string }>>;
   reemplazarmateriasdocente(payload: { courseId: string; teacherId: string; subjectIds: string[] }): Promise<{ added: number; removed: number; assignments: docenteasignacion[] }>;
+  restablecercontrasena(userId: string, password: string): Promise<void>;
 }
 
 export class gestioncomunidad {
@@ -182,6 +183,10 @@ export class gestioncomunidad {
 
   eliminarfamiliar(id: string) {
     return this.puerto.eliminarfamiliar(this.requeriridentificador(id));
+  }
+
+  restablecercontrasena(userId: string, password: string) {
+    return this.puerto.restablecercontrasena(this.requeriridentificador(userId), password);
   }
 
   private normalizaropcionalcampos<T extends object>(entrada: T): T {

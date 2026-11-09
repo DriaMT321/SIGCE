@@ -706,7 +706,11 @@ export const AsistenciaPagina = ({
 
       {/* Taking attendance daily form modal */}
       {mostrarformulario && puedeeditar && (
-        <Planillaasistenciacurso management={gestion} courses={cursos} />
+        <Planillaasistenciacurso
+          management={gestion}
+          courses={cursos}
+          isTeacher={actualrol === 'TEACHER'}
+        />
       )}
 
       {/* ========================================================================= */}

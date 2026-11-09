@@ -28,18 +28,6 @@ export enum severidadalerta {
   SUCCESS = 'SUCCESS',
 }
 
-export enum estadosincronizacionsie {
-  PENDING = 'PENDING',
-  QUEUED = 'QUEUED',
-  PROCESSING = 'PROCESSING',
-  PAUSED = 'PAUSED',
-  VERIFIED = 'VERIFIED',
-  DISCREPANCY = 'DISCREPANCY',
-  AUTH_REQUIRED = 'AUTH_REQUIRED',
-  FAILED = 'FAILED',
-  CANCELLED = 'CANCELLED',
-}
-
 export enum accionauditoria {
   CREATE = 'CREATE',
   UPDATE = 'UPDATE',

@@ -2,20 +2,19 @@
   "name": "academic-management-root",
   "version": "1.0.0",
   "private": true,
-  "description": "Sistema de Gestión Académica con Sincronización SIE",
+  "description": "Sistema de Gestión Académica con asistente de carga SIE",
   "author": "Proyecto de Grado",
   "license": "UNLICENSED",
   "scripts": {
     "postinstall": "prisma generate --schema=./prisma/schema.prisma",
     "dev:api": "pnpm --filter @academic/api start:dev",
     "dev:web": "pnpm --filter @academic/web dev",
-    "dev:worker": "pnpm --filter @academic/sie-worker dev",
-    "build": "pnpm --filter @academic/domain-kernel build && pnpm --filter @academic/shared-types build && pnpm --filter @academic/academic-domain build && pnpm --filter @academic/seguridadarchivos build && pnpm --filter @academic/api build && pnpm --filter @academic/web build && pnpm --filter @academic/sie-worker build",
+    "build": "pnpm --filter @academic/domain-kernel build && pnpm --filter @academic/shared-types build && pnpm --filter @academic/academic-domain build && pnpm --filter @academic/seguridadarchivos build && pnpm --filter @academic/api build && pnpm --filter @academic/web build && pnpm --filter @academic/sie-assistant build",
     "pretest": "pnpm --filter @academic/domain-kernel build && pnpm --filter @academic/shared-types build && pnpm --filter @academic/academic-domain build && pnpm --filter @academic/seguridadarchivos build",
     "typecheck": "pnpm --recursive exec tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "test": "pnpm exec tsx --test packages/academic-domain/src/calendarioacademico.test.ts && pnpm --filter @academic/api test && pnpm --filter @academic/sie-worker test && pnpm --filter @academic/web test:unit && pnpm exec tsx --test scripts/limitesarquitectura.api.test.ts scripts/limitesarquitectura.web.test.ts scripts/limitesarquitectura.mobile.test.ts scripts/limitesarquitectura.parser.test.ts scripts/celdaseguracsv.test.ts scripts/rutaseguradeexportacionfamiliar.test.ts scripts/credencialessie.test.ts scripts/probarseguimientointeractivo.test.ts scripts/demostrardestinobasedatos.test.ts scripts/rutaseguradirectorioprivado.test.ts scripts/datosimportacion.test.ts scripts/seleccionarcursoauditoria.test.ts",
+    "test": "pnpm exec tsx --test packages/academic-domain/src/calendarioacademico.test.ts packages/academic-domain/src/fechanacimiento.test.ts && pnpm --filter @academic/api test && pnpm --filter @academic/web test:unit && pnpm exec tsx --test scripts/limitesarquitectura.api.test.ts scripts/limitesarquitectura.web.test.ts scripts/limitesarquitectura.mobile.test.ts scripts/limitesarquitectura.parser.test.ts scripts/celdaseguracsv.test.ts scripts/rutaseguradeexportacionfamiliar.test.ts scripts/demostrardestinobasedatos.test.ts scripts/rutaseguradirectorioprivado.test.ts scripts/datosimportacion.test.ts",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css,scss}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,css,scss}\"",
     "docker:up": "docker compose up -d",
@@ -34,9 +33,7 @@
     "db:restore": "tsx ./scripts/restaurarbasedatos.ts",
     "db:inject": "tsx ./scripts/inyectardatosextraidos.ts",
     "db:rollback": "tsx ./scripts/revertirdatosextraidos.ts",
-    "test:logins": "tsx ./scripts/probaraccesoscompletos.ts",
-    "sie:tracking": "tsx ./scripts/seguimientosie.ts",
-    "sie:compare": "tsx ./scripts/compararcalificacionessie.ts"
+    "test:logins": "tsx ./scripts/probaraccesoscompletos.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -58,8 +55,7 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
-    "@prisma/client": "^6.4.1",
-    "puppeteer": "^24.4.0"
+    "@prisma/client": "^6.4.1"
   },
   "packageManager": "pnpm@10.27.0"
 }

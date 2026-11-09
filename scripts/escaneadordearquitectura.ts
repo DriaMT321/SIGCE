@@ -30,7 +30,6 @@ if (apiconfiguracion.errors.length > 0) {
   );
 }
 const apiOpcionescompilador = apiconfiguracion.options;
-export const workerRoot = path.join(root, 'apps', 'sie-worker', 'src');
 export const mobileLibRoot = path.join(root, 'mobile', 'lib');
 export const mobileFeaturesRoot = path.join(root, 'mobile', 'lib', 'features');
 export const webSourceRoot = path.join(root, 'apps', 'web', 'src');

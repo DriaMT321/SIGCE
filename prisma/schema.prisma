@@ -159,6 +159,20 @@ enum AssignmentStatus {
   CANCELADO
 }
 
+enum AcademicEventType {
+  ACTIVIDAD
+  REUNION
+  ACTO_ESCOLAR
+  SUSPENSION_CLASES
+  OTRO
+}
+
+enum AcademicEventStatus {
+  PROGRAMADO
+  CANCELADO
+  REALIZADO
+}
+
 // ==============================================================================
 // AUTENTICACIÓN Y USUARIOS
 // ==============================================================================
@@ -196,6 +210,7 @@ model User {
   assignedSieDiscrepancyGroups SieDiscrepancyGroup[]      @relation("SieDiscrepancyAssignee")
   resolvedSieDiscrepancyGroups SieDiscrepancyGroup[]      @relation("SieDiscrepancyGroupResolver")
   createdStudentDocuments      StudentDocumentReference[] @relation("StudentDocumentCreator")
+  createdAcademicEvents        AcademicEvent[]            @relation("AcademicEventCreator")
 
   @@index([email])
   @@index([role])
@@ -212,7 +227,7 @@ model RefreshToken {
   createdAt DateTime  @default(now()) @map("created_at")
   sessionId String?   @map("session_id")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   session AuthSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -281,15 +296,15 @@ model Student {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  user                User?                      @relation(fields: [userId], references: [id], onDelete: SetNull)
-  enrollments         Enrollment[]
-  studentParents      StudentParent[]
-  grades              Grade[]
-  attendances         Attendance[]
-  alertEvaluationJobs AlertEvaluationOutbox[]
-  syncItems           SieSynchronizationItem[]
-  documentReferences  StudentDocumentReference[]
-  alerts              Alert[]
+  user                  User?                      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  enrollments           Enrollment[]
+  studentParents        StudentParent[]
+  grades                Grade[]
+  attendances           Attendance[]
+  alertEvaluationJobs   AlertEvaluationOutbox[]
+  syncItems             SieSynchronizationItem[]
+  documentReferences    StudentDocumentReference[]
+  alerts                Alert[]
   assignmentSubmissions AssignmentSubmission[]
 
   @@index([rude])
@@ -450,6 +465,7 @@ model Course {
   curriculumTopics     CurriculumTopic[]
   assignments          Assignment[]
   announcements        Announcement[]
+  academicEvents       AcademicEvent[]
   sieDiscrepancyGroups SieDiscrepancyGroup[]
 
   @@unique([academicYearId, gradeLevel, section, shift])
@@ -569,9 +585,9 @@ model Assignment {
   subjectId String @map("subject_id")
   teacherId String @map("teacher_id")
 
-  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  course      Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subject     Subject                @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher     Teacher                @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   submissions AssignmentSubmission[]
 
   createdAt DateTime  @default(now()) @map("created_at")
@@ -585,13 +601,12 @@ model Assignment {
   @@map("assignments")
 }
 
-
 model AssignmentSubmission {
   id           String    @id @default(uuid())
   assignmentId String    @map("assignment_id")
   studentId    String    @map("student_id")
-  score        Float?    // Nota asignada sobre maxScore
-  feedback     String?   // Comentario u observación opcional del docente
+  score        Float? // Nota asignada sobre maxScore
+  feedback     String? // Comentario u observación opcional del docente
   status       String    @default("PENDIENTE") @map("status") // PENDIENTE, ENTREGADO, CALIFICADO
   gradedAt     DateTime? @map("graded_at")
   gradedById   String?   @map("graded_by_id")
@@ -608,7 +623,6 @@ model AssignmentSubmission {
   @@index([studentId])
   @@map("assignment_submissions")
 }
-
 
 // ==============================================================================
 // MATRÍCULA Y ASIGNACIONES
@@ -642,17 +656,17 @@ model Enrollment {
 // ==============================================================================
 
 model Grade {
-  id           String   @id @default(uuid())
-  enrollmentId String   @map("enrollment_id")
-  studentId    String   @map("student_id")
-  subjectId    String   @map("subject_id")
-  periodId     String   @map("period_id")
-  value        Float // Calificación numérica 1..100
-  remarks      String?
-  publishedAt  DateTime? @map("published_at")
-  publishedById String?  @map("published_by_id")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id            String    @id @default(uuid())
+  enrollmentId  String    @map("enrollment_id")
+  studentId     String    @map("student_id")
+  subjectId     String    @map("subject_id")
+  periodId      String    @map("period_id")
+  value         Float // Calificación numérica 1..100
+  remarks       String?
+  publishedAt   DateTime? @map("published_at")
+  publishedById String?   @map("published_by_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
   enrollment         Enrollment               @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   student            Student                  @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -799,6 +813,31 @@ model Announcement {
   @@index([targetParentId])
   @@index([targetTeacherId])
   @@map("announcements")
+}
+
+model AcademicEvent {
+  id             String              @id @default(uuid())
+  title          String
+  description    String?
+  type           AcademicEventType   @default(ACTIVIDAD)
+  startsAt       DateTime            @map("starts_at")
+  endsAt         DateTime            @map("ends_at")
+  allDay         Boolean             @default(false) @map("all_day")
+  location       String?
+  status         AcademicEventStatus @default(PROGRAMADO)
+  targetCourseId String?             @map("target_course_id")
+  createdById    String              @map("created_by_id")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  targetCourse Course? @relation(fields: [targetCourseId], references: [id], onDelete: SetNull)
+  createdBy    User    @relation("AcademicEventCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([startsAt, endsAt])
+  @@index([targetCourseId, startsAt])
+  @@index([status, startsAt])
+  @@index([createdById])
+  @@map("academic_events")
 }
 
 model AuditLog {

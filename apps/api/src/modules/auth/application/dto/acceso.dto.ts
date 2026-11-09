@@ -3,6 +3,7 @@ export enum roliniciosesion {
   TEACHER = 'TEACHER',
   FAMILY = 'FAMILY',
   ADMINISTRATIVE = 'ADMINISTRATIVE',
+  SECRETARY = 'SECRETARY',
 }
 
 export class dtoiniciosesion {

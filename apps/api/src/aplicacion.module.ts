@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { resolve } from 'node:path';
 import configuracionAplicacion from './config/configuracion';
 import { moduloprisma } from './common/database/prisma.module';
-import { modulocolas } from './common/queue/cola.module';
 import { modulowebsocket } from './common/websocket/websocket.module';
 import { moduloeventosaplicacion } from './core/infrastructure/nest/eventosaplicacion.module';
 import { modulocontextocorrelacion } from './core/infrastructure/nest/contextocorrelacion.module';
@@ -29,6 +28,7 @@ import { modulohorarios } from './modules/schedules/horarios.module';
 import { modulocurriculo } from './modules/curriculum/curriculo.module';
 import { modulotareas } from './modules/assignments/tareas.module';
 import { moduloanuncios } from './modules/announcements/anuncios.module';
+import { moduloeventosacademicos } from './modules/academic-events/eventosacademicos.module';
 
 @Module({
   imports: [
@@ -41,7 +41,6 @@ import { moduloanuncios } from './modules/announcements/anuncios.module';
 
     // Infraestructura transversal
     moduloprisma,
-    modulocolas,
     modulowebsocket,
     moduloeventosaplicacion,
     modulocontextocorrelacion,
@@ -67,6 +66,7 @@ import { moduloanuncios } from './modules/announcements/anuncios.module';
     modulocurriculo,
     modulotareas,
     moduloanuncios,
+    moduloeventosacademicos,
   ],
 })
 export class moduloaplicacion {}

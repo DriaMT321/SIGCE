@@ -1,12 +1,5 @@
 import { z } from 'zod';
 import { clienteapi } from './clienteapi';
-import {
-  siesincronizacionlistarrespuestaesquema,
-  siesincronizacionvistapreviarespuestaesquema,
-  siesincronizaciondisparadorrespuestaesquema,
-  siesincronizacionesquema,
-  type siesincronizacionlistarfiltros,
-} from '../features/sie-sync/application/esquemasincronizacionsie';
 import type { administradousuarioregistro } from '../features/users/application/gestionusuarios';
 import type {
   creardocenteentrada,
@@ -23,6 +16,10 @@ import type {
 import type { crearcalificacionentrada } from '../features/grades/application/gestioncalificaciones';
 import type { registroasistenciaentrada } from '../features/attendance/application/gestionasistencia';
 import type { crearasignacionentrada } from '../features/assignments/application/gestionasignacion';
+import type {
+  actualizacionentradaeventoacademico,
+  crearentradaeventoacademico,
+} from '../features/academic-events/application/gestioneventosacademicos';
 
 import {
   estudianteesquema,
@@ -56,6 +53,26 @@ import type {
   myhorariodatos,
 } from './esquemasapiacademica';
 export * from './esquemasapiacademica';
+
+const eventoacademicoesquema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string().nullable(),
+  type: z.enum(['ACTIVIDAD', 'REUNION', 'ACTO_ESCOLAR', 'SUSPENSION_CLASES', 'OTRO']),
+  startsAt: z.string(),
+  endsAt: z.string(),
+  allDay: z.boolean(),
+  location: z.string().nullable(),
+  status: z.enum(['PROGRAMADO', 'CANCELADO', 'REALIZADO']),
+  targetCourseId: z.string().nullable(),
+  createdById: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  targetCourse: z
+    .object({ id: z.string(), name: z.string(), gradeLevel: z.number(), section: z.string() })
+    .nullable(),
+  createdBy: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }),
+});
 
 export const academicoapi = {
   async buscarcoincidenciasestudiante(datos: { rude?: string; ci?: string }) {
@@ -540,100 +557,6 @@ export const academicoapi = {
       })
       .parse(respuesta.data);
   },
-  async listarsiesincronizaciones(filtros: siesincronizacionlistarfiltros = {}) {
-    const respuesta = await clienteapi.get('/sie-sync', { params: { limit: 20, ...filtros } });
-    return siesincronizacionlistarrespuestaesquema.parse(respuesta.data);
-  },
-  async vistapreviasiesincronizacion(filtros: {
-    academicYearId: string;
-    periodNumber: number;
-    courseId?: string;
-    subjectId?: string;
-  }) {
-    const respuesta = await clienteapi.post('/sie-sync/preview', filtros);
-    return siesincronizacionvistapreviarespuestaesquema.parse(respuesta.data).data;
-  },
-  async disparadorsiesincronizacion(entrada: {
-    academicYearId: string;
-    periodNumber: number;
-    courseId?: string;
-    subjectId?: string;
-    confirmSend: true;
-    expectedFingerprint: string;
-    expectedGradeCount: number;
-    idempotencyKey: string;
-  }) {
-    const { idempotencyKey, ...datos } = entrada;
-    const respuesta = await clienteapi.post('/sie-sync/trigger', datos, {
-      headers: { 'Idempotency-Key': idempotencyKey },
-    });
-    return siesincronizaciondisparadorrespuestaesquema.parse(respuesta.data).data;
-  },
-  async resolversiediscrepancia(
-    elementoid: string,
-    datos: {
-      decision: 'KEEP_SIGCE' | 'KEEP_SIE_AS_REFERENCE';
-      reason: string;
-    },
-  ) {
-    const respuesta = await clienteapi.patch(
-      `/sie-sync/items/${elementoid}/resolve-discrepancy`,
-      datos,
-    );
-    return respuesta.data;
-  },
-  async resolversiediscrepanciagrupo(
-    grupoid: string,
-    datos: {
-      decision: 'KEEP_SIGCE' | 'KEEP_SIE_AS_REFERENCE';
-      reason: string;
-    },
-  ) {
-    const respuesta = await clienteapi.patch(
-      `/sie-sync/groups/${grupoid}/resolve-discrepancy`,
-      datos,
-    );
-    return z
-      .object({
-        statusCode: z.number(),
-        message: z.string(),
-        data: z.object({ groupId: z.string(), resolvedItemCount: z.number().int().nonnegative() }),
-      })
-      .parse(respuesta.data).data;
-  },
-  async reintentarsiesincronizacionelemento(elementoid: string, datos: { reason: string }) {
-    const respuesta = await clienteapi.post(`/sie-sync/items/${elementoid}/retry`, datos);
-    return z
-      .object({
-        statusCode: z.number(),
-        message: z.string(),
-        data: z.object({
-          synchronizationId: z.string(),
-          itemId: z.string(),
-          jobId: z.string().nullable(),
-        }),
-      })
-      .parse(respuesta.data).data;
-  },
-  async reanudarsiesincronizacion(id: string, datos: { reason: string }) {
-    const respuesta = await clienteapi.post(`/sie-sync/synchronizations/${id}/resume`, datos);
-    return z
-      .object({
-        statusCode: z.number(),
-        message: z.string(),
-        data: z.object({
-          synchronizationId: z.string(),
-          jobIds: z.array(z.string()),
-          status: z.literal('QUEUED'),
-        }),
-      })
-      .parse(respuesta.data).data;
-  },
-  async obtenersiesincronizacion(id: string) {
-    const respuesta = await clienteapi.get(`/sie-sync/status/${id}`);
-    return siesincronizacionesquema.parse(respuesta.data.data);
-  },
-
   // Horarios de Clases
   async listarhorarios(parametros?: { courseId?: string; teacherId?: string; dayOfWeek?: string }) {
     const respuesta = await clienteapi.get('/schedules', { params: parametros });
@@ -790,6 +713,26 @@ export const academicoapi = {
   ) {
     const respuesta = await clienteapi.post(`/assignments/${id}/grades`, { grades: calificaciones });
     return respuesta.data as { statusCode: number; message: string };
+  },
+
+  // Calendario académico
+  async listareventosacademicos(desde: string, hasta: string) {
+    const respuesta = await clienteapi.get('/academic-events', {
+      params: { from: desde, to: hasta },
+    });
+    return listarrespuesta(eventoacademicoesquema).parse(respuesta.data).data;
+  },
+  async creareventoacademico(datos: crearentradaeventoacademico) {
+    const respuesta = await clienteapi.post('/academic-events', datos);
+    return datosrespuesta(eventoacademicoesquema).parse(respuesta.data).data;
+  },
+  async actualizareventoacademico(id: string, datos: actualizacionentradaeventoacademico) {
+    const respuesta = await clienteapi.patch(`/academic-events/${id}`, datos);
+    return datosrespuesta(eventoacademicoesquema).parse(respuesta.data).data;
+  },
+  async cancelareventoacademico(id: string) {
+    const respuesta = await clienteapi.delete(`/academic-events/${id}`);
+    return datosrespuesta(eventoacademicoesquema).parse(respuesta.data).data;
   },
 
   // Horarios - Edición Manual y Generación Automática

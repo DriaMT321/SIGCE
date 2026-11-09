@@ -70,6 +70,11 @@ export class adaptadoremisiontokensjwt implements emisortokenspuerto {
       jwtid: randomUUID(),
     });
 
+    const accessclaims = this.jwtservicio.decode(accesotoken) as { exp?: number } | null;
+    if (!accessclaims?.exp)
+      throw new Error('El access token no contiene una fecha de expiración');
+    const accessvenceen = new Date(accessclaims.exp * 1000);
+
     const refreshclaims = this.jwtservicio.decode(tokenrenovacion) as { exp?: number } | null;
     if (!refreshclaims?.exp)
       throw new Error('El refresh token no contiene una fecha de expiración');
@@ -78,6 +83,7 @@ export class adaptadoremisiontokensjwt implements emisortokenspuerto {
     return {
       sessionId,
       accessToken: accesotoken,
+      accessExpiresAt: accessvenceen,
       refreshToken: tokenrenovacion,
       refreshExpiresAt: refreshvenceen,
     };

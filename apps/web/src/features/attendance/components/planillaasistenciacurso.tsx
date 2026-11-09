@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, CheckCircle2, ChevronDown, Loader2, Sparkles, Users } from 'lucide-react';
 import { Boton } from '../../../components/ui/boton';
 import { cursoetiqueta } from '../../../lib/cursoetiqueta';
-import { autenticacionservicio } from '../../auth/services/serviciodeautenticacion';
 import type {
   asistenciaestado,
   asistenciacursoopcion,
@@ -40,13 +39,14 @@ function fechaactual(): string {
 export function Planillaasistenciacurso({
   management: gestion,
   courses: cursos,
+  isTeacher = false,
 }: {
   management: gestionasistencia;
   courses: asistenciacursoopcion[];
+  isTeacher?: boolean;
 }) {
   const clientedeconsultas = useQueryClient();
-  const usuarioActual = autenticacionservicio.obtenerusuarioactual();
-  const esDocente = usuarioActual?.role === 'TEACHER';
+  const esDocente = isTeacher;
 
   const [cursoid, establecercursoid] = useState('');
   const [fecha, establecerfecha] = useState(fechaactual);

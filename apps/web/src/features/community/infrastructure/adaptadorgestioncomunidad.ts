@@ -163,6 +163,9 @@ const puerto: puertogestioncomunidad = {
       })),
     };
   },
+  restablecercontrasena: async (userId, password) => {
+    await academicoapi.restablecerusuariocontrasena(userId, password);
+  },
 };
 
 export const instanciagestioncomunidad = new gestioncomunidad(puerto);

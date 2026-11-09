@@ -6,6 +6,7 @@ export const tokenemisortokenautenticacion = Symbol('AUTH_TOKEN_ISSUER');
 export interface partokens {
   sessionId: string;
   accessToken: string;
+  accessExpiresAt: Date;
   refreshToken: string;
   refreshExpiresAt: Date;
 }

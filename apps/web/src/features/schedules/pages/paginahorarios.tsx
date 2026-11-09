@@ -28,7 +28,6 @@ import {
 import { Boton } from '../../../components/ui/boton';
 import { cursoetiqueta } from '../../../lib/cursoetiqueta';
 import { materiacorrespondealgrado } from '../../../lib/materiaspornivel';
-import { autenticacionservicio } from '../../auth/services/serviciodeautenticacion';
 
 const constantedias = [
   { key: 'LUNES', label: 'Lunes' },
@@ -103,6 +102,7 @@ const constantemateriacolores: Record<string, { bg: string; text: string; border
 interface horariospaginapropiedades {
   management: gestionhorario;
   currentRole?: string;
+  currentUserId?: string;
 }
 
 function normalizarespecialidad(valor: string): string {
@@ -112,6 +112,7 @@ function normalizarespecialidad(valor: string): string {
 export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
   management: gestion,
   currentRole: actualrol = '',
+  currentUserId,
 }) => {
   const clientedeconsultas = useQueryClient();
   const esfamiliaroestudiante = actualrol === 'PARENT' || actualrol === 'STUDENT';
@@ -153,7 +154,10 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
   const [busquedadocente, establecerbusquedadocente] = useState('');
   const [mostrardropdowndocente, establecermostrardropdowndocente] = useState(false);
   const dropdowndocenteref = React.useRef<HTMLDivElement>(null);
-  const usuarioActual = autenticacionservicio.obtenerusuarioactual();
+  const usuarioActual = React.useMemo(
+    () => (currentUserId ? { id: currentUserId } : null),
+    [currentUserId],
+  );
 
   // Close teacher dropdown on outside click
   React.useEffect(() => {

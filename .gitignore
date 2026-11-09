@@ -8,6 +8,8 @@ dist/
 build/
 out/
 .next/
+**/.output/
+**/.wxt/
 
 # Environment files
 .env

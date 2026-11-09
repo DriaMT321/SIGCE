@@ -22,8 +22,9 @@ const etiquetasentidad: Record<string, string> = {
   Student: 'Estudiante', Parent: 'Familiar', Teacher: 'Docente', Enrollment: 'Matrícula',
   Grade: 'Calificación', Attendance: 'Asistencia', ClassSchedule: 'Horario', TeacherSubject: 'Asignación de materia',
   Course: 'Curso', Subject: 'Materia', Assignment: 'Tarea o evaluación', Announcement: 'Comunicado',
-  Alert: 'Alerta', User: 'Cuenta de usuario', SieSynchronization: 'Sincronización SIE',
-  SieSynchronizationItem: 'Registro de sincronización SIE', StudentDocumentReference: 'Documento del estudiante',
+  Alert: 'Alerta', User: 'Cuenta de usuario', SieSynchronization: 'Sincronización SIE anterior',
+  SieSynchronizationItem: 'Registro SIE anterior', SieAssistedEntrySummary: 'Carga asistida SIE',
+  StudentDocumentReference: 'Documento del estudiante',
 };
 
 const etiquetascampo: Record<string, string> = {

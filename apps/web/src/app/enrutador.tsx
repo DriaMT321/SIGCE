@@ -70,6 +70,11 @@ const AsignacionesPagina = lazy(() =>
     default: modulo.asignacionesruta,
   })),
 );
+const EventosAcademicosPagina = lazy(() =>
+  import('./composition/eventosacademicosruta').then((modulo) => ({
+    default: modulo.eventosacademicosruta,
+  })),
+);
 const ComunidadRuta = lazy(() =>
   import('./composition/comunidadruta').then((modulo) => ({
     default: modulo.ComunidadRuta,
@@ -139,6 +144,10 @@ export const enrutador = createBrowserRouter([
       {
         path: 'assignments',
         element: <AsignacionesPagina />,
+      },
+      {
+        path: 'academic-events',
+        element: <EventosAcademicosPagina />,
       },
       {
         path: 'enrollments',

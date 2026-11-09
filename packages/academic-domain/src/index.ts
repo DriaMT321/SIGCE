@@ -21,3 +21,9 @@ export type {
   franjaperiodopedagogico,
   niveleducativoregular,
 } from './calendarioacademico';
+export {
+  edadmaximaestudianteregular,
+  edadminimaestudianteregular,
+  obtenererrorfechanacimientoestudiante,
+  obtenerfechahoybolivia,
+} from './fechanacimiento';

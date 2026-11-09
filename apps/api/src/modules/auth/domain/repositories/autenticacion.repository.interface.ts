@@ -45,6 +45,7 @@ export interface repositorioautenticacion {
     identificadorsecundario?: string,
   ): Promise<usuarioautenticacion | null>;
   creartokenrenovacion(token: nuevotokenrenovacion): Promise<void>;
+  crearsesionacceso(sesion: { userId: string; sessionId: string; expiresAt: Date }): Promise<void>;
   buscartokenrenovacion(resumentoken: string): Promise<tokenrenovacionalmacenado | null>;
   rotartokenrenovacion(rotacion: rotaciontokenrenovacion): Promise<boolean>;
   revocartokenrenovacion(resumentoken: string, fecharevocacion: Date): Promise<void>;

@@ -1,0 +1,30 @@
+{
+  "name": "@academic/sie-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt -b chrome",
+    "build": "wxt build -b chrome",
+    "typecheck": "wxt prepare && tsc --noEmit",
+    "test": "jest --runInBand",
+    "demo": "vite demo --host localhost --port 4174 --strictPort"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "@types/jest": "^29.5.14",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@wxt-dev/module-react": "^1.2.2",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "ts-jest": "^29.2.6",
+    "typescript": "^5.7.3",
+    "vite": "^6.4.1",
+    "wxt": "^0.21.5"
+  }
+}

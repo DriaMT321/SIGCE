@@ -18,7 +18,6 @@ import {
   Unlink,
   KeyRound,
 } from 'lucide-react';
-import { academicoapi } from '../../../lib/apiacademica';
 import { Boton } from '../../../components/ui/boton';
 import { Entrada } from '../../../components/ui/entrada';
 import type {
@@ -123,7 +122,7 @@ export function ComunidadPagina({
 
   const restablecercontrasenamutacion = useMutation({
     mutationFn: async ({ userId, password }: { userId: string; password: string }) => {
-      return academicoapi.restablecerusuariocontrasena(userId, password);
+      return gestion.restablecercontrasena(userId, password);
     },
     onSuccess: () => {
       establecerrestablecerexito(

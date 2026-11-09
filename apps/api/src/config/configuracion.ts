@@ -19,14 +19,9 @@ export interface configuracionaplicacion {
     refreshExpiration: string;
   };
   corsOrigins: string[];
+  extensionOrigin: string | null;
   trustedProxyIps: string[];
   webCookieSameSite: 'lax' | 'strict' | 'none';
-  sie: {
-    baseUrl: string;
-    headless: boolean;
-    timeoutMs: number;
-    realAuditEnabled: boolean;
-  };
 }
 
 function exigirVariableEntorno(nombre: string): string {
@@ -87,6 +82,10 @@ export default (): configuracionaplicacion => {
     })
   ) {
     throw new Error('CORS_ORIGINS must contain exact valid origins without paths or wildcards');
+  }
+  const extensionOrigin = process.env.SIGCE_EXTENSION_ORIGIN?.trim() || null;
+  if (extensionOrigin && !/^chrome-extension:\/\/[a-p]{32}$/.test(extensionOrigin)) {
+    throw new Error('SIGCE_EXTENSION_ORIGIN debe ser el origen exacto de una extensión de Chrome');
   }
 
   const mismoSitioCookieWeb = (process.env.WEB_COOKIE_SAME_SITE || 'lax').toLowerCase();
@@ -183,19 +182,8 @@ export default (): configuracionaplicacion => {
     corsOrigins: origenesConfigurados?.length
       ? origenesConfigurados
       : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+    extensionOrigin,
     trustedProxyIps: proxiesconfiables,
     webCookieSameSite: mismoSitioCookieWeb as configuracionaplicacion['webCookieSameSite'],
-    sie: {
-      baseUrl: process.env.SIE_BASE_URL || '',
-      headless: process.env.SIE_HEADLESS !== 'false',
-      timeoutMs: leerEnteroEntorno(
-        'SIE_SYNC_TIMEOUT_MS',
-        process.env.SIE_SYNC_TIMEOUT_MS,
-        30000,
-        1000,
-        300000,
-      ),
-      realAuditEnabled: process.env.SIE_REAL_AUDIT_ENABLED === 'true',
-    },
   };
 };

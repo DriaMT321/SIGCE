@@ -3,10 +3,12 @@ import { instanciagestionhorarios } from '../../features/schedules/infrastructur
 import { HorariosPagina } from '../../features/schedules/pages/paginahorarios';
 
 export function horariosruta() {
+  const usuario = autenticacionservicio.obtenerusuarioactual();
   return (
     <HorariosPagina
       management={instanciagestionhorarios}
-      currentRole={autenticacionservicio.obtenerusuarioactual()?.role}
+      currentRole={usuario?.role}
+      currentUserId={usuario?.id}
     />
   );
 }

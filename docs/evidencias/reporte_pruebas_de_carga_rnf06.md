@@ -1,4 +1,6 @@
 # Reporte Formal de Pruebas de Carga y Rendimiento (RNF-06)
+
+> **Evidencia histórica.** Las mediciones de este informe corresponden a la ejecución indicada abajo. Las referencias al antiguo trabajador SIE y a BullMQ no describen la arquitectura actual de carga asistida.
 **Sistema Institucional de Gestión y Control Escolar (SIGCE)**  
 *Fecha de Ejecución:* 2026-11-02T23:09:59.394Z  
 *Norma de Referencia:* ISO/IEC 25010:2023 - Eficiencia de Desempeño  

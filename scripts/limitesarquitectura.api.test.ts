@@ -5,7 +5,6 @@ import { test } from 'node:test';
 import {
   root,
   apiModulesRoot,
-  workerRoot,
   sourceFiles,
   importsFrom,
   hasUnsafeModuleLoader,
@@ -149,8 +148,8 @@ test('API presentation does not import infrastructure and HTTP validation stays 
   assert.deepEqual(violations, []);
 });
 
-test('API and worker adapter ports belong to application, not domain', async () => {
-  const files = [...(await sourceFiles(apiModulesRoot)), ...(await sourceFiles(workerRoot))];
+test('API adapter ports belong to application, not domain', async () => {
+  const files = await sourceFiles(apiModulesRoot);
   const domainPorts = files.filter(({ file }) => {
     const relative = path.relative(root, file).split(path.sep);
     const domainIndex = relative.indexOf('domain');
@@ -255,44 +254,7 @@ test('local database and cache ports bind to loopback only', async () => {
   assert.match(compose, /127\.0\.0\.1:\$\{REDIS_PORT:-6379\}:6379/);
 });
 
-test('worker domain and application do not depend on infrastructure libraries or adapters', async () => {
-  const files = await sourceFiles(workerRoot);
-  const violations: string[] = [];
-
-  for (const { file, source } of files) {
-    const relative = path.relative(workerRoot, file).split(path.sep);
-    const layer = relative.find((segment) =>
-      ['application', 'domain', 'infrastructure'].includes(segment),
-    );
-    if (!['application', 'domain'].includes(layer ?? '')) continue;
-    if (hasUnsafeModuleLoader(source)) {
-      violations.push(`${path.relative(root, file)} ${layer} uses an untraceable module loader`);
-    }
-
-    for (const { specifier } of importsFrom(source)) {
-      if (['domain', 'application'].includes(layer) && isTransportContractPackage(specifier)) {
-        violations.push(
-          `${path.relative(root, file)} ${layer} imports transport contracts from ${specifier}`,
-        );
-      }
-      if (isForbiddenApplicationPackage(specifier)) {
-        violations.push(`${path.relative(root, file)} imports forbidden package ${specifier}`);
-      }
-      if (
-        specifier.startsWith('.') &&
-        path.resolve(path.dirname(file), specifier).split(path.sep).includes('infrastructure')
-      ) {
-        violations.push(
-          `${path.relative(root, file)} ${layer} imports infrastructure via ${specifier}`,
-        );
-      }
-    }
-  }
-
-  assert.deepEqual(violations, []);
-});
-
-test('API and worker inner layers reject framework and infrastructure package subpaths', () => {
+test('API inner layers reject framework and infrastructure package subpaths', () => {
   for (const specifier of [
     '@nestjs/common',
     '@nestjs/common/interfaces',

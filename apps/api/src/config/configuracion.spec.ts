@@ -15,8 +15,7 @@ describe('configuración de seguridad', () => {
     delete process.env.REDIS_PASSWORD;
     delete process.env.REDIS_HOST;
     delete process.env.WEB_COOKIE_SAME_SITE;
-    delete process.env.SIE_REAL_AUDIT_ENABLED;
-    delete process.env.SIE_SYNC_TIMEOUT_MS;
+    delete process.env.SIGCE_EXTENSION_ORIGIN;
   });
 
   afterAll(() => {
@@ -41,10 +40,12 @@ describe('configuración de seguridad', () => {
     expect(() => configuracionAplicacion()).toThrow('TRUSTED_PROXY_IPS debe contener');
   });
 
-  it('mantiene deshabilitada la auditoría real del SIE por defecto', () => {
-    expect(configuracionAplicacion().sie.realAuditEnabled).toBe(false);
-    process.env.SIE_REAL_AUDIT_ENABLED = 'true';
-    expect(configuracionAplicacion().sie.realAuditEnabled).toBe(true);
+  it('acepta solo el origen exacto de una extensión de Chrome', () => {
+    expect(configuracionAplicacion().extensionOrigin).toBeNull();
+    process.env.SIGCE_EXTENSION_ORIGIN = `chrome-extension://${'a'.repeat(32)}`;
+    expect(configuracionAplicacion().extensionOrigin).toBe(process.env.SIGCE_EXTENSION_ORIGIN);
+    process.env.SIGCE_EXTENSION_ORIGIN = 'chrome-extension://*';
+    expect(() => configuracionAplicacion()).toThrow('SIGCE_EXTENSION_ORIGIN');
   });
 
   it('exige orígenes HTTPS exactos al ejecutar en producción', () => {
@@ -82,7 +83,7 @@ describe('configuración de seguridad', () => {
     );
   });
 
-  it('rechaza puertos y tiempos de espera que no sean enteros dentro de rango', () => {
+  it('rechaza puertos que no sean enteros dentro de rango', () => {
     process.env.PORT = '3000x';
     expect(() => configuracionAplicacion()).toThrow('PORT/API_PORT debe ser un número entero');
 
@@ -93,10 +94,7 @@ describe('configuración de seguridad', () => {
     );
 
     delete process.env.REDIS_PORT;
-    process.env.SIE_SYNC_TIMEOUT_MS = 'NaN';
-    expect(() => configuracionAplicacion()).toThrow(
-      'SIE_SYNC_TIMEOUT_MS debe ser un número entero',
-    );
+
   });
 
   it('activa TLS cuando REDIS_URL usa rediss', () => {

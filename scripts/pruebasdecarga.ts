@@ -196,12 +196,9 @@ ${resumenes
 
 ---
 
-## 3. Justificación de Aislamiento del Proceso SIE
+## 3. Alcance de las mediciones
 
-Tal como lo estipula la sección 3.6.2.2 de la memoria técnica de grado:
-> *"El proceso SIE se excluye del tiempo de respuesta interactivo porque depende de una plataforma externa. Por ello se maneja asíncronamente mediante colas de mensajes BullMQ con almacenamiento en Redis."*
-
-El diseño desacoplado garantiza que las operaciones docentes y administrativas locales mantengan latencias inferiores a **${p95Global} ms**, aun cuando el portal externo del Ministerio sufra demoras o caídas de conectividad.
+Estas mediciones corresponden a operaciones de la API de SIGCE. No incluyen el navegador del usuario ni los tiempos de respuesta del portal SIE. El percentil 95 observado en la muestra local fue de **${p95Global} ms**.
 
 ---
 

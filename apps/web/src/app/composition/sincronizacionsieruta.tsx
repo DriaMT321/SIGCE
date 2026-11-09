@@ -1,16 +1,12 @@
+import { Navigate } from 'react-router-dom';
 import { autenticacionservicio } from '../../features/auth/services/serviciodeautenticacion';
-import {
-  esrealsieauditoriahabilitado,
-  instanciagestionsiesincronizacion,
-} from '../../features/sie-sync/infrastructure/adaptadorgestionsincronizacionsie';
+import { adaptadorasistentesie } from '../../features/sie-sync/infrastructure/adaptadorasistentesie';
 import { Paneldesincronizacionsie } from '../../features/sie-sync/pages/paneldesincronizacionsie';
 
 export function siesincronizacionruta() {
-  return (
-    <Paneldesincronizacionsie
-      management={instanciagestionsiesincronizacion}
-      currentRole={autenticacionservicio.obtenerusuarioactual()?.role}
-      realSieAuditEnabled={esrealsieauditoriahabilitado}
-    />
-  );
+  const rol = autenticacionservicio.obtenerusuarioactual()?.role;
+  if (rol !== 'ADMINISTRATIVE' && rol !== 'SECRETARY') {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <Paneldesincronizacionsie gestion={adaptadorasistentesie} />;
 }

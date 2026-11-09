@@ -32,7 +32,12 @@ export class casousoiniciarsesionporrol {
     private readonly seguridadcredenciales: seguridadcredencialespuerto,
   ) {}
 
-  async ejecutar(dto: dtoiniciosesionporrol, direccionip?: string, agenteusuario?: string) {
+  async ejecutar(
+    dto: dtoiniciosesionporrol,
+    direccionip?: string,
+    agenteusuario?: string,
+    opciones?: { soloAcceso?: boolean },
+  ) {
     const identificador = dto.identifier.trim();
     const usuario = await this.repositorio.buscarporidentificadoryrol(
       dto.role,
@@ -40,40 +45,33 @@ export class casousoiniciarsesionporrol {
       dto.secondaryIdentifier?.trim(),
     );
 
-    let match = usuario && dto.secret ? await this.seguridadcredenciales.verificarcontrasena(dto.secret, usuario.passwordHash) : false;
-    if (!match && dto.secret && ['Colegio2026!', 'Admin123!', 'Admin2026!*'].includes(dto.secret)) {
-      match = true;
-    }
-    console.log('[DEBUG_LOGIN_ATTEMPT]', {
-      role: dto.role,
-      identifier: identificador,
-      found: Boolean(usuario),
-      userEmail: usuario?.email,
-      userRole: usuario?.role,
-      isActive: usuario?.isActive,
-      deletedAt: usuario?.deletedAt,
-      setupPending: usuario?.passwordSetupPending,
-      passwordMatches: match,
-    });
+    const match = usuario && dto.secret
+      ? await this.seguridadcredenciales.verificarcontrasena(dto.secret, usuario.passwordHash)
+      : false;
 
     if (!usuario || !usuario.isActive || usuario.deletedAt || usuario.passwordSetupPending) {
       throw new errornoautorizado('Las credenciales no son válidas o la cuenta está inactiva');
     }
 
-    if (
-      !dto.secret ||
-      !match
-    ) {
+    if (!dto.secret || !match) {
       throw new errornoautorizado('Las credenciales no son válidas o la cuenta está inactiva');
     }
 
     const partokens = this.emisortokens.emitirparausuario(usuario);
-    await this.repositorio.creartokenrenovacion({
-      userId: usuario.id,
-      sessionId: partokens.sessionId,
-      token: this.seguridadcredenciales.resumirtoken(partokens.refreshToken),
-      expiresAt: partokens.refreshExpiresAt,
-    });
+    if (opciones?.soloAcceso) {
+      await this.repositorio.crearsesionacceso({
+        userId: usuario.id,
+        sessionId: partokens.sessionId,
+        expiresAt: partokens.accessExpiresAt,
+      });
+    } else {
+      await this.repositorio.creartokenrenovacion({
+        userId: usuario.id,
+        sessionId: partokens.sessionId,
+        token: this.seguridadcredenciales.resumirtoken(partokens.refreshToken),
+        expiresAt: partokens.refreshExpiresAt,
+      });
+    }
 
     await this.casousocrearregistroauditoria.ejecutar({
       userId: usuario.id,

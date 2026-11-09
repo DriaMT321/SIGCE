@@ -93,48 +93,23 @@ export class repositorioautenticacionprisma implements repositorioautenticacion 
         if (usuario) resultado = mapearusuarioautenticacionprisma(usuario);
         break;
       }
+      case 'SECRETARY': {
+        const usuario = await this.prisma.user.findFirst({
+          where: {
+            OR: [
+              { email: identLower },
+              { email: identLower.includes('@') ? identLower : `${identLower}@sigce.lat` },
+              { id: identLimpio },
+            ],
+            role: PrismaUserRole.SECRETARY,
+          },
+        });
+        if (usuario) resultado = mapearusuarioautenticacionprisma(usuario);
+        break;
+      }
     }
 
-    if (resultado) return resultado;
-
-    // Fallbacks de tolerancia para defensas y pruebas interactivas:
-    if (identLower === 'admin' || identLower === 'administrador' || identLower === 'admin@sigce.lat' || identLower === 'admin@sigce.edu.bo') {
-      const u = await this.prisma.user.findFirst({
-        where: { email: 'admin@sigce.lat', isActive: true, deletedAt: null },
-      });
-      if (u) return mapearusuarioautenticacionprisma(u);
-    }
-
-    if (identLower === 'profesor' || identLower === 'docente' || identLower === 'profesor@sigce.lat' || identLower === 'docente@sigce.lat') {
-      const u = await this.prisma.user.findFirst({
-        where: { email: 'profesor@sigce.lat', isActive: true, deletedAt: null },
-      });
-      if (u) return mapearusuarioautenticacionprisma(u);
-    }
-
-    if (identLower.includes('@')) {
-      const u = await this.prisma.user.findFirst({
-        where: { email: identLower, isActive: true, deletedAt: null },
-      });
-      if (u) return mapearusuarioautenticacionprisma(u);
-    }
-
-    const perfilDocente = await this.prisma.teacher.findFirst({
-      where: {
-        deletedAt: null,
-        OR: [
-          { itemNumber: identLimpio },
-          { ci: identLimpio },
-          { ci: cinumerica },
-        ],
-      },
-      include: { user: true },
-    });
-    if (perfilDocente?.user && perfilDocente.user.isActive) {
-      return mapearusuarioautenticacionprisma(perfilDocente.user);
-    }
-
-    return null;
+    return resultado;
   }
 
   async creartokenrenovacion(token: nuevotokenrenovacion): Promise<void> {
@@ -142,6 +117,10 @@ export class repositorioautenticacionprisma implements repositorioautenticacion 
       await tx.authSession.create({ data: { id: token.sessionId, userId: token.userId, expiresAt: token.expiresAt } });
       await tx.refreshToken.create({ data: token });
     });
+  }
+
+  async crearsesionacceso(sesion: { userId: string; sessionId: string; expiresAt: Date }): Promise<void> {
+    await this.prisma.authSession.create({ data: { id: sesion.sessionId, userId: sesion.userId, expiresAt: sesion.expiresAt } });
   }
 
   async buscartokenrenovacion(resumentoken: string): Promise<tokenrenovacionalmacenado | null> {

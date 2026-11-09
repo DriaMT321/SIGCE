@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Réplica local de calificaciones · SIGCE</title>
+  <style>
+    body { font-family: Arial,sans-serif; margin: 0; background: #f4f6f8; color: #243449; }
+    header { background: #1f3650; color: white; padding: 20px 5%; }
+    main { max-width: 1100px; margin: 24px auto; padding: 0 20px; }
+    .notice { padding: 14px 18px; background: #fff4d6; border: 1px solid #e8cb83; border-radius: 8px; margin-bottom: 18px; }
+    article { padding: 22px; background: white; border: 1px solid #d9e0e7; border-radius: 10px; }
+    .course-summary { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    table { border-collapse: collapse; width: 100%; }
+    th,td { border: 1px solid #ccd4dc; padding: 9px; text-align: left; font-size: 13px; }
+    th { background: #edf2f6; }
+    button { cursor: pointer; padding: 7px 11px; }
+    #modal { position: fixed; inset: 0; background: #101c2aaa; display: none; align-items: center; justify-content: center; padding: 16px; }
+    #modal.open { display: flex; }
+    .grade-modal { background: white; width: min(620px,100%); max-height: 90vh; overflow: auto; padding: 22px; border-radius: 10px; }
+    .grade-modal input { width: 90px; padding: 7px; }
+    .footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+    #toast { position: fixed; right: 20px; bottom: 20px; background: #17613e; color: white; padding: 12px 15px; border-radius: 8px; display: none; }
+    #toast.show { display: block; }
+  </style>
+</head>
+<body>
+  <header><strong>Réplica local del SIE</strong><div>Demostración de carga de calificaciones</div></header>
+  <main>
+    <div class="notice">Datos sintéticos. Esta página no representa una conexión con el SIE oficial.</div>
+    <article>
+      <div class="course-summary" data-current-course><strong>Primaria - Segundo B</strong><span>Gestión 2026 · Primer trimestre</span></div>
+      <h1>Lista de estudiantes</h1>
+      <table>
+        <thead><tr><th>N.º</th><th>Código RUDE</th><th>Paterno</th><th>Materno</th><th>Nombre(s)</th><th>Opciones</th></tr></thead>
+        <tbody id="roster">
+          <tr data-rude="DEMO-0001"><td>1</td><td>DEMO-0001</td><td>Pérez</td><td>López</td><td>Ana</td><td><button type="button" data-action="grade" aria-label="Registrar calificaciones">Notas</button></td></tr>
+          <tr data-rude="DEMO-0002"><td>2</td><td>DEMO-0002</td><td>Rojas</td><td>Vargas</td><td>Luis</td><td><button type="button" data-action="grade" aria-label="Registrar calificaciones">Notas</button></td></tr>
+          <tr data-rude="DEMO-0003"><td>3</td><td>DEMO-0003</td><td>Mamani</td><td>Quispe</td><td>María</td><td><button type="button" data-action="grade" aria-label="Registrar calificaciones">Notas</button></td></tr>
+        </tbody>
+      </table>
+    </article>
+  </main>
+  <div id="modal" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+    <div class="grade-modal">
+      <h2 id="dialog-title">Notas del estudiante</h2>
+      <table><tbody><tr><th>Código RUDE</th><td id="modal-code"></td></tr><tr><th>Estudiante</th><td id="modal-student"></td></tr></tbody></table>
+      <h3>Calificaciones</h3>
+      <table><thead><tr><th>Materia</th><th>Primer trimestre</th></tr></thead><tbody><tr><td>Matemática</td><td><input id="grade-input" type="number" min="0" max="100" /></td></tr><tr><td>Lengua Castellana</td><td><input type="number" min="0" max="100" /></td></tr></tbody></table>
+      <div class="footer"><button id="close" type="button">Cerrar</button><button id="save" type="button">Guardar cambios</button></div>
+    </div>
+  </div>
+  <div id="toast" role="status"></div>
+  <script>
+    const names = {
+      'DEMO-0001': 'Ana Pérez López',
+      'DEMO-0002': 'Luis Rojas Vargas',
+      'DEMO-0003': 'María Mamani Quispe',
+    };
+    const saved = {};
+    let selected = null;
+    document.getElementById('roster').addEventListener('click', (event) => {
+      if (!(event.target instanceof HTMLButtonElement)) return;
+      selected = event.target.closest('tr')?.dataset.rude || null;
+      if (!selected) return;
+      document.getElementById('modal-code').textContent = selected;
+      document.getElementById('modal-student').textContent = names[selected];
+      document.getElementById('grade-input').value = saved[selected] ?? '';
+      document.getElementById('modal').classList.add('open');
+    });
+    document.getElementById('close').addEventListener('click', () => document.getElementById('modal').classList.remove('open'));
+    document.getElementById('save').addEventListener('click', () => {
+      if (!selected) return;
+      saved[selected] = document.getElementById('grade-input').value;
+      document.getElementById('modal').classList.remove('open');
+      const toast = document.getElementById('toast');
+      toast.textContent = 'Cambios guardados en la réplica local.';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    });
+  </script>
+</body>
+</html>

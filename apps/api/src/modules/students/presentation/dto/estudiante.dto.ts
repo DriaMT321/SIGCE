@@ -1,7 +1,8 @@
 import { Transform } from 'class-transformer';
-import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, Validate } from 'class-validator';
 import { genero, tiporelacion } from '@academic/shared-types';
 import { dtopaginacion } from '../../../../common/dto/paginacion.dto';
+import { validacionfechanacimientoestudiante } from '../validators/fechanacimientoestudiante.validator';
 
 export class dtofiltrosestudiante extends dtopaginacion {
   @IsOptional()
@@ -34,7 +35,8 @@ export class dtocrearestudiante {
   @MaxLength(80)
   lastName: string;
 
-  @IsDateString()
+  @IsString({ message: 'La fecha de nacimiento debe ser texto con formato AAAA-MM-DD.' })
+  @Validate(validacionfechanacimientoestudiante)
   birthDate: string;
 
   @IsEnum(genero)
@@ -85,7 +87,8 @@ export class dtoactualizarestudiante {
   lastName?: string;
 
   @IsOptional()
-  @IsDateString()
+  @IsString({ message: 'La fecha de nacimiento debe ser texto con formato AAAA-MM-DD.' })
+  @Validate(validacionfechanacimientoestudiante)
   birthDate?: string;
 
   @IsOptional()

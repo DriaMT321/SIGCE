@@ -20,7 +20,7 @@ const asignaciones: asignaciondocente[] = [
 ];
 
 describe('generateWeeklySchedule', () => {
-  it('creates six 40-minute periods for each of five weekdays', () => {
+  it('creates six 45-minute periods for each of five weekdays', () => {
     const resultado = generarhorariosemanal(3, 'MORNING', asignaciones, []);
 
     expect(resultado.slots).toHaveLength(30);
@@ -31,7 +31,7 @@ describe('generateWeeklySchedule', () => {
       for (const bloque of bloquesdia) {
         const [iniciohora, iniciominuto] = bloque.startTime.split(':').map(Number);
         const [finhora, finminuto] = bloque.endTime.split(':').map(Number);
-        expect(finhora * 60 + finminuto - (iniciohora * 60 + iniciominuto)).toBe(40);
+        expect(finhora * 60 + finminuto - (iniciohora * 60 + iniciominuto)).toBe(45);
       }
     }
   });
@@ -103,17 +103,17 @@ describe('generateWeeklySchedule', () => {
     );
   });
 
-  it('creates five periods per day for Inicial and keeps each one at 40 minutes', () => {
+  it('creates six periods per day for Inicial and keeps each one at 45 minutes', () => {
     const resultado = generarhorariosemanal(2, 'MORNING', asignaciones, []);
 
-    expect(resultado.slots).toHaveLength(25);
+    expect(resultado.slots).toHaveLength(30);
     for (const dia of ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES']) {
       const bloquesdia = resultado.slots.filter((bloque) => bloque.dayOfWeek === dia);
-      expect(bloquesdia).toHaveLength(5);
+      expect(bloquesdia).toHaveLength(6);
       for (const bloque of bloquesdia) {
         const [iniciohora, iniciominuto] = bloque.startTime.split(':').map(Number);
         const [finhora, finminuto] = bloque.endTime.split(':').map(Number);
-        expect(finhora * 60 + finminuto - (iniciohora * 60 + iniciominuto)).toBe(40);
+        expect(finhora * 60 + finminuto - (iniciohora * 60 + iniciominuto)).toBe(45);
       }
     }
   });

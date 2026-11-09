@@ -1,4 +1,4 @@
-import { estadosincronizacionsie, accionauditoria } from './enumeraciones';
+import { accionauditoria } from './enumeraciones';
 
 export interface eventoactualizacioncalificacion {
   gradeId: string;
@@ -32,33 +32,6 @@ export interface eventoactualizacionestudiante {
   newData: Record<string, unknown>;
   updatedAt: Date;
   ipAddress?: string;
-}
-
-export interface eventosolicitudsincronizacion {
-  synchronizationId: string;
-  requestedById: string;
-  type: string;
-  totalItems: number;
-  createdAt: Date;
-}
-
-export interface eventoverificacionsincronizacion {
-  synchronizationId: string;
-  studentId: string;
-  subjectId: string;
-  periodId: string;
-  localValue: number;
-  sieValue: number;
-  status: estadosincronizacionsie;
-  verifiedAt: Date;
-}
-
-export interface eventofallodesincronizacion {
-  synchronizationId: string;
-  itemId?: string;
-  reason: string;
-  errorDetails?: string;
-  failedAt: Date;
 }
 
 export interface eventoregistroauditoria {

@@ -10,6 +10,8 @@ module.exports = [
       '**/dist/**',
       '**/build/**',
       '**/coverage/**',
+      '**/.output/**',
+      '**/.wxt/**',
       '**/node_modules/**',
       '**/*.tsbuildinfo',
       'mobile/**',

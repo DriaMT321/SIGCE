@@ -2,7 +2,11 @@ import {
   servicioaplicacion,
   inyectarpuerto,
 } from '../../../../core/application/aplicacioninyeccion';
-import { errornoencontrado } from '../../../../core/application/aplicacionerror';
+import {
+  errornoencontrado,
+  errorsolicitudincorrecta,
+} from '../../../../core/application/aplicacionerror';
+import { obtenererrorfechanacimientoestudiante } from '@academic/academic-domain';
 import {
   datoscreacionestudiante,
   tokenrepositorioestudiantes,
@@ -67,7 +71,12 @@ export class casousocrearestudiante {
     direccionip?: string,
     correlacionid?: string,
   ) {
-    const datos: datoscreacionestudiante = { ...dto, birthDate: new Date(dto.birthDate) };
+    const errorfecha = obtenererrorfechanacimientoestudiante(dto.birthDate);
+    if (errorfecha) throw new errorsolicitudincorrecta(errorfecha);
+    const datos: datoscreacionestudiante = {
+      ...dto,
+      birthDate: new Date(`${dto.birthDate}T00:00:00.000Z`),
+    };
     const activacion = await this.credencialesactivacion.emitir();
     const estudiante = await this.repositorio.crear(datos, activacion.setup, {
       userId: idusuario,
@@ -136,9 +145,15 @@ export class casousoactualizarestudiante {
     correlacionid?: string,
   ) {
     const { birthDate: nacimientofecha, ...campos } = dto;
+    if (nacimientofecha !== undefined) {
+      const errorfecha = obtenererrorfechanacimientoestudiante(nacimientofecha);
+      if (errorfecha) throw new errorsolicitudincorrecta(errorfecha);
+    }
     const datos: datosactualizacionestudiante = {
       ...campos,
-      ...(nacimientofecha ? { birthDate: new Date(nacimientofecha) } : {}),
+      ...(nacimientofecha !== undefined
+        ? { birthDate: new Date(`${nacimientofecha}T00:00:00.000Z`) }
+        : {}),
     };
     const estudiante = await this.repositorio.actualizar(id, datos, {
       userId: idusuario,

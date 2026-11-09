@@ -20,13 +20,16 @@ describe('RoleLoginUseCase: acceso de estudiante', () => {
     passwordHash: '',
   };
   const partokens = {
+    sessionId: 'session-1',
     accessToken: 'access-token',
+    accessExpiresAt: new Date(Date.now() + 15 * 60_000),
     refreshToken: 'refresh-token',
     refreshExpiresAt: new Date(Date.now() + 60_000),
   };
   const repositorio = {
     buscarporidentificadoryrol: jest.fn(),
     creartokenrenovacion: jest.fn().mockResolvedValue(undefined),
+    crearsesionacceso: jest.fn().mockResolvedValue(undefined),
   };
   const auditoria = { ejecutar: jest.fn().mockResolvedValue({}) };
   const serviciotokens = { emitirparausuario: jest.fn().mockReturnValue(partokens) };
@@ -111,6 +114,22 @@ describe('RoleLoginUseCase: acceso de estudiante', () => {
         newValue: expect.objectContaining({ loginRole: roliniciosesion.STUDENT }),
       }),
     );
+  });
+
+  it('crea una sesión corta sin token de renovación para la extensión', async () => {
+    await usocaso.ejecutar(
+      { role: roliniciosesion.ADMINISTRATIVE, identifier: 'direccion', secret: validosecreto },
+      undefined,
+      undefined,
+      { soloAcceso: true },
+    );
+
+    expect(repositorio.crearsesionacceso).toHaveBeenCalledWith({
+      userId: usuarioestudiante.id,
+      sessionId: partokens.sessionId,
+      expiresAt: partokens.accessExpiresAt,
+    });
+    expect(repositorio.creartokenrenovacion).not.toHaveBeenCalled();
   });
 
   it('rechaza el acceso familiar si solo se presentan CI y teléfono', async () => {

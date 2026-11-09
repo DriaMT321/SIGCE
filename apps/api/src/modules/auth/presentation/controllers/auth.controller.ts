@@ -118,6 +118,35 @@ export class AuthController {
   }
 
   @publico()
+  @Post('extension/role-login')
+  @HttpCode(HttpStatus.OK)
+  async iniciarsesionextensionporrol(@Body() dto: dtoiniciosesionporrol, @Req() req: Request) {
+    const origin = req.get('origin');
+    const extensionOrigin = this.configuracionservicio.get<string | null>('extensionOrigin', null);
+    if (
+      !extensionOrigin ||
+      origin !== extensionOrigin ||
+      req.get('x-sigce-extension') !== '1' ||
+      !['ADMINISTRATIVE', 'SECRETARY'].includes(dto.role)
+    ) {
+      throw new ForbiddenException('Acceso de extensión no autorizado');
+    }
+    const ip = req.ip || req.socket.remoteAddress || 'unknown';
+    await this.ratelimitador.verificariniciosesion(ip);
+    const resultado = await this.rolloginusocaso.ejecutar(
+      dto, ip, req.headers['user-agent'], { soloAcceso: true },
+    );
+    if (!['ADMINISTRATIVE', 'SECRETARY'].includes(resultado.user.role)) {
+      throw new ForbiddenException('La cuenta no puede usar el asistente SIE');
+    }
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Inicio de sesión exitoso',
+      data: { accessToken: resultado.accessToken, user: resultado.user },
+    };
+  }
+
+  @publico()
   @Post('web/refresh')
   @HttpCode(HttpStatus.OK)
   async renovarsesionweb(@Req() req: Request, @Res({ passthrough: true }) res: Response) {

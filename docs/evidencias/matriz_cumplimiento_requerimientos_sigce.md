@@ -1,4 +1,6 @@
 # Matriz Consolidada de Trazabilidad y Cumplimiento de Requerimientos
+
+> **Evidencia histórica.** Esta matriz corresponde a una versión anterior de SIGCE. Las afirmaciones sobre el trabajador Puppeteer, la cola BullMQ y el cumplimiento de integración SIE ya no describen el sistema vigente. El nuevo asistente de Chrome aún requiere validación sobre el portal oficial y una revisión actualizada de los requisitos.
 ## Sistema de Información y Gestión y Control Escolar (SIGCE)
 *Documento de Acreditación Técnica y Validación Funcional para Proyecto de Grado*  
 *Fecha de Emisión:* Noviembre 2026  

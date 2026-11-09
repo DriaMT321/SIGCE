@@ -13,6 +13,7 @@ async function iniciarAplicacion() {
   const puerto = servicioConfiguracion.get<number>('port', 3000);
   const entornoNodo = servicioConfiguracion.get<string>('nodeEnv', 'development');
   const allowedOrigins = servicioConfiguracion.get<string[]>('corsOrigins', []);
+  const extensionOrigin = servicioConfiguracion.get<string | null>('extensionOrigin', null);
   const proxiesconfiables = servicioConfiguracion.get<string[]>('trustedProxyIps', []);
 
   // Prefijo global de API
@@ -21,7 +22,8 @@ async function iniciarAplicacion() {
   // Habilitar CORS para frontend web y móvil
   app.enableCors({
     origin: (origen, continuacion) => {
-      if (!origen || allowedOrigins.includes(origen)) return continuacion(null, true);
+      if (!origen || allowedOrigins.includes(origen) || origen === extensionOrigin)
+        return continuacion(null, true);
       return continuacion(new Error('Origin is not allowed by CORS'));
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
@@ -31,6 +33,7 @@ async function iniciarAplicacion() {
       'Authorization',
       'X-SIGCE-Web',
       'X-SIGCE-Tab',
+      'X-SIGCE-Extension',
       'idempotency-key',
       'Idempotency-Key',
       'x-correlation-id',

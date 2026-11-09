@@ -3,6 +3,8 @@
 Fecha de revisión: 25 de octubre de 2026  
 Documento base: _MTD – Perfil de proyecto de grado_, requisitos funcionales RF-01–RF-56, no funcionales RNF-01–RNF-20, reglas RN-01–RN-24 y criterios CA-01–CA-17.
 
+> **Registro histórico.** Esta auditoría describe el estado del 25 de octubre de 2026. Sus referencias al Worker RPA, Puppeteer, BullMQ y a los resultados de esa fecha no describen la implementación actual. La arquitectura vigente se documenta en [Arquitectura Clean Architecture y DDD](arquitectura-clean-ddd.md) y en el [README](../README.md).
+
 ## Estado de los hallazgos corregidos
 
 | Requisito                                                                         | Resultado en el código                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |

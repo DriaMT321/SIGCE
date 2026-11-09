@@ -25,6 +25,10 @@ import { Boton } from '../../../components/ui/boton';
 import { Entrada } from '../../../components/ui/entrada';
 import type { gestionestudiante } from '../application/gestionestudiantes';
 import { cursoetiqueta } from '../../../lib/cursoetiqueta';
+import {
+  obtenererrorfechanacimientoestudiante,
+  obtenerfechahoybolivia,
+} from '@academic/academic-domain';
 
 const estudianteformularioesquema = z.object({
   rude: z.string().trim().min(1, 'El código RUDE es obligatorio').max(40, 'El RUDE admite hasta 40 caracteres'),
@@ -36,6 +40,15 @@ const estudianteformularioesquema = z.object({
   phone: z.string().optional(),
   parentId: z.string().optional(),
   relationship: z.enum(['FATHER', 'MOTHER', 'GUARDIAN', 'TUTOR', 'OTHER']).optional(),
+}).superRefine((datos, contexto) => {
+  const errorfecha = obtenererrorfechanacimientoestudiante(datos.birthDate);
+  if (errorfecha) {
+    contexto.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['birthDate'],
+      message: errorfecha,
+    });
+  }
 });
 
 type estudianteformulariodatos = z.infer<typeof estudianteformularioesquema>;
@@ -469,7 +482,15 @@ export const EstudiantesPagina = ({
                 label="Fecha de Nacimiento"
                 error={formulario.formState.errors.birthDate?.message}
               >
-                <Entrada type="date" {...formulario.register('birthDate')} />
+                <Entrada
+                  type="date"
+                  max={obtenerfechahoybolivia()}
+                  aria-describedby="birth-date-guidance"
+                  {...formulario.register('birthDate')}
+                />
+                <span id="birth-date-guidance" className="text-xs text-slate-500">
+                  Debe ser una fecha real, no futura y corresponder a una edad de 3 a 100 años.
+                </span>
               </Campo>
 
               <Campo label="Género" error={formulario.formState.errors.gender?.message}>
@@ -584,7 +605,11 @@ export const EstudiantesPagina = ({
                 className="flex items-center gap-2 p-3 rounded-lg bg-rose-50 text-rose-700 text-sm border border-rose-200"
               >
                 <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>No se pudo registrar. Verifique que el RUDE o C.I. no existan.</span>
+                <span>
+                  {crearmutacion.error instanceof Error
+                    ? crearmutacion.error.message
+                    : 'No se pudo registrar. Revisa los datos e inténtalo nuevamente.'}
+                </span>
               </div>
             )}
           </form>

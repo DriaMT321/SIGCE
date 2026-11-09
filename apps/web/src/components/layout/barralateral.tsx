@@ -5,6 +5,7 @@ import {
   Users,
   BookOpen,
   CalendarCheck,
+  CalendarRange,
   Award,
   History,
   RefreshCw,
@@ -45,10 +46,10 @@ const navegacionsecciones: navegacionseccion[] = [
         roles: ['ADMINISTRATIVE', 'SECRETARY', 'TEACHER', 'PARENT'],
       },
       {
-        name: 'Sincronización SIE',
+        name: 'Carga asistida SIE',
         href: '/dashboard/sie-sync',
         icon: RefreshCw,
-        roles: ['ADMINISTRATIVE'],
+        roles: ['ADMINISTRATIVE', 'SECRETARY'],
       },
     ],
   },
@@ -71,6 +72,12 @@ const navegacionsecciones: navegacionseccion[] = [
         name: 'Horarios',
         href: '/dashboard/schedules',
         icon: Clock,
+        roles: ['ADMINISTRATIVE', 'SECRETARY', 'TEACHER', 'PARENT', 'STUDENT'],
+      },
+      {
+        name: 'Calendario académico',
+        href: '/dashboard/academic-events',
+        icon: CalendarRange,
         roles: ['ADMINISTRATIVE', 'SECRETARY', 'TEACHER', 'PARENT', 'STUDENT'],
       },
       {
