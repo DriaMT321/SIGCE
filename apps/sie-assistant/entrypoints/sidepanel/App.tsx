@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { apiForPortal, isDemoPortal, loadCourseOptions, loadGrades, loadOptions, login, sendSummary } from '../../src/api';
+import { apiForPortal, isDemoPortal, isReferencePortal, loadCourseOptions, loadGrades, loadOptions, login, sendSummary } from '../../src/api';
 import type { SigceSession } from '../../src/api';
 import type { GradePlan, PlanFilters, PortalRequest, PortalResponse, SavedMessage, SummaryEntry } from '../../src/types';
 
@@ -48,6 +48,7 @@ export function App() {
   const operationIds = useRef(new Map<string, string>());
 
   const demo = portalUrl ? isDemoPortal(portalUrl) : false;
+  const reference = portalUrl ? isReferencePortal(portalUrl) : false;
   const current = plan?.grades[index];
   const courses = useMemo(() => (baseOptions?.courses ?? []).filter((course) => course.academicYearId === filters.academicYearId), [baseOptions, filters.academicYearId]);
   const periods = (courseOptions?.periods ?? []).filter((period) => period.isClosed);
@@ -97,20 +98,20 @@ export function App() {
   }, [current?.gradeId, tabId]);
 
   useEffect(() => {
-    if (!session || demo) return;
+    if (!session || demo || reference) return;
     void loadOptions(session).then((options) => {
       setBaseOptions(options);
       const activeYear = options.years.find((year) => year.isActive);
       if (activeYear) setFilters((currentFilters) => ({ ...currentFilters, academicYearId: activeYear.id }));
     }).catch((failure) => setError(failure instanceof Error ? failure.message : 'No se pudieron cargar las opciones.'));
-  }, [session, demo]);
+  }, [session, demo, reference]);
 
   useEffect(() => {
-    if (!session || !filters.academicYearId || !filters.courseId || demo) return;
+    if (!session || !filters.academicYearId || !filters.courseId || demo || reference) return;
     void loadCourseOptions(session, filters.academicYearId, filters.courseId)
       .then(setCourseOptions)
       .catch((failure) => setError(failure instanceof Error ? failure.message : 'No se pudieron cargar las materias.'));
-  }, [session, filters.academicYearId, filters.courseId, demo]);
+  }, [session, filters.academicYearId, filters.courseId, demo, reference]);
 
   async function withBusy(action: () => Promise<void>) {
     setBusy(true);
@@ -246,9 +247,11 @@ export function App() {
     <header className="hero"><div className="brand"><span className="mark">S</span><span><strong>SIGCE</strong><small>Asistente de calificaciones</small></span></div><p>Completa las notas del curso abierto bajo revisión de la responsable.</p></header>
 
     {portalError ? <section className="card warning"><h2>Pantalla no disponible</h2><p>{portalError}</p><button onClick={() => void refreshTab()}>Comprobar pestaña</button></section> :
-      <section className="card compact"><div className="eyebrow">Pestaña activa</div><strong>{demo ? 'Réplica local de demostración' : 'Portal SIE oficial'}</strong><p>{demo ? 'Datos sintéticos; este recorrido no se registra en SIGCE.' : 'Sesión abierta por la responsable en el navegador.'}</p><button className="link" onClick={() => void refreshTab()}>Actualizar pestaña</button></section>}
+      <section className="card compact"><div className="eyebrow">Pestaña activa</div><strong>{demo ? 'Réplica local de demostración' : reference ? 'Página de referencia' : 'Portal SIE oficial'}</strong><p>{demo ? 'Datos sintéticos; este recorrido no se registra en SIGCE.' : reference ? 'Copia sin cambios del archivo HTML proporcionado.' : 'Sesión abierta por la responsable en el navegador.'}</p><button className="link" onClick={() => void refreshTab()}>Actualizar pestaña</button></section>}
 
-    {!demo && !session && <section className="card"><h2>Entrar a SIGCE</h2><p>Estas credenciales son de SIGCE. Inicia sesión en el SIE directamente en su página.</p>
+    {reference && <section className="card"><h2>Prueba del asistente</h2><p>Esta página conserva el listado original. El recorrido con notas ficticias está separado para no alterar su contenido.</p><a href="http://localhost:4174/demo" target="_blank" rel="noreferrer">Abrir prueba con tres estudiantes ficticios</a></section>}
+
+    {!demo && !reference && !session && <section className="card"><h2>Entrar a SIGCE</h2><p>Estas credenciales son de SIGCE. Inicia sesión en el SIE directamente en su página.</p>
       <label>Servidor SIGCE<select value={apiBase} onChange={(e) => setApiBase(e.target.value)}><option value={localApi}>SIGCE local</option><option value={deployedApi}>SIGCE desplegado</option></select></label>
       <label>Responsable<select value={role} onChange={(e) => setRole(e.target.value as typeof role)}><option value="ADMINISTRATIVE">Dirección</option><option value="SECRETARY">Secretaría</option></select></label>
       <label>Identificador<input value={identifier} onChange={(e) => setIdentifier(e.target.value)} autoComplete="username" /></label>
@@ -256,11 +259,11 @@ export function App() {
       <button className="primary" disabled={busy || !identifier.trim() || !secret || !tabId} onClick={() => void signIn()}>Entrar</button>
     </section>}
 
-    {!demo && session && <section className="card compact"><div className="row"><div><div className="eyebrow">Sesión SIGCE</div><strong>{session.user.firstName} {session.user.lastName}</strong></div><button className="link" onClick={() => void signOut()}>Salir</button></div><p>Origen: {session.apiBase === localApi ? 'SIGCE local' : 'SIGCE desplegado'}</p></section>}
+    {!demo && !reference && session && <section className="card compact"><div className="row"><div><div className="eyebrow">Sesión SIGCE</div><strong>{session.user.firstName} {session.user.lastName}</strong></div><button className="link" onClick={() => void signOut()}>Salir</button></div><p>Origen: {session.apiBase === localApi ? 'SIGCE local' : 'SIGCE desplegado'}</p></section>}
 
-    {!demo && session?.apiBase === localApi && <section className="card warning"><h2>Datos locales en el portal oficial</h2><p>Comprueba que este SIGCE local contiene las notas institucionales correctas. La réplica ficticia se usa solo en localhost:4174.</p><label className="check"><input type="checkbox" checked={allowLocalOnOfficial} onChange={(e) => setAllowLocalOnOfficial(e.target.checked)} />Confirmo que este SIGCE local corresponde al curso que voy a completar.</label></section>}
+    {!demo && !reference && session?.apiBase === localApi && <section className="card warning"><h2>Datos locales en el portal oficial</h2><p>Comprueba que este SIGCE local contiene las notas institucionales correctas. La réplica ficticia se usa solo en localhost:4174/demo.</p><label className="check"><input type="checkbox" checked={allowLocalOnOfficial} onChange={(e) => setAllowLocalOnOfficial(e.target.checked)} />Confirmo que este SIGCE local corresponde al curso que voy a completar.</label></section>}
 
-    {((demo && tabId) || session) && !plan && <section className="card"><h2>Preparar notas</h2>
+    {((demo && tabId) || (!reference && session)) && !plan && <section className="card"><h2>Preparar notas</h2>
       {demo ? <><p>Usa tres estudiantes ficticios de la réplica local.</p><button className="primary" onClick={() => resetRun(demoPlan)}>Cargar datos de demostración</button></> : <>
         <label>Gestión<select value={filters.academicYearId} onChange={(e) => { setFilters({ academicYearId: e.target.value, courseId: '', subjectId: '', periodNumber: 0 }); setCourseOptions(null); }}><option value="">Selecciona</option>{(baseOptions?.years ?? []).map((year) => <option key={year.id} value={year.id}>{year.name}</option>)}</select></label>
         <label>Curso<select value={filters.courseId} onChange={(e) => { setFilters({ ...filters, courseId: e.target.value, subjectId: '', periodNumber: 0 }); setCourseOptions(null); }}><option value="">Selecciona</option>{courses.map((course) => <option key={course.id} value={course.id}>{course.name}</option>)}</select></label>
@@ -280,7 +283,7 @@ export function App() {
       {!fillResult && <button className="primary" disabled={busy} onClick={() => void fill()}>{index === 0 ? 'Iniciar recorrido' : 'Reintentar esta nota'}</button>}
       {fillResult && 'detail' in fillResult && <p className={fillResult.ok ? 'status good' : 'status bad'}>{fillResult.detail}</p>}
       {fillResult?.status === 'CONFLICT' && <button className="danger" disabled={busy} onClick={() => void fill(true)}>Reemplazar esta nota tras revisarla</button>}
-      {fillResult?.status === 'FILLED' && <><p className="hint">Revisa la nota y pulsa Guardar en el SIE. El asistente esperará el aviso de esa página.</p>{saveObserved && <p className="status good">{saveObserved}</p>}<button className="primary" disabled={!saveObserved || busy} onClick={() => void advance('CONFIRMED_BY_USER', 'La responsable confirmó el aviso de guardado en pantalla.')}>Confirmé el guardado · siguiente</button></>}
+      {fillResult?.status === 'FILLED' && <><p className="hint">Revisa la nota y pulsa Guardar en {demo ? 'la réplica local' : 'el SIE'}. El asistente esperará el aviso de esa página.</p>{saveObserved && <p className="status good">{saveObserved}</p>}<button className="primary" disabled={!saveObserved || busy} onClick={() => void advance('CONFIRMED_BY_USER', 'La responsable confirmó el aviso de guardado en pantalla.')}>Confirmé el guardado · siguiente</button></>}
       {fillResult?.status === 'ALREADY_EQUAL' && <button onClick={() => void advance('SKIPPED', 'La nota ya se mostraba igual en la casilla visible.')}>Continuar sin cambios</button>}
       <button className="link" disabled={busy} onClick={() => void advance(fillResult?.status === 'ERROR' ? 'ERROR' : 'SKIPPED', fillResult?.status === 'ERROR' ? fillResult.detail : 'Omitido por la responsable.')}>Omitir esta fila</button>
     </section>}

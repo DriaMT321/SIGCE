@@ -11,12 +11,17 @@ export interface SigceSession {
 
 export function isDemoPortal(portalUrl: string): boolean {
   const url = new URL(portalUrl);
-  return url.origin === 'http://localhost:4174';
+  return url.origin === 'http://localhost:4174' && url.pathname === '/demo';
+}
+
+export function isReferencePortal(portalUrl: string): boolean {
+  const url = new URL(portalUrl);
+  return url.origin === 'http://localhost:4174' && !isDemoPortal(portalUrl);
 }
 
 export function apiForPortal(portalUrl: string): string {
   const url = new URL(portalUrl);
-  if (isDemoPortal(portalUrl)) return localApi;
+  if (url.origin === 'http://localhost:4174') return localApi;
   if (url.origin === 'https://academico.sie.gob.bo') return officialApi;
   throw new Error('Abre el SIE oficial o la réplica local autorizada para usar el asistente.');
 }

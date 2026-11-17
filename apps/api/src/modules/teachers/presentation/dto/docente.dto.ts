@@ -2,10 +2,12 @@ import { Transform } from 'class-transformer';
 import {
   IsByteLength,
   IsEmail,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
+  Min,
   MinLength,
 } from 'class-validator';
 
@@ -51,6 +53,28 @@ export class dtocreardocente {
   @IsString()
   @MaxLength(30)
   itemNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  rdaNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  escalafonCategory?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  yearsOfService?: number;
+
+  @IsOptional()
+  @IsString()
+  photoUrl?: string;
+
+  @IsOptional()
+  documents?: any;
 }
 
 export class dtoactualizardocente {
@@ -95,4 +119,26 @@ export class dtoactualizardocente {
   @IsString()
   @MaxLength(30)
   itemNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  rdaNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  escalafonCategory?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  yearsOfService?: number;
+
+  @IsOptional()
+  @IsString()
+  photoUrl?: string;
+
+  @IsOptional()
+  documents?: any;
 }

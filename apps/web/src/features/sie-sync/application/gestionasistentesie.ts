@@ -57,3 +57,4 @@ export interface gestionasistentesie {
     periodNumber: number;
   }): Promise<notaspreparadas>;
 }
+

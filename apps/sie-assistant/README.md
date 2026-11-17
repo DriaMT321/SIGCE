@@ -2,6 +2,8 @@
 
 Extensión de Chrome Manifest V3. La responsable abre su propia sesión en el SIE y el complemento rellena una nota por estudiante en la tabla visible. La responsable revisa y pulsa **Guardar**. El complemento espera un clic real en ese botón y un aviso de la página antes de ofrecer la confirmación y continuar. El resumen de SIGCE registra acciones informadas por la responsable; no acredita que el SIE haya persistido o verificado las notas.
 
+Durante el llenado aparece un cursor visual que señala el RUDE encontrado, el botón de calificaciones y la casilla de materia y trimestre. El indicador sigue las acciones reales del complemento; no mueve el mouse del usuario ni pulsa **Guardar**.
+
 El script de contenido solo opera en `https://academico.sie.gob.bo/*` y en la réplica sintética `http://localhost:4174/*`. Lee el DOM visible y despacha `input`, `change` y `blur`; no hace solicitudes de red al SIE, no lee cookies ni credenciales del portal y no pulsa Guardar. Las únicas solicitudes de la extensión van a la API de SIGCE.
 
 ## Construir e instalar
@@ -30,6 +32,18 @@ pnpm --filter @academic/sie-assistant demo
 ```
 
 Abre `http://localhost:4174/` en Chrome, pulsa el icono de la extensión y elige **Cargar datos de demostración**. La réplica contiene tres estudiantes ficticios. En esa página el resumen no se envía a SIGCE. La demostración local no prueba compatibilidad con el portal oficial; sus encabezados y controles deben revisarse cuando este esté habilitado.
+
+### Probar con una página HTML de referencia
+
+Para servir el archivo HTML de referencia sin modificarlo:
+
+```powershell
+pnpm --filter @academic/sie-assistant demo:reference "C:\ruta\sie-calificaciones.html"
+```
+
+El servidor escucha solo en `localhost:4174`. La ruta `http://localhost:4174/` entrega el HTML y sus recursos originales, sin etiquetas ni sustituciones. La extensión no prepara notas ficticias en esa ruta.
+
+Para probar el llenado, abre `http://localhost:4174/demo`. Esa ruta separada sustituye el listado por tres estudiantes ficticios y muestra una etiqueta de demostración. Escribe cualquier usuario y contraseña en la página de prueba y selecciona **Primaria → Segundo → B → Lista de inscritos**. En el panel de la extensión pulsa **Cargar datos de demostración**, **Comprobar pantalla** e **Iniciar recorrido**. Para cada estudiante, revisa la nota, pulsa **Guardar Cambios** en la página y luego **Confirmé el guardado · siguiente** en el panel. El panel no envía este recorrido a la API de SIGCE.
 
 ## Recorrido de uso
 

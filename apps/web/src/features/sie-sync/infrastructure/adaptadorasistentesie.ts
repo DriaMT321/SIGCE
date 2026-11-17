@@ -20,3 +20,4 @@ export const adaptadorasistentesie: gestionasistentesie = {
     return notaspreparadasesquema.parse(respuesta.data).data;
   },
 };
+

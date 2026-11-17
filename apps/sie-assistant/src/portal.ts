@@ -9,6 +9,14 @@ type FillRequest = {
   allowOverwrite?: boolean;
 };
 
+export type PortalStep = {
+  element: Element;
+  label: string;
+  action: 'locate' | 'click' | 'write' | 'done' | 'warning';
+};
+
+export type PortalStepObserver = (step: PortalStep) => Promise<void> | void;
+
 const gradeAliases = [
   ['primero', 'primer', '1', '1ro', '1 ro', '1er', '1 er', '1ero', '1 ero'],
   ['segundo', '2', '2do', '2 do'],
@@ -51,7 +59,12 @@ function one<T>(values: T[], reason: string): T {
 function selectedCourseText(): string {
   for (const selector of ['.course-summary', '[data-current-course]', '.selected-course']) {
     const candidates = [...document.querySelectorAll(selector)].filter(visible);
-    if (candidates.length === 1) return text(candidates[0]!);
+    if (candidates.length === 1) {
+      return [...candidates[0]!.childNodes]
+        .map((node) => node.textContent?.trim() ?? '')
+        .filter(Boolean)
+        .join(' ');
+    }
     if (candidates.length > 1) throw new Error('Hay varios cursos visibles; abre un solo curso.');
   }
   return '';
@@ -291,8 +304,11 @@ export function inspectPortal(expectedCourse?: string): PortalResponse {
   }
 }
 
-export async function fillVisibleGrade(request: FillRequest): Promise<PortalResponse> {
+export async function fillVisibleGrade(request: FillRequest, onStep?: PortalStepObserver): Promise<PortalResponse> {
   const { grade } = request;
+  const showStep = async (step: PortalStep) => {
+    try { await onStep?.(step); } catch { /* La ayuda visual no debe impedir el registro. */ }
+  };
   try {
     const course = selectedCourseText();
     if (!courseMatches(request.course.name, course)) {
@@ -301,6 +317,7 @@ export async function fillVisibleGrade(request: FillRequest): Promise<PortalResp
     const roster = findRoster();
     const row = findStudentRow(roster, grade);
     row.scrollIntoView({ block: 'center', behavior: 'instant' });
+    await showStep({ element: cellAtColumn(row, roster.rudeIndex) ?? row, label: `RUDE ${grade.rude}`, action: 'locate' });
     let dialog = findGradeDialog();
     if (!dialog) {
       const buttons = [...row.querySelectorAll<HTMLButtonElement>('button')].filter((button) =>
@@ -308,7 +325,9 @@ export async function fillVisibleGrade(request: FillRequest): Promise<PortalResp
         (/calificacion|nota/i.test(normalized(`${button.title} ${button.getAttribute('aria-label') ?? ''}`)) ||
           button.dataset.action === 'grade'),
       );
-      one(buttons, 'No se identificó un único botón de calificaciones para este estudiante.').click();
+      const button = one(buttons, 'No se identificó un único botón de calificaciones para este estudiante.');
+      await showStep({ element: button, label: 'Abrir calificaciones', action: 'click' });
+      button.click();
       dialog = await waitForGradeDialog();
     }
     if (!dialog) throw new Error('No se abrió el registro de notas del estudiante.');
@@ -321,14 +340,17 @@ export async function fillVisibleGrade(request: FillRequest): Promise<PortalResp
       throw new Error('El apellido del registro abierto no coincide con SIGCE.');
     }
     const input = findGradeInput(dialog, request);
+    await showStep({ element: input, label: `${request.subject.name} · ${request.period.name}`, action: 'write' });
     if (!Number.isInteger(grade.value) || grade.value < 0 || grade.value > 100) {
       throw new Error('SIGCE devolvió una calificación fuera del rango de 0 a 100.');
     }
     const current = input.value.trim();
     if (current === String(grade.value)) {
+      await showStep({ element: input, label: 'La nota ya coincide', action: 'done' });
       return { ok: true, status: 'ALREADY_EQUAL', gradeId: grade.gradeId, detail: 'La casilla ya muestra esta nota; no se modificó.' };
     }
     if (current !== '' && !request.allowOverwrite) {
+      await showStep({ element: input, label: 'Nota diferente: revisar', action: 'warning' });
       return {
         ok: false,
         status: 'CONFLICT',
@@ -338,7 +360,8 @@ export async function fillVisibleGrade(request: FillRequest): Promise<PortalResp
     }
     writeValue(input, grade.value);
     if (input.value !== String(grade.value)) throw new Error('La página rechazó el valor escrito.');
-    return { ok: true, status: 'FILLED', gradeId: grade.gradeId, detail: 'Nota escrita. Revísela y pulse Guardar en el SIE.' };
+    await showStep({ element: input, label: `Nota ${grade.value} escrita · revisa y guarda`, action: 'done' });
+    return { ok: true, status: 'FILLED', gradeId: grade.gradeId, detail: 'Nota escrita. Revísela y pulse Guardar en la página.' };
   } catch (error) {
     return {
       ok: false,

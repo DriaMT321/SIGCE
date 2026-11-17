@@ -39,10 +39,30 @@ test('reconoce solamente el curso esperado', () => {
   expect(inspectPortal('Primaria - Tercero B')).toMatchObject({ ok: false, status: 'ERROR' });
 });
 
+test('reconoce el curso cuando la página separa grado y nivel en elementos contiguos', () => {
+  document.querySelector('.course-summary')!.innerHTML =
+    '<strong>Segundo - B</strong><small>NIVEL: <span>Primaria Comunitaria Vocacional</span></small>';
+  expect(inspectPortal('Primaria - Segundo B')).toMatchObject({ ok: true, status: 'READY' });
+});
+
 test('rellena la casilla única del RUDE, materia y trimestre correctos', async () => {
   const outcome = await fillVisibleGrade(request());
   expect(outcome).toMatchObject({ ok: true, status: 'FILLED', gradeId: 'grade' });
   expect((document.querySelector('#grades input') as HTMLInputElement).value).toBe('85');
+});
+
+test('indica visualmente cada elemento antes de interactuar con él', async () => {
+  const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+  dialog.style.display = 'none';
+  document.querySelector('#roster button')!.addEventListener('click', () => { dialog.style.display = 'block'; });
+  const steps: string[] = [];
+  const outcome = await fillVisibleGrade(request(), (step) => {
+    steps.push(step.action);
+    if (step.action === 'click') expect(dialog.style.display).toBe('none');
+    if (step.action === 'write') expect((document.querySelector('#grades input') as HTMLInputElement).value).toBe('');
+  });
+  expect(outcome).toMatchObject({ ok: true, status: 'FILLED' });
+  expect(steps).toEqual(['locate', 'click', 'write', 'done']);
 });
 
 test('detiene la escritura si un RUDE aparece dos veces', async () => {

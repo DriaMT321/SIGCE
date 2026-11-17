@@ -17,7 +17,22 @@ import {
   Check,
   Unlink,
   KeyRound,
+  FileText,
+  Camera,
+  ShieldCheck,
+  Eye,
+  FileCheck2,
+  ExternalLink,
 } from 'lucide-react';
+import {
+  EditorRequisitosMagisterio,
+  ModalDetalleLegajoDocente,
+  VisorImagenCompletaModal,
+  SubidorDocumentoFoto,
+  normalizarRequisitosDocente,
+  requisitosDocentePredeterminados,
+  type RequisitosDocenteDatos,
+} from '../components/legajodocentecomponentes';
 import { Boton } from '../../../components/ui/boton';
 import { Entrada } from '../../../components/ui/entrada';
 import type {
@@ -62,6 +77,13 @@ interface editardocenteestado {
   specialty: string;
   phone: string;
   itemNumber: string;
+  ci?: string;
+  email?: string;
+  rdaNumber?: string;
+  escalafonCategory?: string;
+  yearsOfService?: number;
+  photoUrl?: string;
+  documents?: any;
   teacherAssignments: docenteasignacion[];
 }
 
@@ -110,6 +132,14 @@ export function ComunidadPagina({
   // Modals state for Edit and Delete
   const [ediciondocente, establecerediciondocente] = useState<editardocenteestado | null>(null);
   const [edicionfamiliar, estableceredicionfamiliar] = useState<editarfamiliarestado | null>(null);
+  const [requisitosNuevoDocente, setRequisitosNuevoDocente] =
+    useState<RequisitosDocenteDatos>(requisitosDocentePredeterminados);
+  const [requisitosEdicionDocente, setRequisitosEdicionDocente] =
+    useState<RequisitosDocenteDatos>(requisitosDocentePredeterminados);
+  const [docenteParaVerLegajo, setDocenteParaVerLegajo] = useState<any | null>(null);
+  const [imagenVisor, setImagenVisor] = useState<{ url: string; titulo: string } | null>(null);
+  const [pestanaEdicionDocente, setPestanaEdicionDocente] =
+    useState<'datos' | 'requisitos' | 'materias'>('datos');
   const [restablecerfamiliar, establecerrestablecerfamiliar] = useState<{
     userId: string;
     name: string;
@@ -214,6 +244,7 @@ export function ComunidadPagina({
     mutationFn: (entrada: creardocenteentrada) => gestion.creardocente(entrada),
     onSuccess: () => {
       docenteformulario.reset();
+      setRequisitosNuevoDocente(requisitosDocentePredeterminados);
       establecermostrarformulario(false);
       void clientedeconsultas.invalidateQueries({ queryKey: ['teachers'] });
       void clientedeconsultas.invalidateQueries({ queryKey: ['users'] });
@@ -401,101 +432,161 @@ export function ComunidadPagina({
 
       {/* Form - Create Teacher */}
       {mostrarformulario && puedegestionar && modo === 'teachers' && (
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs">
-          <h2 className="text-sm font-semibold text-slate-900 mb-4">Registrar Docente</h2>
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">Registrar Nuevo Docente</h2>
+              <p className="text-xs text-slate-500">
+                Complete los datos personales, credenciales de acceso y los 5 requerimientos oficiales del magisterio boliviano
+              </p>
+            </div>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+              Legajo Digital Ley 070
+            </span>
+          </div>
 
           <form
-            onSubmit={docenteformulario.handleSubmit((datos) => creardocente.mutate(datos))}
-            className="space-y-4"
+            onSubmit={docenteformulario.handleSubmit((datos) =>
+              creardocente.mutate({
+                ...datos,
+                photoUrl: requisitosNuevoDocente.fotoPerfil || undefined,
+                rdaNumber: requisitosNuevoDocente.rda.numeroRda || undefined,
+                escalafonCategory: requisitosNuevoDocente.rda.categoriaEscalafon || undefined,
+                yearsOfService:
+                  typeof requisitosNuevoDocente.rda.anosServicio === 'number'
+                    ? requisitosNuevoDocente.rda.anosServicio
+                    : Number(requisitosNuevoDocente.rda.anosServicio) || undefined,
+                itemNumber: datos.itemNumber || requisitosNuevoDocente.boletaPago.numeroItem || undefined,
+                documents: requisitosNuevoDocente,
+              }),
+            )}
+            className="space-y-5"
           >
             {creardocente.isError && (
               <p role="alert" className="text-sm text-rose-700">
                 {creardocente.error.message || 'No se pudo registrar al docente.'}
               </p>
             )}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Campo
-                label="Correo personal"
-                error={docenteformulario.formState.errors.email?.message}
-              >
-                <Entrada
-                  type="email"
-                  {...docenteformulario.register('email')}
-                  placeholder="nombre@correo.com"
-                />
-              </Campo>
 
-              <Campo
-                label="Contraseña"
-                error={docenteformulario.formState.errors.password?.message}
-              >
-                <Entrada
-                  type="password"
-                  {...docenteformulario.register('password')}
-                  placeholder="••••••••"
-                />
-              </Campo>
+            {/* SECCIÓN 1: FOTO CARNET Y DATOS PERSONALES */}
+            <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-4">
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                <Camera className="w-4 h-4 text-indigo-600" />
+                <span>Foto de Perfil y Datos Personales</span>
+              </h3>
 
-              <Campo label="C.I." error={docenteformulario.formState.errors.ci?.message}>
-                <Entrada {...docenteformulario.register('ci')} placeholder="6849204" />
-              </Campo>
+              <div className="grid gap-4 md:grid-cols-12 items-start">
+                <div className="md:col-span-3">
+                  <SubidorDocumentoFoto
+                    label="Foto Carnet / Perfil"
+                    subtitulo="Foto institucional del maestro"
+                    archivoUrl={requisitosNuevoDocente.fotoPerfil}
+                    nombreArchivo="foto_carnet.jpg"
+                    onChange={(url) =>
+                      setRequisitosNuevoDocente((actual) => ({ ...actual, fotoPerfil: url }))
+                    }
+                    onRemove={() =>
+                      setRequisitosNuevoDocente((actual) => ({ ...actual, fotoPerfil: '' }))
+                    }
+                    onVerCompleto={(url, titulo) => setImagenVisor({ url, titulo })}
+                  />
+                </div>
 
-              <Campo label="Nombres" error={docenteformulario.formState.errors.firstName?.message}>
-                <Entrada {...docenteformulario.register('firstName')} placeholder="Carlos" />
-              </Campo>
+                <div className="md:col-span-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <Campo
+                    label="Correo institucional / personal"
+                    error={docenteformulario.formState.errors.email?.message}
+                  >
+                    <Entrada
+                      type="email"
+                      {...docenteformulario.register('email')}
+                      placeholder="docente@correo.com"
+                    />
+                  </Campo>
 
-              <Campo label="Apellidos" error={docenteformulario.formState.errors.lastName?.message}>
-                <Entrada {...docenteformulario.register('lastName')} placeholder="Mamani Flores" />
-              </Campo>
+                  <Campo
+                    label="Contraseña de acceso"
+                    error={docenteformulario.formState.errors.password?.message}
+                  >
+                    <Entrada
+                      type="password"
+                      {...docenteformulario.register('password')}
+                      placeholder="••••••••••••"
+                    />
+                  </Campo>
 
-              <Campo
-                label="Materia principal"
-                error={docenteformulario.formState.errors.specialty?.message}
-              >
-                <select
-                  {...docenteformulario.register('specialty')}
-                  className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm"
-                >
-                  <option value="">Selecciona una materia</option>
-                  {materias.map((materia) => (
-                    <option key={materia.id} value={materia.name}>
-                      {materia.name}
-                    </option>
-                  ))}
-                </select>
-              </Campo>
+                  <Campo label="C.I." error={docenteformulario.formState.errors.ci?.message}>
+                    <Entrada {...docenteformulario.register('ci')} placeholder="6849204" />
+                  </Campo>
 
-              <Campo label="Teléfono" error={docenteformulario.formState.errors.phone?.message}>
-                <Entrada {...docenteformulario.register('phone')} placeholder="Ej. 70000000" />
-              </Campo>
+                  <Campo label="Nombres" error={docenteformulario.formState.errors.firstName?.message}>
+                    <Entrada {...docenteformulario.register('firstName')} placeholder="Carlos" />
+                  </Campo>
 
-              <Campo
-                label="Número de Ítem"
-                error={docenteformulario.formState.errors.itemNumber?.message}
-              >
-                <Entrada {...docenteformulario.register('itemNumber')} placeholder="IT-4029" />
-              </Campo>
+                  <Campo label="Apellidos" error={docenteformulario.formState.errors.lastName?.message}>
+                    <Entrada {...docenteformulario.register('lastName')} placeholder="Mamani Flores" />
+                  </Campo>
+
+                  <Campo
+                    label="Materia principal"
+                    error={docenteformulario.formState.errors.specialty?.message}
+                  >
+                    <select
+                      {...docenteformulario.register('specialty')}
+                      className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">Selecciona una materia</option>
+                      {materias.map((materia) => (
+                        <option key={materia.id} value={materia.name}>
+                          {materia.name}
+                        </option>
+                      ))}
+                    </select>
+                  </Campo>
+
+                  <Campo label="Teléfono" error={docenteformulario.formState.errors.phone?.message}>
+                    <Entrada {...docenteformulario.register('phone')} placeholder="Ej. 71234567" />
+                  </Campo>
+
+                  <Campo
+                    label="Número de Ítem"
+                    error={docenteformulario.formState.errors.itemNumber?.message}
+                  >
+                    <Entrada {...docenteformulario.register('itemNumber')} placeholder="IT-4029" />
+                  </Campo>
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-slate-600">
-              Usa un correo al que el docente tenga acceso. La materia principal se puede cambiar
-              después; las asignaciones por curso se gestionan en Horarios.
-            </p>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-              <Boton
-                type="button"
-                variant="outline"
-                onClick={() => establecermostrarformulario(false)}
-              >
-                Cancelar
-              </Boton>
-              <Boton
-                type="submit"
-                disabled={creardocente.isPending}
-                className="bg-slate-900 hover:bg-slate-800 text-white"
-              >
-                {creardocente.isPending ? 'Guardando...' : 'Crear Docente'}
-              </Boton>
+            {/* SECCIÓN 2: LOS 5 REQUERIMIENTOS OFICIALES DEL MAGISTERIO */}
+            <div className="pt-1">
+              <EditorRequisitosMagisterio
+                valores={requisitosNuevoDocente}
+                onChange={setRequisitosNuevoDocente}
+                onVerImagen={(url, titulo) => setImagenVisor({ url, titulo })}
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
+              <p className="text-xs text-slate-500">
+                Los 5 requerimientos y fotos pueden ser actualizados o complementados posteriormente en cualquier momento.
+              </p>
+              <div className="flex items-center gap-2">
+                <Boton
+                  type="button"
+                  variant="outline"
+                  onClick={() => establecermostrarformulario(false)}
+                >
+                  Cancelar
+                </Boton>
+                <Boton
+                  type="submit"
+                  disabled={creardocente.isPending}
+                  className="bg-slate-900 hover:bg-slate-800 text-white font-medium"
+                >
+                  {creardocente.isPending ? 'Guardando Docente y Legajo...' : 'Crear Docente con Legajo'}
+                </Boton>
+              </div>
             </div>
           </form>
         </div>
@@ -639,7 +730,11 @@ export function ComunidadPagina({
           <DocenteTabla
             data={docentesconsulta.data?.data ?? []}
             canManage={puedegestionar}
-            onEdit={(docente) =>
+            onVerLegajo={(docente) => setDocenteParaVerLegajo(docente)}
+            onEdit={(docente) => {
+              const reqs = normalizarRequisitosDocente(docente);
+              setRequisitosEdicionDocente(reqs);
+              setPestanaEdicionDocente('datos');
               establecerediciondocente({
                 id: docente.id,
                 firstName: docente.firstName,
@@ -647,9 +742,16 @@ export function ComunidadPagina({
                 specialty: docente.specialty,
                 phone: docente.phone || '',
                 itemNumber: docente.itemNumber || '',
+                ci: docente.ci || '',
+                email: docente.email || '',
+                rdaNumber: docente.rdaNumber || '',
+                escalafonCategory: docente.escalafonCategory || '',
+                yearsOfService: docente.yearsOfService ?? undefined,
+                photoUrl: docente.photoUrl || '',
+                documents: docente.documents,
                 teacherAssignments: docente.teacherAssignments,
-              })
-            }
+              });
+            }}
             onDelete={(docente) =>
               establecereliminacionelemento({
                 type: 'teacher',
@@ -966,16 +1068,15 @@ export function ComunidadPagina({
             role="dialog"
             aria-modal="true"
             aria-labelledby="titulo-editar-docente"
-            className="max-h-[94vh] w-full max-w-6xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-xl animate-in fade-in zoom-in-95 sm:p-6"
+            className="max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-xl animate-in fade-in zoom-in-95 sm:p-6"
           >
             <div className="sticky top-0 z-10 -mx-4 -mt-4 mb-4 flex items-start justify-between gap-4 border-b border-slate-100 bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:-mt-6 sm:px-6">
               <div>
-                <h3 id="titulo-editar-docente" className="font-bold text-slate-900">
-                  Editar docente
+                <h3 id="titulo-editar-docente" className="font-bold text-slate-900 text-base">
+                  Editar Docente y Expediente Oficial
                 </h3>
-                <p className="mt-1 text-sm text-slate-600">
-                  {ediciondocente.firstName} {ediciondocente.lastName} · administra sus materias por
-                  curso
+                <p className="mt-0.5 text-xs text-slate-600">
+                  {ediciondocente.firstName} {ediciondocente.lastName} · Administración de expediente Ley 070 y asignaciones
                 </p>
               </div>
               <button
@@ -988,143 +1089,295 @@ export function ComunidadPagina({
               </button>
             </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                actualizardocentemutacion.mutate({
-                  id: ediciondocente.id,
-                  data: {
-                    firstName: ediciondocente.firstName,
-                    lastName: ediciondocente.lastName,
-                    specialty: ediciondocente.specialty,
-                    phone: ediciondocente.phone,
-                    itemNumber: ediciondocente.itemNumber,
-                  },
-                });
-              }}
-              className="space-y-4 pt-4"
-            >
-              {actualizardocentemutacion.isError && (
-                <p role="alert" className="text-sm text-rose-700">
-                  {actualizardocentemutacion.error.message || 'No se pudo actualizar al docente.'}
-                </p>
-              )}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nombres *
-                  </label>
-                  <Entrada
-                    value={ediciondocente.firstName}
-                    onChange={(e) =>
-                      establecerediciondocente({ ...ediciondocente, firstName: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Apellidos *
-                  </label>
-                  <Entrada
-                    value={ediciondocente.lastName}
-                    onChange={(e) =>
-                      establecerediciondocente({ ...ediciondocente, lastName: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-              </div>
+            {/* Pestañas de edición */}
+            <div className="flex border-b border-slate-200 mb-5 gap-2">
+              <button
+                type="button"
+                onClick={() => setPestanaEdicionDocente('datos')}
+                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${
+                  pestanaEdicionDocente === 'datos'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                1. Datos Generales y Foto
+              </button>
+              <button
+                type="button"
+                onClick={() => setPestanaEdicionDocente('requisitos')}
+                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
+                  pestanaEdicionDocente === 'requisitos'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                2. Requisitos Magisterio (RDA, TPN, Escalafón, Boleta, Antigüedad)
+                <span className="text-[10px] bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-mono">
+                  5 requisitos
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPestanaEdicionDocente('materias')}
+                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${
+                  pestanaEdicionDocente === 'materias'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                3. Materias Asignadas ({ediciondocente.teacherAssignments.length})
+              </button>
+            </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Materia principal *
-                </label>
-                <select
-                  value={ediciondocente.specialty}
-                  onChange={(e) =>
-                    establecerediciondocente({ ...ediciondocente, specialty: e.target.value })
-                  }
-                  className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm"
-                  required
-                >
-                  <option value="">Selecciona una materia</option>
-                  {!materias.some((materia) => materia.name === ediciondocente.specialty) &&
-                    ediciondocente.specialty && (
-                      <option value={ediciondocente.specialty}>
-                        Actual: {ediciondocente.specialty}
-                      </option>
-                    )}
-                  {materias.map((materia) => (
-                    <option key={materia.id} value={materia.name}>
-                      {materia.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {actualizardocentemutacion.isError && (
+              <p role="alert" className="text-sm text-rose-700 mb-4">
+                {actualizardocentemutacion.error.message || 'No se pudo actualizar al docente.'}
+              </p>
+            )}
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Teléfono
-                  </label>
-                  <Entrada
-                    value={ediciondocente.phone}
-                    onChange={(e) =>
-                      establecerediciondocente({ ...ediciondocente, phone: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nº de Ítem
-                  </label>
-                  <Entrada
-                    value={ediciondocente.itemNumber}
-                    onChange={(e) =>
-                      establecerediciondocente({ ...ediciondocente, itemNumber: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                <Boton
-                  type="button"
-                  variant="outline"
-                  onClick={() => establecerediciondocente(null)}
-                >
-                  Cancelar
-                </Boton>
-                <Boton
-                  type="submit"
-                  disabled={actualizardocentemutacion.isPending}
-                  className="bg-slate-900 hover:bg-slate-800 text-white"
-                >
-                  {actualizardocentemutacion.isPending ? 'Guardando...' : 'Guardar Cambios'}
-                </Boton>
-              </div>
-            </form>
-
-            <Editordocenteasignaciones
-              teacherId={ediciondocente.id}
-              assignments={ediciondocente.teacherAssignments}
-              subjects={materias}
-              management={gestion}
-              onAssignmentsChanged={(courseId, assignments) => {
-                establecerediciondocente((actual) =>
-                  actual && actual.id === ediciondocente.id
-                    ? {
-                        ...actual,
-                        teacherAssignments: [
-                          ...actual.teacherAssignments.filter((item) => item.courseId !== courseId),
-                          ...assignments,
-                        ],
+            {pestanaEdicionDocente === 'datos' && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  actualizardocentemutacion.mutate({
+                    id: ediciondocente.id,
+                    data: {
+                      firstName: ediciondocente.firstName,
+                      lastName: ediciondocente.lastName,
+                      specialty: ediciondocente.specialty,
+                      phone: ediciondocente.phone,
+                      itemNumber: ediciondocente.itemNumber || requisitosEdicionDocente.boletaPago.numeroItem || undefined,
+                      photoUrl: requisitosEdicionDocente.fotoPerfil || undefined,
+                      rdaNumber: requisitosEdicionDocente.rda.numeroRda || undefined,
+                      escalafonCategory: requisitosEdicionDocente.rda.categoriaEscalafon || undefined,
+                      yearsOfService:
+                        typeof requisitosEdicionDocente.rda.anosServicio === 'number'
+                          ? requisitosEdicionDocente.rda.anosServicio
+                          : Number(requisitosEdicionDocente.rda.anosServicio) || undefined,
+                      documents: requisitosEdicionDocente,
+                    },
+                  });
+                }}
+                className="space-y-4"
+              >
+                <div className="grid gap-4 md:grid-cols-12 items-start">
+                  <div className="md:col-span-3">
+                    <SubidorDocumentoFoto
+                      label="Foto Carnet / Perfil"
+                      subtitulo="Foto oficial del maestro"
+                      archivoUrl={requisitosEdicionDocente.fotoPerfil}
+                      nombreArchivo="foto_carnet.jpg"
+                      onChange={(url) =>
+                        setRequisitosEdicionDocente((actual) => ({ ...actual, fotoPerfil: url }))
                       }
-                    : actual,
-                );
-              }}
-            />
+                      onRemove={() =>
+                        setRequisitosEdicionDocente((actual) => ({ ...actual, fotoPerfil: '' }))
+                      }
+                      onVerCompleto={(url, titulo) => setImagenVisor({ url, titulo })}
+                    />
+                  </div>
+
+                  <div className="md:col-span-9 space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Nombres *
+                        </label>
+                        <Entrada
+                          value={ediciondocente.firstName}
+                          onChange={(e) =>
+                            establecerediciondocente({ ...ediciondocente, firstName: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Apellidos *
+                        </label>
+                        <Entrada
+                          value={ediciondocente.lastName}
+                          onChange={(e) =>
+                            establecerediciondocente({ ...ediciondocente, lastName: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Materia principal *
+                      </label>
+                      <select
+                        value={ediciondocente.specialty}
+                        onChange={(e) =>
+                          establecerediciondocente({ ...ediciondocente, specialty: e.target.value })
+                        }
+                        className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm"
+                        required
+                      >
+                        <option value="">Selecciona una materia</option>
+                        {!materias.some((materia) => materia.name === ediciondocente.specialty) &&
+                          ediciondocente.specialty && (
+                            <option value={ediciondocente.specialty}>
+                              Actual: {ediciondocente.specialty}
+                            </option>
+                          )}
+                        {materias.map((materia) => (
+                          <option key={materia.id} value={materia.name}>
+                            {materia.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Teléfono
+                        </label>
+                        <Entrada
+                          value={ediciondocente.phone}
+                          onChange={(e) =>
+                            establecerediciondocente({ ...ediciondocente, phone: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Nº de Ítem
+                        </label>
+                        <Entrada
+                          value={ediciondocente.itemNumber}
+                          onChange={(e) =>
+                            establecerediciondocente({ ...ediciondocente, itemNumber: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-4 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setPestanaEdicionDocente('requisitos')}
+                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                  >
+                    Editar los 5 Requisitos del Magisterio →
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <Boton
+                      type="button"
+                      variant="outline"
+                      onClick={() => establecerediciondocente(null)}
+                    >
+                      Cancelar
+                    </Boton>
+                    <Boton
+                      type="submit"
+                      disabled={actualizardocentemutacion.isPending}
+                      className="bg-slate-900 hover:bg-slate-800 text-white"
+                    >
+                      {actualizardocentemutacion.isPending ? 'Guardando...' : 'Guardar Cambios'}
+                    </Boton>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            {pestanaEdicionDocente === 'requisitos' && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  actualizardocentemutacion.mutate({
+                    id: ediciondocente.id,
+                    data: {
+                      firstName: ediciondocente.firstName,
+                      lastName: ediciondocente.lastName,
+                      specialty: ediciondocente.specialty,
+                      phone: ediciondocente.phone,
+                      itemNumber: ediciondocente.itemNumber || requisitosEdicionDocente.boletaPago.numeroItem || undefined,
+                      photoUrl: requisitosEdicionDocente.fotoPerfil || undefined,
+                      rdaNumber: requisitosEdicionDocente.rda.numeroRda || undefined,
+                      escalafonCategory: requisitosEdicionDocente.rda.categoriaEscalafon || undefined,
+                      yearsOfService:
+                        typeof requisitosEdicionDocente.rda.anosServicio === 'number'
+                          ? requisitosEdicionDocente.rda.anosServicio
+                          : Number(requisitosEdicionDocente.rda.anosServicio) || undefined,
+                      documents: requisitosEdicionDocente,
+                    },
+                  });
+                }}
+                className="space-y-4"
+              >
+                <EditorRequisitosMagisterio
+                  valores={requisitosEdicionDocente}
+                  onChange={setRequisitosEdicionDocente}
+                  onVerImagen={(url, titulo) => setImagenVisor({ url, titulo })}
+                />
+
+                <div className="flex items-center justify-between gap-2 pt-4 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setPestanaEdicionDocente('datos')}
+                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                  >
+                    ← Volver a Datos Generales
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <Boton
+                      type="button"
+                      variant="outline"
+                      onClick={() => establecerediciondocente(null)}
+                    >
+                      Cancelar
+                    </Boton>
+                    <Boton
+                      type="submit"
+                      disabled={actualizardocentemutacion.isPending}
+                      className="bg-slate-900 hover:bg-slate-800 text-white"
+                    >
+                      {actualizardocentemutacion.isPending ? 'Guardando...' : 'Guardar Legajo y Cambios'}
+                    </Boton>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            {pestanaEdicionDocente === 'materias' && (
+              <div className="space-y-4">
+                <Editordocenteasignaciones
+                  teacherId={ediciondocente.id}
+                  assignments={ediciondocente.teacherAssignments}
+                  subjects={materias}
+                  management={gestion}
+                  onAssignmentsChanged={(courseId, assignments) => {
+                    establecerediciondocente((actual) =>
+                      actual && actual.id === ediciondocente.id
+                        ? {
+                            ...actual,
+                            teacherAssignments: [
+                              ...actual.teacherAssignments.filter((item) => item.courseId !== courseId),
+                              ...assignments,
+                            ],
+                          }
+                        : actual,
+                    );
+                  }}
+                />
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                  <Boton
+                    type="button"
+                    variant="outline"
+                    onClick={() => establecerediciondocente(null)}
+                  >
+                    Cerrar
+                  </Boton>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1431,6 +1684,24 @@ export function ComunidadPagina({
           </div>
         </div>
       )}
+
+      {/* MODAL: VER DETALLE DEL LEGAJO DEL DOCENTE */}
+      {docenteParaVerLegajo && (
+        <ModalDetalleLegajoDocente
+          docente={docenteParaVerLegajo}
+          onCerrar={() => setDocenteParaVerLegajo(null)}
+          onVerImagenCompleta={(url, titulo) => setImagenVisor({ url, titulo })}
+        />
+      )}
+
+      {/* MODAL: VISOR DE IMAGEN / DOCUMENTO COMPLETO */}
+      {imagenVisor && (
+        <VisorImagenCompletaModal
+          url={imagenVisor.url}
+          titulo={imagenVisor.titulo}
+          onCerrar={() => setImagenVisor(null)}
+        />
+      )}
     </div>
   );
 }
@@ -1440,6 +1711,7 @@ function DocenteTabla({
   canManage: puedegestionar,
   onEdit: oneditar,
   onDelete: oneliminar,
+  onVerLegajo: onverlegajo,
 }: {
   data: Array<{
     id: string;
@@ -1450,18 +1722,17 @@ function DocenteTabla({
     teacherAssignments: docenteasignacion[];
     email: string;
     phone?: string | null;
+    ci?: string;
+    rdaNumber?: string | null;
+    escalafonCategory?: string | null;
+    yearsOfService?: number | null;
+    photoUrl?: string | null;
+    documents?: any;
   }>;
   canManage: boolean;
-  onEdit: (docente: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    specialty: string;
-    phone?: string | null;
-    itemNumber?: string | null;
-    teacherAssignments: docenteasignacion[];
-  }) => void;
+  onEdit: (docente: any) => void;
   onDelete: (docente: { id: string; firstName: string; lastName: string }) => void;
+  onVerLegajo: (docente: any) => void;
 }) {
   if (datos.length === 0) {
     return (
@@ -1478,11 +1749,11 @@ function DocenteTabla({
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500 uppercase tracking-wide">
             <th className="py-3 pl-5 pr-3">Docente</th>
-            <th className="px-3 py-3">Ítem</th>
+            <th className="px-3 py-3">RDA / Ítem</th>
             <th className="px-3 py-3">Materia principal</th>
             <th className="px-3 py-3">Carga en la gestión activa</th>
             <th className="px-3 py-3">Correo</th>
-            {puedegestionar && <th className="py-3 pl-3 pr-5 text-right">Acciones</th>}
+            <th className="py-3 pl-3 pr-5 text-right">Acciones</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
@@ -1503,18 +1774,46 @@ function DocenteTabla({
             return (
               <tr key={elemento.id} className="hover:bg-slate-50 transition-colors">
                 <td className="py-3 pl-5 pr-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center">
-                      {iniciales}
+                  <div className="flex items-center gap-3">
+                    {elemento.photoUrl ? (
+                      <img
+                        src={elemento.photoUrl}
+                        alt={`${elemento.firstName} ${elemento.lastName}`}
+                        className="w-8 h-8 rounded-lg object-cover border border-slate-200 shadow-2xs shrink-0"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 font-semibold text-xs flex items-center justify-center shrink-0 border border-indigo-100">
+                        {iniciales}
+                      </div>
+                    )}
+                    <div>
+                      <span className="font-medium text-slate-900 block">
+                        {elemento.firstName} {elemento.lastName}
+                      </span>
+                      {elemento.rdaNumber ? (
+                        <span className="text-[11px] font-mono text-slate-500">
+                          RDA: {elemento.rdaNumber}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-slate-400 italic">
+                          Sin RDA
+                        </span>
+                      )}
                     </div>
-                    <span className="font-medium text-slate-900">
-                      {elemento.firstName} {elemento.lastName}
-                    </span>
                   </div>
                 </td>
 
-                <td className="px-3 py-3 font-mono text-slate-700">
-                  {elemento.itemNumber || <span className="text-slate-400">—</span>}
+                <td className="px-3 py-3">
+                  <div className="space-y-0.5">
+                    <div className="font-mono text-xs text-slate-700 font-medium">
+                      {elemento.itemNumber ? `Ítem: ${elemento.itemNumber}` : <span className="text-slate-400 font-normal">Sin ítem</span>}
+                    </div>
+                    {elemento.escalafonCategory && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {elemento.escalafonCategory}
+                      </span>
+                    )}
+                  </div>
                 </td>
 
                 <td className="px-3 py-3">
@@ -1559,28 +1858,38 @@ function DocenteTabla({
 
                 <td className="px-3 py-3 font-mono text-slate-600 text-xs">{elemento.email}</td>
 
-                {puedegestionar && (
-                  <td className="py-3 pl-3 pr-5 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        type="button"
-                        onClick={() => oneditar(elemento)}
-                        className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                        title="Editar datos y materias asignadas"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => oneliminar(elemento)}
-                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                        title="Eliminar docente (Baja lógica)"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                )}
+                <td className="py-3 pl-3 pr-5 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onverlegajo(elemento)}
+                      className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                      title="Ver Legajo Oficial (RDA, Título, Escalafón, Boleta, Titularidad)"
+                    >
+                      <FileText className="w-4 h-4" />
+                    </button>
+                    {puedegestionar && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => oneditar(elemento)}
+                          className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                          title="Editar datos y materias asignadas"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => oneliminar(elemento)}
+                          className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                          title="Eliminar docente (Baja lógica)"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </td>
               </tr>
             );
           })}

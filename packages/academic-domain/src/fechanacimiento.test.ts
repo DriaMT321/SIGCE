@@ -63,3 +63,4 @@ test('rechaza edades fuera del margen permitido (menor a 3 o mayor a 100 años)'
     new RegExp(`${edadminimaestudianteregular} y ${edadmaximaestudianteregular}`),
   );
 });
+

@@ -21,6 +21,11 @@ export interface entidaddocente {
   }>;
   phone: string | null;
   itemNumber: string | null;
+  rdaNumber?: string | null;
+  escalafonCategory?: string | null;
+  yearsOfService?: number | null;
+  photoUrl?: string | null;
+  documents?: any | null;
   email: string;
   createdAt: Date;
   updatedAt: Date;

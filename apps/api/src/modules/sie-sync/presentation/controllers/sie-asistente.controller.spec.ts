@@ -28,3 +28,4 @@ describe('SieAsistenteController DI wiring', () => {
     await moduleRef.close();
   });
 });
+

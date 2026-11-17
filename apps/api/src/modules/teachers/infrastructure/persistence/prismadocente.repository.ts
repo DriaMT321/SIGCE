@@ -95,6 +95,11 @@ export class repositoriodocenteprisma implements repositoriodocentes {
             specialty: datos.specialty,
             phone: datos.phone,
             itemNumber: datos.itemNumber,
+            rdaNumber: datos.rdaNumber,
+            escalafonCategory: datos.escalafonCategory,
+            yearsOfService: datos.yearsOfService,
+            photoUrl: datos.photoUrl,
+            documents: datos.documents ?? Prisma.DbNull,
           },
           include: { user: true },
         });
@@ -128,7 +133,7 @@ export class repositoriodocenteprisma implements repositoriodocentes {
   }
 
   async actualizar(id: string, datos: datosactualizaciondocente, auditoria: auditoriacontexto) {
-    const { email: correo, firstName: nombres, lastName: apellidos, ...docentecampos } = datos;
+    const { email: correo, firstName: nombres, lastName: apellidos, documents: docDocumentos, ...docentecampos } = datos;
     try {
       const docente = await this.prisma.$transaction(async (tx) => {
         const bloqueado = await tx.$queryRaw<Array<{ id: string }>>`
@@ -158,6 +163,9 @@ export class repositoriodocenteprisma implements repositoriodocentes {
             ...docentecampos,
             ...(nombres ? { firstName: nombres } : {}),
             ...(apellidos ? { lastName: apellidos } : {}),
+            ...(docDocumentos !== undefined
+              ? { documents: docDocumentos === null ? Prisma.DbNull : docDocumentos }
+              : {}),
           },
           include: { user: true },
         });
@@ -283,6 +291,11 @@ export class repositoriodocenteprisma implements repositoriodocentes {
       })),
       phone: valor.phone,
       itemNumber: valor.itemNumber,
+      rdaNumber: valor.rdaNumber ?? null,
+      escalafonCategory: valor.escalafonCategory ?? null,
+      yearsOfService: valor.yearsOfService ?? null,
+      photoUrl: valor.photoUrl ?? null,
+      documents: valor.documents ?? null,
       email: valor.user.email,
       createdAt: valor.createdAt,
       updatedAt: valor.updatedAt,

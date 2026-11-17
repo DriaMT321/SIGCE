@@ -1,0 +1,45 @@
+window.SIE_COURSES = [
+  {
+    id: 'demo-course',
+    name: '2º de Primaria',
+    grade: 4,
+    section: 'B',
+    turn: 'Mañana',
+    students: [
+      {
+        fullName: 'PÉREZ LÓPEZ, ANA',
+        paternal: 'PÉREZ',
+        maternal: 'LÓPEZ',
+        first: 'ANA',
+        code: 'DEMO-0001',
+        ci: '0000001',
+        status: 'ACTIVE',
+        account: 'Demostración',
+        guardian: 'Demostración',
+      },
+      {
+        fullName: 'ROJAS VARGAS, LUIS',
+        paternal: 'ROJAS',
+        maternal: 'VARGAS',
+        first: 'LUIS',
+        code: 'DEMO-0002',
+        ci: '0000002',
+        status: 'ACTIVE',
+        account: 'Demostración',
+        guardian: 'Demostración',
+      },
+      {
+        fullName: 'MAMANI QUISPE, MARÍA',
+        paternal: 'MAMANI',
+        maternal: 'QUISPE',
+        first: 'MARÍA',
+        code: 'DEMO-0003',
+        ci: '0000003',
+        status: 'ACTIVE',
+        account: 'Demostración',
+        guardian: 'Demostración',
+      },
+    ],
+  },
+];
+window.SIE_UNLINKED = [];

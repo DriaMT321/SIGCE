@@ -22,6 +22,11 @@ export interface docenteregistro {
   teacherAssignments: docenteasignacion[];
   phone: string | null;
   itemNumber: string | null;
+  rdaNumber?: string | null;
+  escalafonCategory?: string | null;
+  yearsOfService?: number | null;
+  photoUrl?: string | null;
+  documents?: any | null;
 }
 
 export interface familiarregistro {
@@ -44,6 +49,11 @@ export interface creardocenteentrada {
   specialty: string;
   phone?: string;
   itemNumber?: string;
+  rdaNumber?: string;
+  escalafonCategory?: string;
+  yearsOfService?: number;
+  photoUrl?: string;
+  documents?: any;
 }
 
 export interface crearfamiliarentrada {
@@ -58,11 +68,17 @@ export interface crearfamiliarentrada {
 }
 
 export interface docenteactualizarentrada {
+  ci?: string;
   firstName?: string;
   lastName?: string;
   specialty?: string;
   phone?: string;
   itemNumber?: string;
+  rdaNumber?: string;
+  escalafonCategory?: string;
+  yearsOfService?: number;
+  photoUrl?: string;
+  documents?: any;
 }
 
 export interface familiaractualizarentrada {

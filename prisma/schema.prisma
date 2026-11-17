@@ -383,6 +383,11 @@ model Teacher {
   specialty  String
   phone      String?
   itemNumber String?   @map("item_number")
+  rdaNumber  String?   @map("rda_number")
+  escalafonCategory String? @map("escalafon_category")
+  yearsOfService Int?  @map("years_of_service")
+  photoUrl   String?   @map("photo_url")
+  documents  Json?
   createdAt  DateTime  @default(now()) @map("created_at")
   updatedAt  DateTime  @updatedAt @map("updated_at")
   deletedAt  DateTime? @map("deleted_at")
@@ -395,6 +400,7 @@ model Teacher {
 
   @@index([ci])
   @@index([userId])
+  @@index([rdaNumber])
   @@map("teachers")
 }
 

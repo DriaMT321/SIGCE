@@ -16,6 +16,11 @@ const puerto: puertogestioncomunidad = {
           teacherAssignments: asignacionesdocente,
           phone: telefono,
           itemNumber: elementonumero,
+          rdaNumber: docenteRda,
+          escalafonCategory: docenteEscalafon,
+          yearsOfService: docenteAnos,
+          photoUrl: docenteFoto,
+          documents: docenteDocs,
         }) => ({
           id,
           email: correo,
@@ -25,6 +30,11 @@ const puerto: puertogestioncomunidad = {
           teacherAssignments: asignacionesdocente,
           phone: telefono,
           itemNumber: elementonumero,
+          rdaNumber: docenteRda,
+          escalafonCategory: docenteEscalafon,
+          yearsOfService: docenteAnos,
+          photoUrl: docenteFoto,
+          documents: docenteDocs,
         }),
       ),
     };

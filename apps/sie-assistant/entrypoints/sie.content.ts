@@ -1,4 +1,5 @@
 import { fillVisibleGrade, inspectPortal } from '../src/portal';
+import { createVisualCursor } from '../src/visual-cursor';
 import type { PortalRequest, PortalResponse, SavedMessage } from '../src/types';
 
 export default defineContentScript({
@@ -8,6 +9,7 @@ export default defineContentScript({
     let observer: MutationObserver | null = null;
     let pendingRude = '';
     let trustedSaveClicked = false;
+    let visualCursor: ReturnType<typeof createVisualCursor> | null = null;
 
     document.addEventListener('click', (event) => {
       if (!event.isTrusted || !pendingRude) return;
@@ -33,16 +35,16 @@ export default defineContentScript({
     function observeManualSave(gradeId: string, rude: string) {
       stopObserving();
       pendingRude = rude.replace(/\s/g, '');
-      const current = new Map<Element, string>();
-      for (const node of document.querySelectorAll('#toast,[role="status"],[role="alert"]')) {
-        current.set(node, node.textContent?.trim() ?? '');
-      }
-      observer = new MutationObserver(() => {
-        for (const node of document.querySelectorAll('#toast,[role="status"],[role="alert"]')) {
+      observer = new MutationObserver((mutations) => {
+        if (!trustedSaveClicked) return;
+        const changed = new Set<Element>();
+        for (const mutation of mutations) {
+          const target = mutation.target instanceof Element ? mutation.target : mutation.target.parentElement;
+          const status = target?.closest('#toast,[role="status"],[role="alert"]');
+          if (status) changed.add(status);
+        }
+        for (const node of changed) {
           const message = node.textContent?.trim() ?? '';
-          if (!message || message === current.get(node)) continue;
-          current.set(node, message);
-          if (!trustedSaveClicked) continue;
           if (!/guardad[oa]s?|registrad[oa]s?|actualizad[oa]s?/i.test(message)) continue;
           if (node.getClientRects().length === 0) continue;
           const event: SavedMessage = {
@@ -68,6 +70,7 @@ export default defineContentScript({
       const request = raw as PortalRequest;
       if (request.kind === 'SIGCE_RESET') {
         stopObserving();
+        visualCursor?.hide();
         respond({ ok: true });
         return;
       }
@@ -77,8 +80,12 @@ export default defineContentScript({
       }
       if (request.kind === 'SIGCE_FILL') {
         observeManualSave(request.grade.gradeId, request.grade.rude);
-        void fillVisibleGrade(request).then((result: PortalResponse) => {
-          if (!result.ok || result.status !== 'FILLED') stopObserving();
+        visualCursor ??= createVisualCursor();
+        void fillVisibleGrade(request, visualCursor.show).then((result: PortalResponse) => {
+          if (!result.ok || result.status !== 'FILLED') {
+            stopObserving();
+            if (result.status === 'ERROR') visualCursor?.hide();
+          }
           respond(result);
         });
         return true;

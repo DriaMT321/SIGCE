@@ -12,6 +12,11 @@ export interface datoscreaciondocente {
   specialty: string;
   phone?: string;
   itemNumber?: string;
+  rdaNumber?: string;
+  escalafonCategory?: string;
+  yearsOfService?: number;
+  photoUrl?: string;
+  documents?: any;
 }
 
 export type datosactualizaciondocente = Partial<Omit<datoscreaciondocente, 'passwordHash'>>;

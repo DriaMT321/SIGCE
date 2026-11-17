@@ -73,3 +73,4 @@ export interface repositorioasistentesie {
     reason: string;
   }): Promise<{ id: string; createdAt: Date }>;
 }
+

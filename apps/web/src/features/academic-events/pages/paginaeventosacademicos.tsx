@@ -4,10 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import {
-  ArrowLeft,
-  ArrowRight,
   CalendarDays,
+  CalendarPlus,
   Check,
+  Clock,
   Clock3,
   MapPin,
   Pencil,
@@ -16,6 +16,15 @@ import {
   School,
   Trash2,
   X,
+  ChevronLeft,
+  ChevronRight,
+  GraduationCap,
+  Users,
+  Sparkles,
+  AlertCircle,
+  Tag,
+  Building2,
+  CalendarRange,
 } from 'lucide-react';
 import { Boton } from '../../../components/ui/boton';
 import { Entrada } from '../../../components/ui/entrada';
@@ -30,20 +39,62 @@ const zonabolivia = 'America/La_Paz';
 const diasdelasemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const tiposevento = ['ACTIVIDAD', 'REUNION', 'ACTO_ESCOLAR', 'SUSPENSION_CLASES', 'OTRO'] as const;
 
-const etiquetasdetipo: Record<tipoeventoacademico, string> = {
-  ACTIVIDAD: 'Actividad académica',
-  REUNION: 'Reunión',
-  ACTO_ESCOLAR: 'Acto escolar',
-  SUSPENSION_CLASES: 'Suspensión de clases',
-  OTRO: 'Otro evento',
-};
+interface TipoEventoConfig {
+  label: string;
+  badge: string;
+  dotColor: string;
+  bgLight: string;
+  textColor: string;
+  borderColor: string;
+  accentBar: string;
+}
 
-const coloresportipo: Record<tipoeventoacademico, string> = {
-  ACTIVIDAD: 'bg-amber-50 text-amber-900 border-amber-200',
-  REUNION: 'bg-sky-50 text-sky-900 border-sky-200',
-  ACTO_ESCOLAR: 'bg-violet-50 text-violet-900 border-violet-200',
-  SUSPENSION_CLASES: 'bg-rose-50 text-rose-900 border-rose-200',
-  OTRO: 'bg-slate-100 text-slate-800 border-slate-200',
+const configportipo: Record<tipoeventoacademico, TipoEventoConfig> = {
+  ACTIVIDAD: {
+    label: 'Actividad Académica',
+    badge: 'Académico',
+    dotColor: 'bg-emerald-500',
+    bgLight: 'bg-emerald-50',
+    textColor: 'text-emerald-800',
+    borderColor: 'border-emerald-200',
+    accentBar: 'border-l-emerald-500',
+  },
+  REUNION: {
+    label: 'Reunión Institucional',
+    badge: 'Reunión',
+    dotColor: 'bg-indigo-500',
+    bgLight: 'bg-indigo-50',
+    textColor: 'text-indigo-800',
+    borderColor: 'border-indigo-200',
+    accentBar: 'border-l-indigo-500',
+  },
+  ACTO_ESCOLAR: {
+    label: 'Acto Cívico / Cultural',
+    badge: 'Acto Cívico',
+    dotColor: 'bg-violet-500',
+    bgLight: 'bg-violet-50',
+    textColor: 'text-violet-800',
+    borderColor: 'border-violet-200',
+    accentBar: 'border-l-violet-500',
+  },
+  SUSPENSION_CLASES: {
+    label: 'Suspensión de Clases',
+    badge: 'Suspensión',
+    dotColor: 'bg-rose-500',
+    bgLight: 'bg-rose-50',
+    textColor: 'text-rose-800',
+    borderColor: 'border-rose-200',
+    accentBar: 'border-l-rose-500',
+  },
+  OTRO: {
+    label: 'Otro Evento',
+    badge: 'General',
+    dotColor: 'bg-slate-400',
+    bgLight: 'bg-slate-100',
+    textColor: 'text-slate-800',
+    borderColor: 'border-slate-200',
+    accentBar: 'border-l-slate-400',
+  },
 };
 
 function partesfecha(fecha: Date) {
@@ -90,9 +141,9 @@ function crearvaloresiniciales() {
     type: 'ACTIVIDAD' as tipoeventoacademico,
     description: '',
     startDate: hoy,
-    startTime: '09:00',
+    startTime: '08:00',
     endDate: hoy,
-    endTime: '10:00',
+    endTime: '09:30',
     allDay: false,
     location: '',
     courseId: '',
@@ -146,10 +197,10 @@ function CampoFormulario({
   children: ReactNode;
 }) {
   return (
-    <label className="grid gap-1.5 text-sm font-medium text-slate-700">
+    <label className="grid gap-1.5 text-xs font-semibold text-slate-700">
       <span>{etiqueta}</span>
       {children}
-      {error ? <span className="text-xs font-normal text-rose-700">{error}</span> : null}
+      {error ? <span className="text-xs font-normal text-rose-600">{error}</span> : null}
     </label>
   );
 }
@@ -162,18 +213,64 @@ function formatohora(fecha: string) {
   }).format(new Date(fecha));
 }
 
-function mescalendario(anio: number, mes: number) {
+interface CeldaCalendario {
+  dia: number;
+  clave: string;
+  esMesActual: boolean;
+  esFinDeSemana: boolean;
+}
+
+function generarCuadriculaCalendario(anio: number, mes: number): CeldaCalendario[] {
   const primero = new Date(Date.UTC(anio, mes, 1));
-  const dias = new Date(Date.UTC(anio, mes + 1, 0)).getUTCDate();
-  const desplazamiento = (primero.getUTCDay() + 6) % 7;
-  const celdas: Array<{ dia: number; clave: string } | null> = Array(desplazamiento).fill(null);
-  for (let dia = 1; dia <= dias; dia += 1) {
+  const totalDiasMes = new Date(Date.UTC(anio, mes + 1, 0)).getUTCDate();
+  const totalDiasMesAnterior = new Date(Date.UTC(anio, mes, 0)).getUTCDate();
+  const desplazamientoInicio = (primero.getUTCDay() + 6) % 7;
+
+  const celdas: CeldaCalendario[] = [];
+
+  // Días del mes anterior para completar la semana inicial
+  const mesAnteriorAnio = mes === 0 ? anio - 1 : anio;
+  const mesAnteriorMes = mes === 0 ? 11 : mes - 1;
+  for (let i = desplazamientoInicio - 1; i >= 0; i--) {
+    const dia = totalDiasMesAnterior - i;
+    const clave = `${mesAnteriorAnio}-${String(mesAnteriorMes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+    const diaSemana = (new Date(Date.UTC(mesAnteriorAnio, mesAnteriorMes, dia)).getUTCDay() + 6) % 7;
     celdas.push({
       dia,
-      clave: `${anio}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`,
+      clave,
+      esMesActual: false,
+      esFinDeSemana: diaSemana >= 5,
     });
   }
-  while (celdas.length % 7 !== 0) celdas.push(null);
+
+  // Días del mes actual
+  for (let dia = 1; dia <= totalDiasMes; dia++) {
+    const clave = `${anio}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+    const diaSemana = (new Date(Date.UTC(anio, mes, dia)).getUTCDay() + 6) % 7;
+    celdas.push({
+      dia,
+      clave,
+      esMesActual: true,
+      esFinDeSemana: diaSemana >= 5,
+    });
+  }
+
+  // Días del mes posterior para completar la cuadrícula (35 o 42 celdas)
+  const mesSiguienteAnio = mes === 11 ? anio + 1 : anio;
+  const mesSiguienteMes = mes === 11 ? 0 : mes + 1;
+  let diaSiguiente = 1;
+  while (celdas.length % 7 !== 0 || celdas.length < 35) {
+    const clave = `${mesSiguienteAnio}-${String(mesSiguienteMes + 1).padStart(2, '0')}-${String(diaSiguiente).padStart(2, '0')}`;
+    const diaSemana = (new Date(Date.UTC(mesSiguienteAnio, mesSiguienteMes, diaSiguiente)).getUTCDay() + 6) % 7;
+    celdas.push({
+      dia: diaSiguiente,
+      clave,
+      esMesActual: false,
+      esFinDeSemana: diaSemana >= 5,
+    });
+    diaSiguiente++;
+  }
+
   return celdas;
 }
 
@@ -191,6 +288,7 @@ export function PaginaEventosAcademicos({
   const puedeprogramar = ['ADMINISTRATIVE', 'SECRETARY', 'TEACHER'].includes(rol);
   const esdocente = rol === 'TEACHER';
   const esadministrativo = rol === 'ADMINISTRATIVE' || rol === 'SECRETARY';
+
   const [mesvisible, establecerMesVisible] = useState(() => {
     const hoy = partesfecha(new Date());
     return { anio: Number(hoy.anio), mes: Number(hoy.mes) - 1 };
@@ -203,12 +301,13 @@ export function PaginaEventosAcademicos({
   const [mensajedeexito, establecerMensajeDeExito] = useState('');
 
   const rango = useMemo(() => {
+    // Calculamos un margen para cubrir días del mes anterior y posterior visibles en la cuadrícula
     const inicio = `${mesvisible.anio}-${String(mesvisible.mes + 1).padStart(2, '0')}-01`;
     const mesposterior = new Date(Date.UTC(mesvisible.anio, mesvisible.mes + 1, 1));
     const fin = `${mesposterior.getUTCFullYear()}-${String(mesposterior.getUTCMonth() + 1).padStart(2, '0')}-01`;
     return {
       desde: new Date(`${inicio}T00:00:00-04:00`).toISOString(),
-      hasta: new Date(`${fin}T00:00:00-04:00`).toISOString(),
+      hasta: new Date(`${fin}T23:59:59-04:00`).toISOString(),
     };
   }, [mesvisible]);
 
@@ -216,11 +315,13 @@ export function PaginaEventosAcademicos({
     queryKey: ['academic-events', mesvisible.anio, mesvisible.mes],
     queryFn: () => gestion.listar(rango.desde, rango.hasta),
   });
+
   const cursosconsulta = useQuery({
     queryKey: ['academic-events-courses'],
     queryFn: () => gestion.listarcursos(),
     enabled: puedeprogramar,
   });
+
   const formulario = useForm<valoresformulario>({
     resolver: zodResolver(esquemaformulario),
     defaultValues: crearvaloresiniciales(),
@@ -250,7 +351,9 @@ export function PaginaEventosAcademicos({
         : gestion.crear(comun);
     },
     onSuccess: () => {
-      establecerMensajeDeExito(eventoEditado ? 'La actividad se actualizó.' : 'La actividad quedó programada.');
+      establecerMensajeDeExito(
+        eventoEditado ? 'La actividad se actualizó exitosamente.' : 'La actividad quedó programada en el calendario.',
+      );
       establecerMostrarFormulario(false);
       establecerEventoEditado(null);
       formulario.reset(crearvaloresiniciales());
@@ -262,7 +365,7 @@ export function PaginaEventosAcademicos({
     mutationFn: (id: string) => gestion.cancelar(id),
     onSuccess: () => {
       establecerCancelacionPendiente(null);
-      establecerMensajeDeExito('La actividad se canceló.');
+      establecerMensajeDeExito('La actividad fue cancelada.');
       void clienteconsultas.invalidateQueries({ queryKey: ['academic-events'] });
     },
   });
@@ -272,6 +375,7 @@ export function PaginaEventosAcademicos({
     () => (filtroTipo === 'TODOS' ? eventos : eventos.filter((evento) => evento.type === filtroTipo)),
     [eventos, filtroTipo],
   );
+
   const eventosdeldia = useMemo(
     () =>
       eventosfiltrados.filter(
@@ -281,19 +385,35 @@ export function PaginaEventosAcademicos({
       ),
     [eventosfiltrados, diaseleccionado],
   );
-  const celdas = useMemo(() => mescalendario(mesvisible.anio, mesvisible.mes), [mesvisible]);
+
+  const celdas = useMemo(() => generarCuadriculaCalendario(mesvisible.anio, mesvisible.mes), [mesvisible]);
+
   const nombreMes = new Intl.DateTimeFormat('es-BO', {
+    month: 'long',
+    timeZone: zonabolivia,
+  }).format(new Date(Date.UTC(mesvisible.anio, mesvisible.mes, 15, 12)));
+
+  const fechaSeleccionadaObj = useMemo(() => {
+    return new Date(`${diaseleccionado}T12:00:00-04:00`);
+  }, [diaseleccionado]);
+
+  const diaSemanaTexto = new Intl.DateTimeFormat('es-BO', {
+    weekday: 'long',
+    timeZone: zonabolivia,
+  }).format(fechaSeleccionadaObj);
+
+  const diaNumeroTexto = partesfecha(fechaSeleccionadaObj).dia;
+
+  const mesAnioTexto = new Intl.DateTimeFormat('es-BO', {
     month: 'long',
     year: 'numeric',
     timeZone: zonabolivia,
-  }).format(new Date(Date.UTC(mesvisible.anio, mesvisible.mes, 15, 12)));
-  const fechadeldia = new Intl.DateTimeFormat('es-BO', {
-    dateStyle: 'full',
-    timeZone: zonabolivia,
-  }).format(new Date(`${diaseleccionado}T12:00:00-04:00`));
+  }).format(fechaSeleccionadaObj);
+
   const proximoseventos = eventos.filter(
     (evento) => evento.status === 'PROGRAMADO' && new Date(evento.endsAt).getTime() >= Date.now(),
   ).length;
+
   const eventosinstitucionales = eventos.filter((evento) => !evento.targetCourseId).length;
   const hoy = clavededia(new Date());
 
@@ -364,278 +484,785 @@ export function PaginaEventosAcademicos({
     return 'Programado';
   }
 
+  const conteoPorTipo = useMemo(() => {
+    const conteos: Record<string, number> = { TODOS: eventos.length };
+    for (const t of tiposevento) {
+      conteos[t] = eventos.filter((e) => e.type === t).length;
+    }
+    return conteos;
+  }, [eventos]);
+
   const errorapi = mutacionguardar.error ?? mutacioncancelar.error;
 
   return (
-    <main className="mx-auto max-w-[1500px] space-y-6 pb-10">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Calendario académico</h1>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
-            Programa actividades, reuniones y actos escolares. Las actividades por curso solo se muestran a su comunidad.
-          </p>
+    <main className="mx-auto max-w-[1550px] space-y-6 pb-12 animate-in fade-in duration-300">
+      {/* 1. HERO HEADER ESTÉTICO */}
+      <header className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 text-white shadow-xl">
+        <div className="absolute right-0 top-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute left-1/3 bottom-0 -mb-10 h-40 w-40 rounded-full bg-purple-500/10 blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-semibold text-indigo-300 border border-indigo-500/30">
+                <CalendarRange className="h-3.5 w-3.5" />
+                Gestión Escolar 2026
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-1 text-xs font-medium text-emerald-300 border border-emerald-500/30">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                En tiempo real
+              </span>
+            </div>
+            <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+              Calendario Académico e Institucional
+            </h1>
+            <p className="max-w-2xl text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Cronograma oficial de evaluaciones, feriados pedagógicos, reuniones de comunidad y actos cívicos bajo normativa del Ministerio de Educación.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {puedeprogramar && (
+              <Boton
+                onClick={abrirNuevo}
+                className="h-10 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-lg shadow-indigo-600/30 gap-2 rounded-xl transition-all cursor-pointer"
+              >
+                <CalendarPlus className="h-4 w-4" />
+                <span>Programar Actividad</span>
+              </Boton>
+            )}
+          </div>
         </div>
-        {puedeprogramar ? <Boton onClick={abrirNuevo} className="shrink-0"><Plus aria-hidden="true" /> Programar actividad</Boton> : null}
+
+        {/* TARJETAS RESUMEN EN EL HEADER */}
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 border-t border-white/10 pt-4">
+          <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
+            <p className="text-[11px] font-medium text-slate-400">Total en el mes</p>
+            <p className="text-lg font-bold text-white mt-0.5">{eventos.length}</p>
+          </div>
+          <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
+            <p className="text-[11px] font-medium text-slate-400">Próximas actividades</p>
+            <p className="text-lg font-bold text-indigo-300 mt-0.5">{proximoseventos}</p>
+          </div>
+          <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
+            <p className="text-[11px] font-medium text-slate-400">Institucionales</p>
+            <p className="text-lg font-bold text-purple-300 mt-0.5">{eventosinstitucionales}</p>
+          </div>
+          <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
+            <p className="text-[11px] font-medium text-slate-400">Por curso</p>
+            <p className="text-lg font-bold text-emerald-300 mt-0.5">{eventos.length - eventosinstitucionales}</p>
+          </div>
+        </div>
       </header>
 
+      {/* NOTIFICACIONES DE ACCIÓN */}
       {mensajedeexito ? (
-        <div role="status" className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> {mensajedeexito}
+        <div role="status" className="flex items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <Check className="h-4 w-4 text-emerald-600 shrink-0" aria-hidden="true" />
+            <span className="font-medium">{mensajedeexito}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => establecerMensajeDeExito('')}
+            className="text-emerald-700 hover:text-emerald-900 p-1"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       ) : null}
+
       {errorapi instanceof Error ? (
-        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{errorapi.message}</div>
+        <div role="alert" className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 shadow-2xs">
+          <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+          <span>{errorapi.message}</span>
+        </div>
       ) : null}
 
-      {mostrarFormulario ? (
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="titulo-formulario-evento">
-          <div className="mb-5 flex items-start justify-between gap-3">
-            <div>
-              <h2 id="titulo-formulario-evento" className="text-lg font-semibold text-slate-950">
-                {eventoEditado ? 'Editar actividad' : 'Programar actividad'}
-              </h2>
-              <p className="mt-1 text-sm text-slate-600">Las horas se interpretan según el horario de Bolivia.</p>
-            </div>
-            <Boton type="button" variant="ghost" size="icon" aria-label="Cerrar formulario" onClick={() => establecerMostrarFormulario(false)}>
-              <X aria-hidden="true" />
-            </Boton>
-          </div>
+      {/* 2. BARRA DE FILTROS POR CATEGORÍA ESTILO PILL */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <button
+          type="button"
+          onClick={() => establecerFiltroTipo('TODOS')}
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+            filtroTipo === 'TODOS'
+              ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-900'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <span>Todos los tipos</span>
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+            filtroTipo === 'TODOS' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
+          }`}>
+            {conteoPorTipo.TODOS ?? 0}
+          </span>
+        </button>
 
-          <form className="grid gap-4" onSubmit={guardarFormulario} noValidate>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              <CampoFormulario etiqueta="Nombre de la actividad" error={formulario.formState.errors.title?.message}>
-                <Entrada placeholder="Ej. Feria de ciencias" {...formulario.register('title')} />
-              </CampoFormulario>
-              <CampoFormulario etiqueta="Tipo" error={formulario.formState.errors.type?.message}>
-                <select className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700/30" {...formulario.register('type')}>
-                  {tiposevento.map((tipo) => <option key={tipo} value={tipo}>{etiquetasdetipo[tipo]}</option>)}
-                </select>
-              </CampoFormulario>
-              <CampoFormulario etiqueta="Público" error={formulario.formState.errors.courseId?.message}>
-                <select className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700/30" disabled={cursosconsulta.isLoading} {...formulario.register('courseId')}>
-                  {!esdocente ? <option value="">Toda la unidad educativa</option> : <option value="">Selecciona un curso</option>}
-                  {(cursosconsulta.data ?? []).map((curso) => <option key={curso.id} value={curso.id}>{nombrecurso(curso)}</option>)}
-                </select>
-              </CampoFormulario>
-              <CampoFormulario etiqueta="Fecha de inicio" error={formulario.formState.errors.startDate?.message}>
-                <Entrada type="date" {...formulario.register('startDate')} />
-              </CampoFormulario>
-              <CampoFormulario etiqueta="Hora de inicio" error={formulario.formState.errors.startTime?.message}>
-                <Entrada type="time" disabled={formulario.watch('allDay')} {...formulario.register('startTime')} />
-              </CampoFormulario>
-              <CampoFormulario etiqueta="Fecha de finalización" error={formulario.formState.errors.endDate?.message}>
-                <Entrada type="date" {...formulario.register('endDate')} />
-              </CampoFormulario>
-              <CampoFormulario etiqueta="Hora de finalización" error={formulario.formState.errors.endTime?.message}>
-                <Entrada type="time" disabled={formulario.watch('allDay')} {...formulario.register('endTime')} />
-              </CampoFormulario>
-              <CampoFormulario etiqueta="Lugar (opcional)" error={formulario.formState.errors.location?.message}>
-                <Entrada placeholder="Ej. Patio central" {...formulario.register('location')} />
-              </CampoFormulario>
-              {eventoEditado ? (
-                <CampoFormulario etiqueta="Estado">
-                  <select className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700/30" {...formulario.register('status')}>
-                    <option value="PROGRAMADO">Programado</option>
-                    <option value="REALIZADO">Realizado</option>
-                    <option value="CANCELADO">Cancelado</option>
+        {tiposevento.map((tipo) => {
+          const cfg = configportipo[tipo];
+          const activo = filtroTipo === tipo;
+          return (
+            <button
+              key={tipo}
+              type="button"
+              onClick={() => establecerFiltroTipo(tipo)}
+              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                activo
+                  ? `${cfg.bgLight} ${cfg.textColor} border ${cfg.borderColor} ring-2 ring-indigo-500/20 shadow-xs font-bold`
+                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <span className={`h-2.5 w-2.5 rounded-full ${cfg.dotColor}`} />
+              <span>{cfg.label}</span>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                activo ? 'bg-white/60 text-slate-800' : 'bg-slate-100 text-slate-600'
+              }`}>
+                {conteoPorTipo[tipo] ?? 0}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 3. MODAL MODERNO PARA CREAR O EDITAR EVENTO */}
+      {mostrarFormulario && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs overflow-y-auto">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-formulario-evento"
+            className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200"
+          >
+            {/* Cabecera del modal */}
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-6 py-4">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
+                  <CalendarPlus className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 id="titulo-formulario-evento" className="text-base font-bold text-slate-900">
+                    {eventoEditado ? 'Editar Actividad Académica' : 'Programar Nueva Actividad'}
+                  </h2>
+                  <p className="text-xs text-slate-500">Horario de Bolivia (GMT-4) · Conexión directa con la comunidad</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => establecerMostrarFormulario(false)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                aria-label="Cerrar ventana"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Contenido del formulario */}
+            <form onSubmit={guardarFormulario} noValidate className="p-6 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <CampoFormulario etiqueta="Título de la Actividad *" error={formulario.formState.errors.title?.message}>
+                    <Entrada
+                      placeholder="Ej. Feria Científica, Reunión de Trimestre, Hora Cívica..."
+                      className="h-10 text-sm"
+                      {...formulario.register('title')}
+                    />
+                  </CampoFormulario>
+                </div>
+
+                <CampoFormulario etiqueta="Tipo de Evento *" error={formulario.formState.errors.type?.message}>
+                  <select
+                    className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    {...formulario.register('type')}
+                  >
+                    {tiposevento.map((tipo) => (
+                      <option key={tipo} value={tipo}>
+                        {configportipo[tipo].label}
+                      </option>
+                    ))}
                   </select>
                 </CampoFormulario>
+
+                <CampoFormulario etiqueta="Alcance / Destinatarios *" error={formulario.formState.errors.courseId?.message}>
+                  <select
+                    className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    disabled={cursosconsulta.isLoading}
+                    {...formulario.register('courseId')}
+                  >
+                    {!esdocente ? (
+                      <option value="">Toda la Unidad Educativa (General)</option>
+                    ) : (
+                      <option value="">Selecciona uno de tus cursos asignados</option>
+                    )}
+                    {(cursosconsulta.data ?? []).map((curso) => (
+                      <option key={curso.id} value={curso.id}>
+                        {nombrecurso(curso)}
+                      </option>
+                    ))}
+                  </select>
+                </CampoFormulario>
+              </div>
+
+              {/* Título de todo el día switch */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <label htmlFor="check-todo-dia" className="text-xs font-semibold text-slate-800 cursor-pointer block">
+                    Actividad de Jornada Completa (Todo el día)
+                  </label>
+                  <p className="text-[11px] text-slate-500">
+                    Oculta las horas específicas para feriados, tolerancia o celebraciones generales
+                  </p>
+                </div>
+                <input
+                  id="check-todo-dia"
+                  type="checkbox"
+                  className="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                  {...formulario.register('allDay')}
+                />
+              </div>
+
+              {/* Fechas y Horas */}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2 rounded-xl border border-slate-200 p-3 bg-white">
+                  <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">Inicio</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <CampoFormulario etiqueta="Fecha" error={formulario.formState.errors.startDate?.message}>
+                      <Entrada type="date" className="h-9 text-xs" {...formulario.register('startDate')} />
+                    </CampoFormulario>
+                    <CampoFormulario etiqueta="Hora" error={formulario.formState.errors.startTime?.message}>
+                      <Entrada
+                        type="time"
+                        className="h-9 text-xs"
+                        disabled={formulario.watch('allDay')}
+                        {...formulario.register('startTime')}
+                      />
+                    </CampoFormulario>
+                  </div>
+                </div>
+
+                <div className="space-y-2 rounded-xl border border-slate-200 p-3 bg-white">
+                  <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">Conclusión</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <CampoFormulario etiqueta="Fecha" error={formulario.formState.errors.endDate?.message}>
+                      <Entrada type="date" className="h-9 text-xs" {...formulario.register('endDate')} />
+                    </CampoFormulario>
+                    <CampoFormulario etiqueta="Hora" error={formulario.formState.errors.endTime?.message}>
+                      <Entrada
+                        type="time"
+                        className="h-9 text-xs"
+                        disabled={formulario.watch('allDay')}
+                        {...formulario.register('endTime')}
+                      />
+                    </CampoFormulario>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <CampoFormulario etiqueta="Lugar / Ubicación (Opcional)" error={formulario.formState.errors.location?.message}>
+                  <Entrada
+                    placeholder="Ej. Cancha polifuncional, Salón de actos, Aulas..."
+                    className="h-10 text-sm"
+                    {...formulario.register('location')}
+                  />
+                </CampoFormulario>
+
+                {eventoEditado ? (
+                  <CampoFormulario etiqueta="Estado de la Actividad">
+                    <select
+                      className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      {...formulario.register('status')}
+                    >
+                      <option value="PROGRAMADO">Programado</option>
+                      <option value="REALIZADO">Realizado</option>
+                      <option value="CANCELADO">Cancelado</option>
+                    </select>
+                  </CampoFormulario>
+                ) : (
+                  <div className="flex items-center text-xs text-slate-500 pt-5">
+                    <span className="inline-flex items-center gap-1.5 text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-200">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Quedará en estado &quot;Programado&quot; al guardar
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <CampoFormulario etiqueta="Descripción e Indicaciones (Opcional)" error={formulario.formState.errors.description?.message}>
+                <textarea
+                  rows={3}
+                  maxLength={2000}
+                  placeholder="Detalles sobre materiales requeridos, vestimenta, puntualidad, destinatarios, etc."
+                  className="w-full resize-y rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  {...formulario.register('description')}
+                />
+              </CampoFormulario>
+
+              {esdocente && !cursosconsulta.isLoading && (cursosconsulta.data?.length ?? 0) === 0 ? (
+                <p className="rounded-xl bg-amber-50 p-3 text-xs font-medium text-amber-900 border border-amber-200">
+                  Nota: Como docente, necesitas tener al menos un curso asignado en la gestión activa para programar actividades.
+                </p>
               ) : null}
-            </div>
 
-            <label className="flex w-fit items-center gap-2 text-sm font-medium text-slate-700">
-              <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-brand-800 focus:ring-brand-700" {...formulario.register('allDay')} />
-              Actividad de todo el día
-            </label>
-            <CampoFormulario etiqueta="Descripción (opcional)" error={formulario.formState.errors.description?.message}>
-              <textarea rows={3} maxLength={2000} placeholder="Agrega indicaciones o información útil para las familias y el personal." className="w-full resize-y rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700/30" {...formulario.register('description')} />
-            </CampoFormulario>
+              {/* Botones del modal */}
+              <div className="flex items-center justify-end gap-2.5 border-t border-slate-100 pt-4">
+                <Boton
+                  type="button"
+                  variant="outline"
+                  onClick={() => establecerMostrarFormulario(false)}
+                  className="cursor-pointer"
+                >
+                  Cancelar
+                </Boton>
+                <Boton
+                  type="submit"
+                  disabled={mutacionguardar.isPending || (esdocente && (cursosconsulta.data?.length ?? 0) === 0)}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold cursor-pointer shadow-md shadow-indigo-600/20"
+                >
+                  {mutacionguardar.isPending ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin mr-1.5" />
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="h-4 w-4 mr-1.5" />
+                      {eventoEditado ? 'Guardar Cambios' : 'Confirmar y Programar'}
+                    </>
+                  )}
+                </Boton>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-            {esdocente && !cursosconsulta.isLoading && (cursosconsulta.data?.length ?? 0) === 0 ? (
-              <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">No tienes cursos asignados para programar actividades.</p>
-            ) : null}
-            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 pt-4">
-              <Boton type="button" variant="ghost" onClick={() => establecerMostrarFormulario(false)}>Volver al calendario</Boton>
-              <Boton type="submit" disabled={mutacionguardar.isPending || (esdocente && (cursosconsulta.data?.length ?? 0) === 0)}>
-                {mutacionguardar.isPending ? <RefreshCw className="animate-spin" aria-hidden="true" /> : <Check aria-hidden="true" />}
-                {mutacionguardar.isPending ? 'Guardando…' : eventoEditado ? 'Guardar cambios' : 'Programar'}
-              </Boton>
-            </div>
-          </form>
-        </section>
-      ) : null}
-
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-4 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      {/* 4. SECCIÓN PRINCIPAL: CUADRÍCULA DE CALENDARIO + AGENDA DEL DÍA */}
+      <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+        {/* Barra superior del calendario */}
+        <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between bg-slate-50/50">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-900">
-              <CalendarDays className="h-5 w-5" aria-hidden="true" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-2xs">
+              <CalendarDays className="h-6 w-6" aria-hidden="true" />
             </div>
             <div>
-              <h2 className="font-semibold capitalize text-slate-950">{nombreMes}</h2>
-              <p className="text-xs text-slate-600">{proximoseventos} próximos · {eventosinstitucionales} institucionales</p>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold capitalize text-slate-900 tracking-tight">{nombreMes}</h2>
+                <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-bold text-indigo-700 border border-indigo-100 font-mono">
+                  {mesvisible.anio}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500">
+                {eventos.length} actividades registradas · Horario oficial Bolivia
+              </p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <select aria-label="Filtrar por tipo de actividad" className="h-9 min-w-40 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700/30" value={filtroTipo} onChange={(evento) => establecerFiltroTipo(evento.target.value)}>
-              <option value="TODOS">Todos los tipos</option>
-              {tiposevento.map((tipo) => <option key={tipo} value={tipo}>{etiquetasdetipo[tipo]}</option>)}
-            </select>
-            <Boton type="button" variant="outline" size="sm" onClick={irAhoy}>Hoy</Boton>
-            <div className="flex items-center rounded-lg border border-slate-200">
-              <Boton type="button" variant="ghost" size="icon" aria-label="Mes anterior" onClick={() => cambiarMes(-1)}><ArrowLeft aria-hidden="true" /></Boton>
-              <Boton type="button" variant="ghost" size="icon" aria-label="Mes siguiente" onClick={() => cambiarMes(1)}><ArrowRight aria-hidden="true" /></Boton>
+
+          <div className="flex items-center gap-2">
+            {/* Controles de navegación */}
+            <div className="flex items-center rounded-xl border border-slate-200 bg-white p-0.5 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => cambiarMes(-1)}
+                className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                title="Mes anterior"
+                aria-label="Mes anterior"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={irAhoy}
+                className="px-3 py-1 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              >
+                Hoy
+              </button>
+              <button
+                type="button"
+                onClick={() => cambiarMes(1)}
+                className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                title="Mes siguiente"
+                aria-label="Mes siguiente"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </div>
+
         {eventosconsulta.isError ? (
-          <div role="alert" className="m-5 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
-            <p>No se pudo cargar el calendario. Revisa tu conexión e inténtalo de nuevo.</p>
-            <Boton className="mt-3" variant="outline" size="sm" onClick={() => void eventosconsulta.refetch()}>Reintentar</Boton>
+          <div role="alert" className="m-6 rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center text-sm text-rose-800">
+            <AlertCircle className="h-8 w-8 text-rose-500 mx-auto mb-2" />
+            <p className="font-semibold text-rose-900">No se pudo cargar el calendario académico</p>
+            <p className="text-xs text-rose-700 mt-1">Por favor verifica tu conexión a la red e intenta nuevamente.</p>
+            <Boton className="mt-4 bg-rose-600 hover:bg-rose-700 text-white" size="sm" onClick={() => void eventosconsulta.refetch()}>
+              Reintentar Carga
+            </Boton>
           </div>
         ) : eventosconsulta.isLoading ? (
-          <div className="grid animate-pulse grid-cols-7 gap-px bg-slate-100 p-px" aria-label="Cargando calendario">
-            {Array.from({ length: 35 }, (_, indice) => <div key={indice} className="min-h-20 bg-white sm:min-h-28" />)}
+          <div className="p-8 text-center text-slate-500">
+            <RefreshCw className="h-8 w-8 animate-spin text-indigo-600 mx-auto mb-3" />
+            <p className="text-sm font-medium text-slate-700">Cargando cronograma académico...</p>
           </div>
         ) : (
-          <div className="grid min-h-[520px] grid-cols-1 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.8fr)]">
-            <div className="min-w-0">
-              <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50/70">
-                {diasdelasemana.map((dia) => (
-                  <div key={dia} className="px-1 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-600 sm:px-3 sm:py-3 sm:text-xs">{dia}</div>
-                ))}
-              </div>
-              <div className="grid grid-cols-7">
-                {celdas.map((celda, indice) => {
-                  if (!celda) return <div key={`vacio-${indice}`} className="min-h-[68px] border-b border-r border-slate-100 bg-slate-50/30 sm:min-h-[112px]" />;
-                  const actividades = eventosdelacelda(celda.clave);
-                  const seleccionado = diaseleccionado === celda.clave;
-                  const eshoy = hoy === celda.clave;
-                  return (
-                    <button
-                      key={celda.clave}
-                      type="button"
-                      aria-pressed={seleccionado}
-                      aria-label={`${celda.dia}, ${actividades.length} actividades`}
-                      onClick={() => establecerDiaSeleccionado(celda.clave)}
-                      className={`min-h-[68px] border-b border-r border-slate-100 p-1.5 text-left transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-700 sm:min-h-[112px] sm:p-2.5 ${seleccionado ? 'bg-amber-50/70' : 'bg-white hover:bg-slate-50'}`}
-                    >
-                      <span className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-xs font-semibold ${eshoy ? 'bg-slate-900 text-white' : seleccionado ? 'text-amber-950' : 'text-slate-700'}`}>
-                        {celda.dia}
-                      </span>
-                      <span className="mt-1.5 hidden space-y-1 sm:block">
-                        {actividades.slice(0, 2).map((actividad) => (
-                          <span key={actividad.id} className={`block truncate rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${coloresportipo[actividad.type]}`}>
-                            {actividad.title}
+          <div className="grid min-h-[580px] grid-cols-1 xl:grid-cols-[minmax(0,1.55fr)_minmax(340px,0.85fr)] divide-y xl:divide-y-0 xl:divide-x divide-slate-100">
+            {/* LADO IZQUIERDO: CUADRÍCULA DEL CALENDARIO */}
+            <div className="min-w-0 flex flex-col justify-between">
+              <div>
+                {/* Cabecera de los 7 días de la semana */}
+                <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50/70 text-center">
+                  {diasdelasemana.map((dia, idx) => {
+                    const esFin = idx >= 5;
+                    return (
+                      <div
+                        key={dia}
+                        className={`py-2.5 text-[11px] font-bold uppercase tracking-wider ${
+                          esFin ? 'text-indigo-400 bg-indigo-50/20' : 'text-slate-600'
+                        }`}
+                      >
+                        {dia}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Cuadrícula interactiva */}
+                <div className="grid grid-cols-7 divide-x divide-y divide-slate-100">
+                  {celdas.map((celda) => {
+                    const actividades = eventosdelacelda(celda.clave);
+                    const seleccionado = diaseleccionado === celda.clave;
+                    const eshoy = hoy === celda.clave;
+
+                    return (
+                      <button
+                        key={celda.clave}
+                        type="button"
+                        onClick={() => establecerDiaSeleccionado(celda.clave)}
+                        aria-pressed={seleccionado}
+                        aria-label={`Día ${celda.dia}, ${actividades.length} actividades`}
+                        className={`group relative min-h-[82px] sm:min-h-[118px] p-1.5 sm:p-2 text-left transition-all duration-150 cursor-pointer flex flex-col justify-between ${
+                          !celda.esMesActual
+                            ? 'bg-slate-50/40 text-slate-400'
+                            : celda.esFinDeSemana
+                              ? 'bg-slate-50/25'
+                              : 'bg-white'
+                        } ${
+                          seleccionado
+                            ? 'ring-2 ring-inset ring-indigo-600 bg-indigo-50/40 z-10 shadow-xs'
+                            : 'hover:bg-slate-50/90'
+                        }`}
+                      >
+                        {/* Indicador superior del número de día */}
+                        <div className="flex items-center justify-between w-full">
+                          <span
+                            className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full text-xs font-bold transition-transform ${
+                              eshoy
+                                ? 'bg-indigo-600 text-white shadow-xs scale-105'
+                                : seleccionado
+                                  ? 'bg-slate-900 text-white font-extrabold'
+                                  : celda.esMesActual
+                                    ? 'text-slate-800 group-hover:text-indigo-600'
+                                    : 'text-slate-400'
+                            }`}
+                          >
+                            {celda.dia}
                           </span>
-                        ))}
-                        {actividades.length > 2 ? <span className="block px-1 text-[10px] text-slate-600">+{actividades.length - 2} más</span> : null}
-                      </span>
-                      {actividades.length > 0 ? (
-                        <span className="mt-1 flex items-center gap-1 sm:hidden">
-                          <span className="h-1.5 w-1.5 rounded-full bg-brand-800" />
-                          <span className="text-[10px] font-medium text-slate-600">{actividades.length}</span>
-                        </span>
-                      ) : null}
-                    </button>
-                  );
-                })}
+
+                          {actividades.length > 0 && (
+                            <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-semibold text-slate-400">
+                              {actividades.length} {actividades.length === 1 ? 'act.' : 'acts.'}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Eventos dentro de la celda (pantallas sm y mayores) */}
+                        <div className="mt-1 space-y-1 w-full hidden sm:block">
+                          {actividades.slice(0, 2).map((actividad) => {
+                            const cfg = configportipo[actividad.type];
+                            return (
+                              <div
+                                key={actividad.id}
+                                className={`flex items-center gap-1 truncate rounded-md border px-1.5 py-0.5 text-[10px] font-medium leading-tight shadow-2xs ${cfg.bgLight} ${cfg.textColor} ${cfg.borderColor}`}
+                              >
+                                <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${cfg.dotColor}`} />
+                                <span className="truncate">{actividad.title}</span>
+                              </div>
+                            );
+                          })}
+
+                          {actividades.length > 2 && (
+                            <span className="block text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded px-1 text-center">
+                              +{actividades.length - 2} más
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Indicador compacto en móvil */}
+                        {actividades.length > 0 && (
+                          <div className="mt-1 flex items-center justify-center gap-1 sm:hidden">
+                            <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
+                            <span className="text-[10px] font-bold text-slate-700">{actividades.length}</span>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-2 px-4 py-3 text-[11px] text-slate-600">
-                {(['ACTIVIDAD', 'REUNION', 'ACTO_ESCOLAR', 'SUSPENSION_CLASES'] as const).map((tipo) => (
-                  <span key={tipo} className="inline-flex items-center gap-1.5">
-                    <span className={`h-2 w-2 rounded-full ${tipo === 'ACTIVIDAD' ? 'bg-amber-500' : tipo === 'REUNION' ? 'bg-sky-500' : tipo === 'ACTO_ESCOLAR' ? 'bg-violet-500' : 'bg-rose-500'}`} />
-                    {etiquetasdetipo[tipo]}
-                  </span>
-                ))}
+
+              {/* Leyenda al pie de la cuadrícula */}
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-5 py-3 text-xs text-slate-500 bg-slate-50/50">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                  {(['ACTIVIDAD', 'REUNION', 'ACTO_ESCOLAR', 'SUSPENSION_CLASES'] as const).map((tipo) => {
+                    const cfg = configportipo[tipo];
+                    return (
+                      <span key={tipo} className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-600">
+                        <span className={`h-2 w-2 rounded-full ${cfg.dotColor}`} />
+                        {cfg.label}
+                      </span>
+                    );
+                  })}
+                </div>
+                <span className="text-[11px] text-slate-400 font-mono hidden md:inline">
+                  Zona Horaria: America/La_Paz (UTC-4)
+                </span>
               </div>
             </div>
 
-            <aside className="border-t border-slate-200 bg-slate-50/50 p-4 sm:p-5 xl:border-l xl:border-t-0">
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Agenda del día</p>
-                  <h3 className="mt-1 text-base font-semibold capitalize leading-6 text-slate-950">{fechadeldia}</h3>
+            {/* LADO DERECHO: AGENDA DEL DÍA SELECCIONADO */}
+            <aside className="bg-slate-50/40 p-5 sm:p-6 flex flex-col justify-between">
+              <div>
+                {/* Ficha encabezado del día */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs mb-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex flex-col items-center justify-center w-12 h-13 rounded-xl bg-gradient-to-b from-indigo-50 to-indigo-100 border border-indigo-200 text-indigo-900 shadow-2xs">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+                          {nombreMes.slice(0, 3)}
+                        </span>
+                        <span className="text-xl font-extrabold leading-tight">
+                          {diaNumeroTexto}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-xs font-bold uppercase tracking-wide text-indigo-700">
+                            {diaSemanaTexto}
+                          </p>
+                          {diaseleccionado === hoy && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-full">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              Hoy
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-sm font-semibold capitalize text-slate-900">
+                          {mesAnioTexto}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {puedeprogramar && (
+                      <button
+                        type="button"
+                        onClick={abrirNuevo}
+                        className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer"
+                        title="Programar para esta fecha"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        <span>Añadir</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {puedeprogramar ? (
-                  <Boton type="button" variant="outline" size="sm" onClick={abrirNuevo} aria-label="Programar actividad para el día seleccionado">
-                    <Plus aria-hidden="true" /> Agregar
-                  </Boton>
-                ) : null}
+
+                <div className="flex items-center justify-between mb-3 px-1">
+                  <h4 className="text-xs font-bold uppercase tracking-wide text-slate-600">
+                    Actividades de la jornada ({eventosdeldia.length})
+                  </h4>
+                  {filtroTipo !== 'TODOS' && (
+                    <button
+                      type="button"
+                      onClick={() => establecerFiltroTipo('TODOS')}
+                      className="text-[11px] text-indigo-600 hover:underline"
+                    >
+                      Quitar filtro
+                    </button>
+                  )}
+                </div>
+
+                {/* Lista de eventos del día */}
+                {eventosdeldia.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+                      <CalendarDays className="h-6 w-6 text-indigo-400" />
+                    </div>
+                    <p className="text-sm font-bold text-slate-800">Sin actividades programadas</p>
+                    <p className="mt-1 text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
+                      {puedeprogramar
+                        ? 'No hay eventos previstos para este día. Puedes crear uno usando el botón de agregar.'
+                        : 'No hay actividades escolares ni reuniones calendarizadas para esta fecha.'}
+                    </p>
+                    {puedeprogramar && (
+                      <Boton
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={abrirNuevo}
+                        className="mt-4 gap-1 text-xs font-semibold"
+                      >
+                        <Plus className="h-3.5 w-3.5" /> Programar Actividad
+                      </Boton>
+                    )}
+                  </div>
+                ) : (
+                  <ul className="space-y-3 max-h-[620px] overflow-y-auto pr-1">
+                    {eventosdeldia.map((evento) => {
+                      const puedeEditarEvento = puedeEditar(evento);
+                      const inicioeneldia = clavededia(new Date(evento.startsAt)) === diaseleccionado;
+                      const fineneldia = clavededia(new Date(evento.endsAt)) === diaseleccionado;
+                      const cfg = configportipo[evento.type];
+
+                      const horario = evento.allDay
+                        ? 'Jornada completa (Todo el día)'
+                        : inicioeneldia && fineneldia
+                          ? `${formatohora(evento.startsAt)} – ${formatohora(evento.endsAt)}`
+                          : inicioeneldia
+                            ? `Desde ${formatohora(evento.startsAt)}`
+                            : fineneldia
+                              ? `Hasta ${formatohora(evento.endsAt)}`
+                              : 'Actividad de varios días';
+
+                      return (
+                        <li
+                          key={evento.id}
+                          className={`rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs border-l-4 ${cfg.accentBar} transition-all hover:shadow-xs`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-1 min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${cfg.bgLight} ${cfg.textColor} border ${cfg.borderColor}`}>
+                                  <span className={`h-1.5 w-1.5 rounded-full ${cfg.dotColor}`} />
+                                  {cfg.label}
+                                </span>
+                                <span
+                                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                                    evento.status === 'CANCELADO'
+                                      ? 'bg-rose-100 text-rose-800'
+                                      : evento.status === 'REALIZADO'
+                                        ? 'bg-emerald-100 text-emerald-800'
+                                        : 'bg-slate-100 text-slate-700'
+                                  }`}
+                                >
+                                  {estadoetiqueta(evento)}
+                                </span>
+                              </div>
+                              <h5 className="text-sm font-bold text-slate-900 break-words pt-1">
+                                {evento.title}
+                              </h5>
+                            </div>
+
+                            {puedeEditarEvento && (
+                              <div className="flex shrink-0 items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => abrirEdicion(evento)}
+                                  className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                                  title={`Editar ${evento.title}`}
+                                  aria-label={`Editar ${evento.title}`}
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </button>
+                                {evento.status !== 'CANCELADO' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => establecerCancelacionPendiente(evento.id)}
+                                    className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                    title={`Cancelar ${evento.title}`}
+                                    aria-label={`Cancelar ${evento.title}`}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="mt-3 space-y-1.5 text-xs text-slate-600 border-t border-slate-100 pt-2.5">
+                            <div className="flex items-center gap-2">
+                              <Clock3 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                              <span className="font-medium text-slate-700">{horario}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {evento.targetCourse ? (
+                                <>
+                                  <GraduationCap className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                                  <span className="font-medium text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded text-[11px] border border-indigo-100">
+                                    {evento.targetCourse.name}
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                                  <span className="text-[11px] text-slate-600">Toda la Unidad Educativa</span>
+                                </>
+                              )}
+                            </div>
+
+                            {evento.location && (
+                              <div className="flex items-center gap-2">
+                                <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                                <span className="text-[11px] text-slate-600 truncate">{evento.location}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {evento.description && (
+                            <div className="mt-2.5 rounded-xl bg-slate-50 p-2.5 text-xs text-slate-600 leading-relaxed border border-slate-100">
+                              <p className="whitespace-pre-wrap break-words">{evento.description}</p>
+                            </div>
+                          )}
+
+                          {cancelacionPendiente === evento.id && (
+                            <div className="mt-3 rounded-xl bg-rose-50 p-3 border border-rose-200" role="group" aria-label="Confirmar cancelación">
+                              <p className="text-xs font-bold text-rose-900">¿Desea cancelar esta actividad?</p>
+                              <p className="text-[11px] text-rose-700 mt-0.5">Quedará registrada como cancelada en el historial.</p>
+                              <div className="mt-2.5 flex items-center gap-2">
+                                <Boton
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  disabled={mutacioncancelar.isPending}
+                                  onClick={() => mutacioncancelar.mutate(evento.id)}
+                                  className="h-8 text-xs font-semibold cursor-pointer"
+                                >
+                                  {mutacioncancelar.isPending ? 'Cancelando...' : 'Confirmar Cancelación'}
+                                </Boton>
+                                <Boton
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => establecerCancelacionPendiente(null)}
+                                  className="h-8 text-xs cursor-pointer"
+                                >
+                                  Volver
+                                </Boton>
+                              </div>
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
 
-              {eventosdeldia.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center">
-                  <CalendarDays className="mx-auto h-7 w-7 text-slate-400" aria-hidden="true" />
-                  <p className="mt-3 text-sm font-medium text-slate-800">No hay actividades para este día</p>
-                  <p className="mt-1 text-xs leading-5 text-slate-600">
-                    {puedeprogramar ? 'Puedes programar una actividad desde aquí.' : 'Las actividades de tus cursos y de la unidad aparecerán aquí.'}
-                  </p>
-                </div>
-              ) : (
-                <ul className="space-y-3">
-                  {eventosdeldia.map((evento) => {
-                    const puedeEditarEvento = puedeEditar(evento);
-                    const inicioeneldia = clavededia(new Date(evento.startsAt)) === diaseleccionado;
-                    const fineneldia = clavededia(new Date(evento.endsAt)) === diaseleccionado;
-                    const horario = evento.allDay
-                      ? 'Todo el día'
-                      : inicioeneldia && fineneldia
-                        ? `${formatohora(evento.startsAt)} – ${formatohora(evento.endsAt)}`
-                        : inicioeneldia
-                          ? `Desde ${formatohora(evento.startsAt)}`
-                          : fineneldia
-                            ? `Hasta ${formatohora(evento.endsAt)}`
-                            : 'Actividad de varios días';
-                    return (
-                      <li key={evento.id} className="rounded-xl border border-slate-200 bg-white p-3.5">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-medium ${coloresportipo[evento.type]}`}>
-                              {etiquetasdetipo[evento.type]}
-                            </span>
-                            <h4 className="mt-2 break-words text-sm font-semibold text-slate-950">{evento.title}</h4>
-                          </div>
-                          {puedeEditarEvento ? (
-                            <div className="flex shrink-0 items-center gap-1">
-                              <Boton type="button" variant="ghost" size="icon" aria-label={`Editar ${evento.title}`} onClick={() => abrirEdicion(evento)}>
-                                <Pencil aria-hidden="true" />
-                              </Boton>
-                              {evento.status !== 'CANCELADO' ? (
-                                <Boton type="button" variant="ghost" size="icon" aria-label={`Cancelar ${evento.title}`} onClick={() => establecerCancelacionPendiente(evento.id)}>
-                                  <Trash2 className="text-rose-700" aria-hidden="true" />
-                                </Boton>
-                              ) : null}
-                            </div>
-                          ) : null}
-                        </div>
-                        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
-                          <span className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5" aria-hidden="true" />{horario}</span>
-                          {evento.location ? <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" aria-hidden="true" />{evento.location}</span> : null}
-                        </div>
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${evento.status === 'CANCELADO' ? 'bg-rose-100 text-rose-800' : evento.status === 'REALIZADO' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}`}>
-                            {estadoetiqueta(evento)}
-                          </span>
-                          <span className="inline-flex items-center gap-1 text-[11px] text-slate-600">
-                            {evento.targetCourse ? <><School className="h-3 w-3" aria-hidden="true" />{evento.targetCourse.name}</> : 'Toda la unidad educativa'}
-                          </span>
-                        </div>
-                        {evento.description ? <p className="mt-2 whitespace-pre-wrap break-words text-xs leading-5 text-slate-600">{evento.description}</p> : null}
-                        {cancelacionPendiente === evento.id ? (
-                          <div className="mt-3 rounded-lg bg-rose-50 p-3" role="group" aria-label="Confirmar cancelación">
-                            <p className="text-xs font-medium text-rose-900">¿Cancelar esta actividad?</p>
-                            <div className="mt-2 flex gap-2">
-                              <Boton type="button" variant="destructive" size="sm" disabled={mutacioncancelar.isPending} onClick={() => mutacioncancelar.mutate(evento.id)}>Confirmar cancelación</Boton>
-                              <Boton type="button" variant="ghost" size="sm" onClick={() => establecerCancelacionPendiente(null)}>Volver</Boton>
-                            </div>
-                          </div>
-                        ) : null}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
+              {/* Pie de la agenda */}
+              <div className="mt-6 border-t border-slate-200/80 pt-4 text-center">
+                <p className="text-[11px] text-slate-400">
+                  SIGCE · Sistema Institucional de Gestión y Control Educativo
+                </p>
+              </div>
             </aside>
           </div>
         )}

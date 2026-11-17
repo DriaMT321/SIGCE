@@ -9,6 +9,11 @@ export default defineConfig({
     minimum_chrome_version: '116',
     action: { default_title: 'Abrir asistente SIGCE' },
     permissions: ['sidePanel', 'activeTab', 'storage'],
-    host_permissions: ['https://api.sigce.lat/*', 'http://localhost:3000/*'],
+    host_permissions: [
+      'https://api.sigce.lat/*',
+      'http://localhost:3000/*',
+      'https://academico.sie.gob.bo/*',
+      'http://localhost:4174/*',
+    ],
   },
 });

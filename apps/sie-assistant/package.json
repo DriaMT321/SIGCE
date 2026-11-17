@@ -8,7 +8,8 @@
     "build": "wxt build -b chrome",
     "typecheck": "wxt prepare && tsc --noEmit",
     "test": "jest --runInBand",
-    "demo": "vite demo --host localhost --port 4174 --strictPort"
+    "demo": "vite demo --host localhost --port 4174 --strictPort",
+    "demo:reference": "node scripts/serve-reference.mjs"
   },
   "dependencies": {
     "react": "^19.1.1",

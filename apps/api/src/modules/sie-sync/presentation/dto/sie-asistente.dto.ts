@@ -59,3 +59,4 @@ export class resumenasistentesieDto extends seleccionasistentesieDto {
   @Type(() => resultadoasistentesieDto)
   entries: resultadoasistentesieDto[];
 }
+
