@@ -1,6 +1,6 @@
 import type { PortalStep, PortalStepObserver } from './portal';
 
-const cursorMarkup = `<svg width="23" height="28" viewBox="0 0 23 28" aria-hidden="true"><path d="M2 2v20l5.3-5.2 3.6 8.2 4.1-1.8-3.6-8.1H20L2 2Z" fill="#E8B632" stroke="#173B5E" stroke-width="2" stroke-linejoin="round"/></svg>`;
+const cursorMarkup = `<svg width="23" height="28" viewBox="0 0 23 28" aria-hidden="true"><path d="M2 2v20l5.3-5.2 3.6 8.2 4.1-1.8-3.6-8.1H20L2 2Z" fill="#4F46E5" stroke="#0F172A" stroke-width="2" stroke-linejoin="round"/></svg>`;
 
 function wait(milliseconds: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -20,10 +20,10 @@ export function createVisualCursor(): { show: PortalStepObserver; hide: () => vo
   style.textContent = `
     :host { position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; opacity: 0; transition: opacity 160ms ease; }
     :host(.visible) { opacity: 1; }
-    .target { position: fixed; box-sizing: border-box; border: 2px solid #d8a31c; border-radius: 7px; background: rgba(232,182,50,.12); box-shadow: 0 0 0 4px rgba(232,182,50,.19); transition: left 280ms ease, top 280ms ease, width 280ms ease, height 280ms ease; }
-    .target[data-action="warning"] { border-color: #be573f; background: rgba(190,87,63,.12); box-shadow: 0 0 0 4px rgba(190,87,63,.17); }
-    .pointer { position: fixed; width: 23px; height: 28px; filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); transition: left 280ms ease, top 280ms ease; }
-    .label { position: fixed; max-width: 220px; padding: 6px 9px; border-radius: 6px; background: #173b5e; color: white; font: 600 12px/1.3 Arial, sans-serif; box-shadow: 0 3px 10px rgba(0,0,0,.2); transition: left 280ms ease, top 280ms ease; }
+    .target { position: fixed; box-sizing: border-box; border: 2px solid #4f46e5; border-radius: 8px; background: rgba(79,70,229,.1); box-shadow: 0 0 0 4px rgba(79,70,229,.18); transition: left 280ms ease, top 280ms ease, width 280ms ease, height 280ms ease; }
+    .target[data-action="warning"] { border-color: #e11d48; background: rgba(225,29,72,.1); box-shadow: 0 0 0 4px rgba(225,29,72,.18); }
+    .pointer { position: fixed; width: 23px; height: 28px; filter: drop-shadow(0 3px 4px rgba(15,23,42,.3)); transition: left 280ms ease, top 280ms ease; }
+    .label { position: fixed; max-width: 240px; padding: 6px 10px; border-radius: 8px; background: #0f172a; color: #f8fafc; font: 600 12px/1.35 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 6px 16px rgba(15,23,42,.25); border: 1px solid rgba(255,255,255,.12); transition: left 280ms ease, top 280ms ease; }
     @media (prefers-reduced-motion: reduce) { :host, .target, .pointer, .label { transition: none; } }
   `;
   const target = document.createElement('div');

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { BookOpenCheck, FileCheck2, Loader2, ShieldCheck } from 'lucide-react';
+import { BookOpenCheck, Download, ExternalLink, FileCheck2, Loader2, ShieldCheck } from 'lucide-react';
 import { Boton } from '../../../components/ui/boton';
 import type { gestionasistentesie } from '../application/gestionasistentesie';
 
@@ -49,6 +49,25 @@ export function Paneldesincronizacionsie({ gestion }: { gestion: gestionasistent
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-700">Prepara las notas cerradas de SIGCE para el curso abierto en el SIE. La responsable inicia sesión allí, revisa las filas y guarda los cambios.</p>
         </div>
         <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white px-3 py-1.5 text-xs font-semibold text-amber-900"><ShieldCheck className="h-4 w-4" /> Uso supervisado</span>
+      </div>
+      <div className="mt-4 flex flex-wrap items-center gap-2.5 border-t border-amber-200/70 pt-4">
+        <a
+          href="/sigce-asistente-sie.zip"
+          download="sigce-asistente-sie.zip"
+          className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800"
+        >
+          <Download className="h-4 w-4" aria-hidden="true" />
+          Descargar plugin Chrome (.zip)
+        </a>
+        <a
+          href="/sie-demo/index.html"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-white px-4 py-2 text-xs font-semibold text-amber-950 shadow-2xs transition-colors hover:bg-amber-100/70"
+        >
+          <ExternalLink className="h-4 w-4" aria-hidden="true" />
+          Abrir réplica SIE de demostración
+        </a>
       </div>
     </header>
 

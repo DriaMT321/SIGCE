@@ -14,6 +14,10 @@ export default defineConfig({
       'http://localhost:3000/*',
       'https://academico.sie.gob.bo/*',
       'http://localhost:4174/*',
+      'http://localhost:5173/sie-demo*',
+      'https://sigce.lat/sie-demo*',
+      'https://*.sigce.lat/sie-demo*',
+      'https://*.vercel.app/sie-demo*',
     ],
   },
 });

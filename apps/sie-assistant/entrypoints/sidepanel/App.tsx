@@ -1,7 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { apiForPortal, isDemoPortal, isReferencePortal, loadCourseOptions, loadGrades, loadOptions, login, sendSummary } from '../../src/api';
+import {
+  apiForPortal,
+  isDemoPortal,
+  isReferencePortal,
+  loadCourseOptions,
+  loadGrades,
+  loadOptions,
+  login,
+  sendSummary,
+} from '../../src/api';
 import type { SigceSession } from '../../src/api';
-import type { GradePlan, PlanFilters, PortalRequest, PortalResponse, SavedMessage, SummaryEntry } from '../../src/types';
+import type {
+  GradePlan,
+  PlanFilters,
+  PortalRequest,
+  PortalResponse,
+  SavedMessage,
+  SummaryEntry,
+} from '../../src/types';
 
 const localApi = 'http://localhost:3000/api/v1';
 const deployedApi = 'https://api.sigce.lat/api/v1';
@@ -21,16 +37,92 @@ const demoPlan: GradePlan = {
 type CourseOptions = Awaited<ReturnType<typeof loadCourseOptions>>;
 type BaseOptions = Awaited<ReturnType<typeof loadOptions>>;
 
+/* Compact inline SVG icons (zero external dependencies, CSP-safe) */
+function IconCheck({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function IconShieldCheck({ size = 28 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <polyline points="9 12 11 14 15 10" />
+    </svg>
+  );
+}
+
+function IconRefresh({ size = 14, className = '' }: { size?: number; className?: string }) {
+  return (
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="23 4 23 10 17 10" />
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+    </svg>
+  );
+}
+
+function IconLogOut({ size = 13 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  );
+}
+
+function IconArrowRight({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
+  );
+}
+
+function IconAlert({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+  );
+}
+
+function IconSparkles({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6L12 3z" />
+    </svg>
+  );
+}
+
+function IconSearch({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
+
 export function App() {
   const [tabId, setTabId] = useState<number | null>(null);
   const [portalUrl, setPortalUrl] = useState('');
   const [portalError, setPortalError] = useState('');
-  const [apiBase, setApiBase] = useState(localApi);
+  const [apiBase, setApiBase] = useState(deployedApi);
+  const [manualApiOverride, setManualApiOverride] = useState(false);
   const [allowLocalOnOfficial, setAllowLocalOnOfficial] = useState(false);
   const [role, setRole] = useState<'ADMINISTRATIVE' | 'SECRETARY'>('ADMINISTRATIVE');
   const [identifier, setIdentifier] = useState('');
   const [secret, setSecret] = useState('');
   const [session, setSession] = useState<SigceSession | null>(null);
+  const [workReady, setWorkReady] = useState(false);
+  const [readyToast, setReadyToast] = useState(false);
   const [baseOptions, setBaseOptions] = useState<BaseOptions | null>(null);
   const [courseOptions, setCourseOptions] = useState<CourseOptions | null>(null);
   const [filters, setFilters] = useState<PlanFilters>({ academicYearId: '', courseId: '', subjectId: '', periodNumber: 0 });
@@ -42,6 +134,7 @@ export function App() {
   const [entries, setEntries] = useState<SummaryEntry[]>([]);
   const [alias, setAlias] = useState('');
   const [busy, setBusy] = useState(false);
+  const [refreshingTab, setRefreshingTab] = useState(false);
   const [error, setError] = useState('');
   const [summarySent, setSummarySent] = useState(false);
   const advancing = useRef(false);
@@ -50,14 +143,20 @@ export function App() {
   const demo = portalUrl ? isDemoPortal(portalUrl) : false;
   const reference = portalUrl ? isReferencePortal(portalUrl) : false;
   const current = plan?.grades[index];
-  const courses = useMemo(() => (baseOptions?.courses ?? []).filter((course) => course.academicYearId === filters.academicYearId), [baseOptions, filters.academicYearId]);
-  const periods = (courseOptions?.periods ?? []).filter((period) => period.isClosed);
+  const courses = useMemo(
+    () => (baseOptions?.courses ?? []).filter((course) => course.academicYearId === filters.academicYearId),
+    [baseOptions, filters.academicYearId],
+  );
+  const periods = useMemo(() => (courseOptions?.periods ?? []).filter((period) => period.isClosed), [courseOptions]);
 
-  async function refreshTab() {
+  const activeStep: 1 | 2 | 3 = plan ? 3 : workReady && (demo || Boolean(session)) ? 2 : 1;
+
+  async function refreshTab(): Promise<boolean> {
+    setRefreshingTab(true);
     try {
       const [active] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!active?.id || !active.url) throw new Error('Abre primero la tabla del curso en Chrome.');
-      apiForPortal(active.url);
+      if (!active?.id || !active.url) throw new Error('Abre primero el portal del SIE en Chrome.');
+      const suggestedApi = apiForPortal(active.url);
       if (tabId !== null && (active.id !== tabId || active.url !== portalUrl)) {
         setPlan(null);
         setInspection(null);
@@ -67,10 +166,17 @@ export function App() {
       setTabId(active.id);
       setPortalUrl(active.url);
       setPortalError('');
+      if (!session && !manualApiOverride) {
+        setApiBase(suggestedApi);
+      }
+      return true;
     } catch (failure) {
       setTabId(null);
       setPortalUrl('');
       setPortalError(failure instanceof Error ? failure.message : 'No se pudo identificar la pestaña.');
+      return false;
+    } finally {
+      setRefreshingTab(false);
     }
   }
 
@@ -99,36 +205,50 @@ export function App() {
 
   useEffect(() => {
     if (!session || demo || reference) return;
-    void loadOptions(session).then((options) => {
-      setBaseOptions(options);
-      const activeYear = options.years.find((year) => year.isActive);
-      if (activeYear) setFilters((currentFilters) => ({ ...currentFilters, academicYearId: activeYear.id }));
-    }).catch((failure) => setError(failure instanceof Error ? failure.message : 'No se pudieron cargar las opciones.'));
+    void loadOptions(session)
+      .then((options) => {
+        setBaseOptions(options);
+        const activeYear = options.years.find((year) => year.isActive);
+        if (activeYear) setFilters((currentFilters) => ({ ...currentFilters, academicYearId: activeYear.id }));
+      })
+      .catch((failure) => setError(failure instanceof Error ? failure.message : 'No se pudieron cargar las opciones.'));
   }, [session, demo, reference]);
 
   useEffect(() => {
     if (!session || !filters.academicYearId || !filters.courseId || demo || reference) return;
     void loadCourseOptions(session, filters.academicYearId, filters.courseId)
-      .then(setCourseOptions)
+      .then((loaded) => {
+        setCourseOptions(loaded);
+        const closed = loaded.periods.filter((p) => p.isClosed);
+        setFilters((prev) => ({
+          ...prev,
+          subjectId: prev.subjectId || (loaded.subjects.length === 1 ? (loaded.subjects[0]?.id ?? '') : ''),
+          periodNumber: prev.periodNumber || (closed.length === 1 ? (closed[0]?.number ?? 0) : 0),
+        }));
+      })
       .catch((failure) => setError(failure instanceof Error ? failure.message : 'No se pudieron cargar las materias.'));
   }, [session, filters.academicYearId, filters.courseId, demo, reference]);
 
   async function withBusy(action: () => Promise<void>) {
     setBusy(true);
     setError('');
-    try { await action(); }
-    catch (failure) { setError(failure instanceof Error ? failure.message : 'No se pudo completar la acción.'); }
-    finally { setBusy(false); }
+    try {
+      await action();
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'No se pudo completar la acción.');
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function sendToTab(request: PortalRequest): Promise<PortalResponse> {
     const [active] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!active?.id || active.id !== tabId || !active.url || active.url !== portalUrl) {
-      throw new Error('La pestaña cambió. Vuelve a comprobar el curso antes de continuar.');
+      throw new Error('La pestaña cambió. Vuelve a comprobar la pantalla antes de continuar.');
     }
     apiForPortal(active.url);
     try {
-      return await chrome.tabs.sendMessage(active.id, request) as PortalResponse;
+      return (await chrome.tabs.sendMessage(active.id, request)) as PortalResponse;
     } catch {
       throw new Error('No se pudo leer la pantalla. Recarga la pestaña del SIE y vuelve a comprobarla.');
     }
@@ -139,6 +259,7 @@ export function App() {
       const next = await login(apiBase, role, identifier, secret);
       setSession(next);
       setSecret('');
+      setWorkReady(false);
       await chrome.storage.session.set({ sigceSession: next });
     });
   }
@@ -146,10 +267,27 @@ export function App() {
   async function signOut() {
     await chrome.storage.session.remove('sigceSession');
     setSession(null);
+    setWorkReady(false);
+    setReadyToast(false);
     setBaseOptions(null);
     setCourseOptions(null);
     setPlan(null);
     setEntries([]);
+    setInspection(null);
+    setFillResult(null);
+    setError('');
+  }
+
+  async function confirmAccessAndStart() {
+    setError('');
+    const ok = await refreshTab();
+    if (!ok) return;
+    if (!demo && session?.apiBase === localApi && !allowLocalOnOfficial) {
+      setError('Marca la casilla de confirmación para usar SIGCE local con el portal oficial.');
+      return;
+    }
+    setWorkReady(true);
+    setReadyToast(true);
   }
 
   function resetRun(nextPlan: GradePlan) {
@@ -160,6 +298,7 @@ export function App() {
     setFillResult(null);
     setSaveObserved('');
     setSummarySent(false);
+    setReadyToast(false);
   }
 
   async function preparePlan() {
@@ -182,7 +321,7 @@ export function App() {
 
   async function fill(allowOverwrite = false, grade = current) {
     await withBusy(async () => {
-      if (!plan || !grade || !inspection?.ok) throw new Error('Comprueba el curso y prepara las notas.');
+      if (!plan || !grade || !inspection?.ok) throw new Error('Comprueba la pantalla antes de rellenar notas.');
       if (!demo) {
         if (!session) throw new Error('Inicia sesión en SIGCE.');
         if (session.apiBase === localApi && !allowLocalOnOfficial) {
@@ -191,14 +330,18 @@ export function App() {
         const currentPlan = await loadGrades(session, filters);
         if (currentPlan.fingerprint !== plan.fingerprint) {
           setInspection(null);
-          throw new Error('Las notas cambiaron en SIGCE. Vuelve a preparar el lote antes de escribir otra fila.');
+          throw new Error('Las notas cambiaron en SIGCE. Vuelve a cargar el lote antes de continuar.');
         }
       }
       setSaveObserved('');
       const result = await sendToTab({
-        kind: 'SIGCE_FILL', grade, course: plan.course,
-        subject: plan.subject, period: plan.period,
-        subjectAlias: alias.trim() || undefined, allowOverwrite,
+        kind: 'SIGCE_FILL',
+        grade,
+        course: plan.course,
+        subject: plan.subject,
+        period: plan.period,
+        subjectAlias: alias.trim() || undefined,
+        allowOverwrite,
       });
       setFillResult(result);
       if (!result.ok && result.status === 'ERROR') throw new Error(result.detail);
@@ -243,57 +386,662 @@ export function App() {
     });
   }
 
-  return <div className="app">
-    <header className="hero"><div className="brand"><span className="mark">S</span><span><strong>SIGCE</strong><small>Asistente de calificaciones</small></span></div><p>Completa las notas del curso abierto bajo revisión de la responsable.</p></header>
+  const progressPct = plan && plan.grades.length > 0 ? Math.min(100, Math.round((index / plan.grades.length) * 100)) : 0;
+  const confirmedCount = entries.filter((entry) => entry.result === 'CONFIRMED_BY_USER').length;
+  const skippedCount = entries.filter((entry) => entry.result !== 'CONFIRMED_BY_USER').length;
 
-    {portalError ? <section className="card warning"><h2>Pantalla no disponible</h2><p>{portalError}</p><button onClick={() => void refreshTab()}>Comprobar pestaña</button></section> :
-      <section className="card compact"><div className="eyebrow">Pestaña activa</div><strong>{demo ? 'Réplica local de demostración' : reference ? 'Página de referencia' : 'Portal SIE oficial'}</strong><p>{demo ? 'Datos sintéticos; este recorrido no se registra en SIGCE.' : reference ? 'Copia sin cambios del archivo HTML proporcionado.' : 'Sesión abierta por la responsable en el navegador.'}</p><button className="link" onClick={() => void refreshTab()}>Actualizar pestaña</button></section>}
+  return (
+    <div className="app">
+      {/* CABECERA COMPACTA Y MODERNA */}
+      <header className="hero">
+        <div className="hero-top">
+          <div className="brand">
+            <span className="mark">S</span>
+            <div className="brand-text">
+              <strong>SIGCE</strong>
+              <small>Asistente SIE</small>
+            </div>
+          </div>
 
-    {reference && <section className="card"><h2>Prueba del asistente</h2><p>Esta página conserva el listado original. El recorrido con notas ficticias está separado para no alterar su contenido.</p><a href="http://localhost:4174/demo" target="_blank" rel="noreferrer">Abrir prueba con tres estudiantes ficticios</a></section>}
+          {!demo && !reference && session && (
+            <div className="user-chip" title={`${session.user.firstName} ${session.user.lastName}`}>
+              <span>{session.user.firstName}</span>
+              <button
+                type="button"
+                className="icon-btn-dark"
+                onClick={() => void signOut()}
+                title="Cerrar sesión"
+                aria-label="Cerrar sesión"
+              >
+                <IconLogOut />
+              </button>
+            </div>
+          )}
+        </div>
 
-    {!demo && !reference && !session && <section className="card"><h2>Entrar a SIGCE</h2><p>Estas credenciales son de SIGCE. Inicia sesión en el SIE directamente en su página.</p>
-      <label>Servidor SIGCE<select value={apiBase} onChange={(e) => setApiBase(e.target.value)}><option value={localApi}>SIGCE local</option><option value={deployedApi}>SIGCE desplegado</option></select></label>
-      <label>Responsable<select value={role} onChange={(e) => setRole(e.target.value as typeof role)}><option value="ADMINISTRATIVE">Dirección</option><option value="SECRETARY">Secretaría</option></select></label>
-      <label>Identificador<input value={identifier} onChange={(e) => setIdentifier(e.target.value)} autoComplete="username" /></label>
-      <label>Clave SIGCE<input type="password" value={secret} onChange={(e) => setSecret(e.target.value)} autoComplete="current-password" /></label>
-      <button className="primary" disabled={busy || !identifier.trim() || !secret || !tabId} onClick={() => void signIn()}>Entrar</button>
-    </section>}
+        {/* Estado de la pestaña en vivo */}
+        <div className="portal-strip">
+          <div className="portal-strip-info">
+            <span className={`status-dot ${portalError ? 'offline' : 'online'}`} />
+            <div style={{ minWidth: 0 }}>
+              <span className="portal-strip-text">
+                {portalError
+                  ? 'Portal SIE no detectado'
+                  : demo
+                    ? 'Réplica de demostración'
+                    : reference
+                      ? 'Página de referencia'
+                      : 'Portal SIE oficial conectado'}
+              </span>
+              <span className="portal-strip-sub">
+                {portalError
+                  ? 'Abre el SIE en Chrome y actualiza'
+                  : demo
+                    ? 'Modo pruebas locales (sin guardar en SIGCE)'
+                    : reference
+                      ? 'Vista de solo lectura'
+                      : 'Listo para sincronizar con tu sesión'}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="icon-btn-dark"
+            onClick={() => void refreshTab()}
+            disabled={refreshingTab}
+            title="Actualizar pestaña activa"
+            aria-label="Actualizar pestaña activa"
+          >
+            <IconRefresh className={refreshingTab ? 'spin' : ''} />
+          </button>
+        </div>
+      </header>
 
-    {!demo && !reference && session && <section className="card compact"><div className="row"><div><div className="eyebrow">Sesión SIGCE</div><strong>{session.user.firstName} {session.user.lastName}</strong></div><button className="link" onClick={() => void signOut()}>Salir</button></div><p>Origen: {session.apiBase === localApi ? 'SIGCE local' : 'SIGCE desplegado'}</p></section>}
+      {/* INDICADOR DE 3 PASOS */}
+      {!portalError && !reference && (
+        <nav className="stepper" aria-label="Progreso del asistente">
+          <div className={`step-item ${activeStep > 1 ? 'done' : 'active'}`}>
+            <span className="step-num">{activeStep > 1 ? <IconCheck size={11} /> : '1'}</span>
+            <span>Acceso</span>
+          </div>
+          <div className={`step-item ${activeStep === 2 ? 'active' : activeStep > 2 ? 'done' : ''}`}>
+            <span className="step-num">{activeStep > 2 ? <IconCheck size={11} /> : '2'}</span>
+            <span>Curso</span>
+          </div>
+          <div className={`step-item ${activeStep === 3 ? 'active' : ''}`}>
+            <span className="step-num">3</span>
+            <span>Notas</span>
+          </div>
+        </nav>
+      )}
 
-    {!demo && !reference && session?.apiBase === localApi && <section className="card warning"><h2>Datos locales en el portal oficial</h2><p>Comprueba que este SIGCE local contiene las notas institucionales correctas. La réplica ficticia se usa solo en localhost:4174/demo.</p><label className="check"><input type="checkbox" checked={allowLocalOnOfficial} onChange={(e) => setAllowLocalOnOfficial(e.target.checked)} />Confirmo que este SIGCE local corresponde al curso que voy a completar.</label></section>}
+      {/* PESTAÑA NO COMPATIBLE */}
+      {portalError && (
+        <section className="card warning">
+          <div className="eyebrow" style={{ color: '#b45309' }}>
+            <IconAlert size={13} /> Pestaña requerida
+          </div>
+          <h2>Abre el portal del SIE</h2>
+          <p>{portalError}</p>
+          <div className="action-stack">
+            <button type="button" className="btn success full" onClick={() => void refreshTab()} disabled={refreshingTab}>
+              <IconCheck size={16} />
+              <span>Ya ingresé al sistema · Comprobar pestaña</span>
+            </button>
+          </div>
+        </section>
+      )}
 
-    {((demo && tabId) || (!reference && session)) && !plan && <section className="card"><h2>Preparar notas</h2>
-      {demo ? <><p>Usa tres estudiantes ficticios de la réplica local.</p><button className="primary" onClick={() => resetRun(demoPlan)}>Cargar datos de demostración</button></> : <>
-        <label>Gestión<select value={filters.academicYearId} onChange={(e) => { setFilters({ academicYearId: e.target.value, courseId: '', subjectId: '', periodNumber: 0 }); setCourseOptions(null); }}><option value="">Selecciona</option>{(baseOptions?.years ?? []).map((year) => <option key={year.id} value={year.id}>{year.name}</option>)}</select></label>
-        <label>Curso<select value={filters.courseId} onChange={(e) => { setFilters({ ...filters, courseId: e.target.value, subjectId: '', periodNumber: 0 }); setCourseOptions(null); }}><option value="">Selecciona</option>{courses.map((course) => <option key={course.id} value={course.id}>{course.name}</option>)}</select></label>
-        <label>Materia<select value={filters.subjectId} onChange={(e) => setFilters({ ...filters, subjectId: e.target.value })}><option value="">Selecciona</option>{(courseOptions?.subjects ?? []).map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}</select></label>
-        <label>Trimestre cerrado<select value={filters.periodNumber} onChange={(e) => setFilters({ ...filters, periodNumber: Number(e.target.value) })}><option value="0">Selecciona</option>{periods.map((period) => <option key={period.id} value={period.number}>{period.name}</option>)}</select></label>
-        <button className="primary" disabled={busy || !filters.academicYearId || !filters.courseId || !filters.subjectId || !filters.periodNumber} onClick={() => void preparePlan()}>Cargar notas cerradas</button>
-      </>}
-    </section>}
+      {/* PÁGINA DE REFERENCIA */}
+      {reference && (
+        <section className="card">
+          <div className="eyebrow">Vista de referencia</div>
+          <h2>Página original intacta</h2>
+          <p>Esta vista conserva el listado sin cambios. Para probar el llenado guiado, abre la réplica con estudiantes de ejemplo.</p>
+          <a className="btn-link-anchor" href="http://localhost:4174/demo" target="_blank" rel="noreferrer">
+            <IconSparkles />
+            <span>Abrir prueba con 3 estudiantes</span>
+          </a>
+        </section>
+      )}
 
-    {plan && <section className="card"><div className="eyebrow">Lote preparado</div><h2>{plan.course.name}</h2><p>{plan.subject.name} · {plan.period.name} · {plan.grades.length} notas</p>
-      <div className="row actions"><button disabled={busy || !tabId} onClick={() => void inspect()}>Comprobar pantalla</button><button className="link" onClick={() => { setPlan(null); setEntries([]); }}>Cambiar selección</button></div>
-      {inspection && <p className={inspection.ok ? 'status good' : 'status bad'}>{inspection.status === 'READY' ? `Tabla reconocida: ${inspection.studentCount} estudiantes.` : inspection.ok ? 'Pantalla reconocida.' : inspection.detail}</p>}
-    </section>}
+      {/* PASO 1A: INICIAR SESIÓN EN SIGCE */}
+      {!portalError && !demo && !reference && !session && (
+        <section className="card">
+          <div className="eyebrow">Paso 1 de 3 · Conexión SIGCE</div>
+          <h2>Inicia sesión para comenzar</h2>
+          <p>Usa tu cuenta institucional de SIGCE. El acceso al portal SIE lo realizas en la pestaña del navegador.</p>
 
-    {plan && current && inspection?.ok && <section className="card"><div className="eyebrow">Estudiante {index + 1} de {plan.grades.length}</div><h2>{current.lastName}, {current.firstName}</h2><p>RUDE {current.rude}</p><div className="grade">{current.value}<span>nota SIGCE</span></div>
-      <label>Alias de materia en SIE <span className="optional">si difiere</span><input value={alias} onChange={(e) => setAlias(e.target.value)} placeholder={plan.subject.name} /></label>
-      {!fillResult && <button className="primary" disabled={busy} onClick={() => void fill()}>{index === 0 ? 'Iniciar recorrido' : 'Reintentar esta nota'}</button>}
-      {fillResult && 'detail' in fillResult && <p className={fillResult.ok ? 'status good' : 'status bad'}>{fillResult.detail}</p>}
-      {fillResult?.status === 'CONFLICT' && <button className="danger" disabled={busy} onClick={() => void fill(true)}>Reemplazar esta nota tras revisarla</button>}
-      {fillResult?.status === 'FILLED' && <><p className="hint">Revisa la nota y pulsa Guardar en {demo ? 'la réplica local' : 'el SIE'}. El asistente esperará el aviso de esa página.</p>{saveObserved && <p className="status good">{saveObserved}</p>}<button className="primary" disabled={!saveObserved || busy} onClick={() => void advance('CONFIRMED_BY_USER', 'La responsable confirmó el aviso de guardado en pantalla.')}>Confirmé el guardado · siguiente</button></>}
-      {fillResult?.status === 'ALREADY_EQUAL' && <button onClick={() => void advance('SKIPPED', 'La nota ya se mostraba igual en la casilla visible.')}>Continuar sin cambios</button>}
-      <button className="link" disabled={busy} onClick={() => void advance(fillResult?.status === 'ERROR' ? 'ERROR' : 'SKIPPED', fillResult?.status === 'ERROR' ? fillResult.detail : 'Omitido por la responsable.')}>Omitir esta fila</button>
-    </section>}
+          <div className="role-tabs" role="radiogroup" aria-label="Rol responsable">
+            <button
+              type="button"
+              className={`role-tab ${role === 'ADMINISTRATIVE' ? 'active' : ''}`}
+              onClick={() => setRole('ADMINISTRATIVE')}
+            >
+              Dirección
+            </button>
+            <button
+              type="button"
+              className={`role-tab ${role === 'SECRETARY' ? 'active' : ''}`}
+              onClick={() => setRole('SECRETARY')}
+            >
+              Secretaría
+            </button>
+          </div>
 
-    {plan && plan.grades.length === 0 && <section className="card"><h2>Sin notas disponibles</h2><p>Esta selección no tiene calificaciones publicadas para cargar.</p></section>}
-    {plan && !current && plan.grades.length > 0 && <section className="card"><h2>Recorrido terminado</h2><p>{entries.filter((entry) => entry.result === 'CONFIRMED_BY_USER').length} confirmadas por la responsable · {entries.filter((entry) => entry.result !== 'CONFIRMED_BY_USER').length} pendientes u omitidas.</p>
-      <button className="primary" disabled={busy || summarySent} onClick={() => void finish()}>{demo ? 'Cerrar demostración' : 'Cerrar recorrido'}</button>{summarySent && <p className="status good">Cada fila quedó registrada. Una confirmación en pantalla no equivale a una conciliación del SIE.</p>}
-    </section>}
+          <form
+            className="form-stack"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!busy && identifier.trim() && secret && tabId) void signIn();
+            }}
+          >
+            <label className="field">
+              Correo o usuario SIGCE
+              <input
+                type="text"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="ej. direccion@sigce.lat"
+                autoComplete="username"
+              />
+            </label>
 
-    {error && <p role="alert" className="global-error">{error}</p>}
-    <footer>El asistente rellena campos visibles. La responsable decide qué guardar.</footer>
-  </div>;
+            <label className="field">
+              Contraseña
+              <input
+                type="password"
+                value={secret}
+                onChange={(e) => setSecret(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="current-password"
+              />
+            </label>
+
+            <button
+              type="submit"
+              className="btn primary full"
+              disabled={busy || !identifier.trim() || !secret || !tabId}
+            >
+              {busy ? <IconRefresh className="spin" /> : <IconArrowRight />}
+              <span>{busy ? 'Verificando acceso...' : 'Entrar a SIGCE'}</span>
+            </button>
+          </form>
+
+          <details className="subtle-details">
+            <summary>
+              <span>Servidor: {apiBase === deployedApi ? 'SIGCE desplegado' : 'SIGCE local'}</span>
+              <span>Cambiar</span>
+            </summary>
+            <div className="subtle-details-body">
+              <label className="field">
+                Origen de datos
+                <select
+                  value={apiBase}
+                  onChange={(e) => {
+                    setManualApiOverride(true);
+                    setApiBase(e.target.value);
+                  }}
+                >
+                  <option value={deployedApi}>SIGCE desplegado (producción)</option>
+                  <option value={localApi}>SIGCE local (desarrollo)</option>
+                </select>
+              </label>
+            </div>
+          </details>
+        </section>
+      )}
+
+      {/* PASO 1B: CONFIRMACIÓN DE ACCESO EXITOSO AL SISTEMA PARA EMPEZAR A TRABAJAR */}
+      {!portalError && !reference && ((demo && tabId) || session) && !workReady && !plan && (
+        <section className="card success-hero">
+          <div className="ready-icon-wrap">
+            <IconShieldCheck size={30} />
+          </div>
+          <div className="ready-badge">
+            <IconCheck size={13} />
+            <span>{demo ? 'Modo demostración listo' : 'Acceso a SIGCE verificado'}</span>
+          </div>
+          <h2>¡Acceso exitoso al sistema!</h2>
+          <p>
+            {demo
+              ? 'Cuando hayas iniciado sesión en la página de prueba y abierto el curso, pulsa el botón para empezar.'
+              : `Bienvenida/o, ${session?.user.firstName} ${session?.user.lastName}. Una vez que hayas ingresado también al portal SIE, confirma abajo para empezar a trabajar.`}
+          </p>
+
+          <div className="ready-checklist">
+            <div className="ready-check-item">
+              <span className="check-icon"><IconCheck size={15} /></span>
+              <span>
+                <strong>{demo ? 'Datos de prueba listos:' : 'Sesión SIGCE activa:'}</strong>{' '}
+                {demo ? '3 estudiantes ficticios disponibles.' : session?.apiBase === localApi ? 'SIGCE local' : 'SIGCE desplegado'}
+              </span>
+            </div>
+            <div className="ready-check-item">
+              <span className="check-icon"><IconCheck size={15} /></span>
+              <span>
+                <strong>Portal en navegador:</strong>{' '}
+                {demo ? 'Réplica local detectada.' : 'Ingresa al SIE con tus credenciales y abre la lista del curso.'}
+              </span>
+            </div>
+          </div>
+
+          {!demo && session?.apiBase === localApi && (
+            <label className="check-box">
+              <input
+                type="checkbox"
+                checked={allowLocalOnOfficial}
+                onChange={(e) => setAllowLocalOnOfficial(e.target.checked)}
+              />
+              <span>Confirmo que este SIGCE local contiene las notas oficiales del curso que voy a completar.</span>
+            </label>
+          )}
+
+          <div className="action-stack">
+            <button
+              type="button"
+              className="btn success full"
+              disabled={refreshingTab || (!demo && session?.apiBase === localApi && !allowLocalOnOfficial)}
+              onClick={() => void confirmAccessAndStart()}
+            >
+              <IconCheck size={17} />
+              <span>Acceso exitoso · Empezar a trabajar</span>
+              <IconArrowRight size={15} />
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* BANNER DE CONFIRMACIÓN DE ACCESO EXITOSO */}
+      {readyToast && workReady && !plan && (
+        <div className="toast-ready" role="status">
+          <div className="toast-ready-left">
+            <IconCheck size={16} />
+            <span>Acceso exitoso confirmado · ¡Listo para trabajar!</span>
+          </div>
+          <button
+            type="button"
+            className="btn ghost-link"
+            style={{ padding: '0 4px', color: '#065f46' }}
+            onClick={() => setReadyToast(false)}
+            aria-label="Ocultar aviso"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* PASO 2: SELECCIONAR CURSO Y CARGAR NOTAS */}
+      {!portalError && !reference && workReady && ((demo && tabId) || session) && !plan && (
+        <section className="card">
+          <div className="eyebrow">Paso 2 de 3 · Selección</div>
+          <h2>{demo ? 'Cargar lote de demostración' : 'Elige el curso a completar'}</h2>
+
+          {demo ? (
+            <>
+              <p>Se prepararán las 3 calificaciones ficticias para practicar el recorrido guiado.</p>
+              <div className="action-stack">
+                <button type="button" className="btn primary full" onClick={() => resetRun(demoPlan)}>
+                  <IconSparkles />
+                  <span>Cargar notas de demostración</span>
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="form-stack">
+              <div className="form-grid-2">
+                <label className="field">
+                  Gestión
+                  <select
+                    value={filters.academicYearId}
+                    onChange={(e) => {
+                      setFilters({ academicYearId: e.target.value, courseId: '', subjectId: '', periodNumber: 0 });
+                      setCourseOptions(null);
+                    }}
+                  >
+                    <option value="">Selecciona</option>
+                    {(baseOptions?.years ?? []).map((year) => (
+                      <option key={year.id} value={year.id}>
+                        {year.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="field">
+                  Trimestre
+                  <select
+                    value={filters.periodNumber}
+                    onChange={(e) => setFilters({ ...filters, periodNumber: Number(e.target.value) })}
+                    disabled={!filters.courseId}
+                  >
+                    <option value="0">Selecciona</option>
+                    {periods.map((period) => (
+                      <option key={period.id} value={period.number}>
+                        {period.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <label className="field">
+                Curso
+                <select
+                  value={filters.courseId}
+                  onChange={(e) => {
+                    setFilters({ ...filters, courseId: e.target.value, subjectId: '', periodNumber: 0 });
+                    setCourseOptions(null);
+                  }}
+                >
+                  <option value="">Selecciona un curso</option>
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="field">
+                Materia
+                <select
+                  value={filters.subjectId}
+                  onChange={(e) => setFilters({ ...filters, subjectId: e.target.value })}
+                  disabled={!filters.courseId}
+                >
+                  <option value="">Selecciona una materia</option>
+                  {(courseOptions?.subjects ?? []).map((subject) => (
+                    <option key={subject.id} value={subject.id}>
+                      {subject.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <button
+                type="button"
+                className="btn primary full"
+                disabled={busy || !filters.academicYearId || !filters.courseId || !filters.subjectId || !filters.periodNumber}
+                onClick={() => void preparePlan()}
+              >
+                {busy ? <IconRefresh className="spin" /> : <IconArrowRight />}
+                <span>{busy ? 'Cargando notas...' : 'Preparar notas cerradas'}</span>
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* PASO 3: LOTE PREPARADO + BARRA DE PROGRESO */}
+      {plan && (
+        <section className="card compact">
+          <div className="batch-header">
+            <div style={{ minWidth: 0 }}>
+              <div className="eyebrow">Paso 3 de 3 · Lote activo</div>
+              <h2>{plan.course.name}</h2>
+              <div className="batch-meta">
+                {plan.subject.name} · {plan.period.name}
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn ghost-link"
+              onClick={() => {
+                setPlan(null);
+                setEntries([]);
+                setInspection(null);
+                setFillResult(null);
+                setSaveObserved('');
+                setError('');
+              }}
+            >
+              Cambiar
+            </button>
+          </div>
+
+          {plan.grades.length > 0 && (
+            <div className="progress-wrap">
+              <div className="progress-labels">
+                <span>
+                  Progreso: {Math.min(index, plan.grades.length)} de {plan.grades.length}
+                </span>
+                <span>{progressPct}%</span>
+              </div>
+              <div className="progress-track">
+                <div className="progress-fill" style={{ width: `${progressPct}%` }} />
+              </div>
+            </div>
+          )}
+
+          {!inspection?.ok && (
+            <div className="action-stack">
+              <button type="button" className="btn primary full" disabled={busy || !tabId} onClick={() => void inspect()}>
+                {busy ? <IconRefresh className="spin" /> : <IconSearch />}
+                <span>{busy ? 'Comprobando pantalla...' : 'Comprobar pantalla del SIE'}</span>
+              </button>
+            </div>
+          )}
+
+          {inspection && (
+            <div className={`status-box ${inspection.ok ? 'good' : 'bad'}`}>
+              {inspection.ok ? <IconCheck size={15} /> : <IconAlert size={15} />}
+              <span>
+                {inspection.status === 'READY'
+                  ? `Tabla reconocida: ${inspection.studentCount} estudiantes en pantalla.`
+                  : inspection.ok
+                    ? 'Pantalla reconocida correctamente.'
+                    : inspection.detail}
+              </span>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* TARJETA DEL ESTUDIANTE ACTUAL */}
+      {plan && current && inspection?.ok && (
+        <section className="card">
+          <div className="student-top">
+            <span className="eyebrow" style={{ marginBottom: 0 }}>
+              Estudiante {index + 1} de {plan.grades.length}
+            </span>
+            <span className="rude-pill">RUDE {current.rude}</span>
+          </div>
+
+          <h2 className="student-name">
+            {current.lastName}, {current.firstName}
+          </h2>
+
+          <div className="grade-box">
+            <div>
+              <span className="grade-box-label">Calificación SIGCE</span>
+              <span className="grade-box-sub">{plan.subject.name}</span>
+            </div>
+            <span className="grade-value">{current.value}</span>
+          </div>
+
+          {fillResult && 'detail' in fillResult && (
+            <div className={`status-box ${fillResult.ok ? 'good' : 'bad'}`}>
+              {fillResult.ok ? <IconCheck size={15} /> : <IconAlert size={15} />}
+              <span>{fillResult.detail}</span>
+            </div>
+          )}
+
+          {fillResult?.status === 'FILLED' && !saveObserved && (
+            <div className="status-box info">
+              <IconAlert size={15} />
+              <span>
+                Revisa la nota en {demo ? 'la página de prueba' : 'el SIE'} y pulsa <strong>Guardar</strong> allí para continuar.
+              </span>
+            </div>
+          )}
+
+          {fillResult?.status === 'FILLED' && saveObserved && (
+            <div className="status-box good">
+              <IconCheck size={15} />
+              <span>{saveObserved}</span>
+            </div>
+          )}
+
+          <div className="action-stack">
+            {!fillResult && (
+              <button type="button" className="btn primary full" disabled={busy} onClick={() => void fill()}>
+                {busy ? <IconRefresh className="spin" /> : <IconArrowRight />}
+                <span>{index === 0 ? 'Rellenar primera nota' : 'Rellenar nota en el SIE'}</span>
+              </button>
+            )}
+
+            {fillResult?.status === 'ERROR' && (
+              <button type="button" className="btn primary full" disabled={busy} onClick={() => void fill()}>
+                <IconRefresh />
+                <span>Reintentar esta nota</span>
+              </button>
+            )}
+
+            {fillResult?.status === 'CONFLICT' && (
+              <button type="button" className="btn danger full" disabled={busy} onClick={() => void fill(true)}>
+                <IconAlert />
+                <span>Reemplazar nota tras revisarla</span>
+              </button>
+            )}
+
+            {fillResult?.status === 'FILLED' && (
+              <button
+                type="button"
+                className="btn success full"
+                disabled={!saveObserved || busy}
+                onClick={() => void advance('CONFIRMED_BY_USER', 'La responsable confirmó el aviso de guardado en pantalla.')}
+              >
+                <IconCheck size={16} />
+                <span>Confirmar guardado · Siguiente</span>
+                <IconArrowRight size={14} />
+              </button>
+            )}
+
+            {fillResult?.status === 'ALREADY_EQUAL' && (
+              <button
+                type="button"
+                className="btn primary full"
+                disabled={busy}
+                onClick={() => void advance('SKIPPED', 'La nota ya se mostraba igual en la casilla visible.')}
+              >
+                <span>Ya coincide · Siguiente</span>
+                <IconArrowRight />
+              </button>
+            )}
+
+            <button
+              type="button"
+              className="btn ghost-link full"
+              disabled={busy}
+              onClick={() =>
+                void advance(
+                  fillResult?.status === 'ERROR' ? 'ERROR' : 'SKIPPED',
+                  fillResult?.status === 'ERROR' ? fillResult.detail : 'Omitido por la responsable.',
+                )
+              }
+            >
+              Omitir este estudiante
+            </button>
+          </div>
+
+          <details className="subtle-details">
+            <summary>
+              <span>¿La materia tiene otro nombre en el SIE?</span>
+              <span>{alias.trim() ? 'Configurado' : 'Opcional'}</span>
+            </summary>
+            <div className="subtle-details-body">
+              <label className="field">
+                Alias de materia en SIE
+                <input
+                  type="text"
+                  value={alias}
+                  onChange={(e) => setAlias(e.target.value)}
+                  placeholder={plan.subject.name}
+                />
+              </label>
+            </div>
+          </details>
+        </section>
+      )}
+
+      {/* SIN NOTAS DISPONIBLES */}
+      {plan && plan.grades.length === 0 && (
+        <section className="card">
+          <h2>Sin notas disponibles</h2>
+          <p>Esta selección no tiene calificaciones publicadas para cargar en el trimestre elegido.</p>
+          <div className="action-stack">
+            <button type="button" className="btn full" onClick={() => setPlan(null)}>
+              Elegir otra materia o curso
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* RECORRIDO TERMINADO */}
+      {plan && !current && plan.grades.length > 0 && (
+        <section className="card success-hero">
+          <div className="ready-icon-wrap">
+            <IconCheck size={28} />
+          </div>
+          <div className="ready-badge">
+            <IconCheck size={13} />
+            <span>Lote completado</span>
+          </div>
+          <h2>¡Recorrido terminado!</h2>
+          <p>Has revisado todos los estudiantes de {plan.course.name}.</p>
+
+          <div className="summary-stats">
+            <div className="stat-tile good">
+              <strong>{confirmedCount}</strong>
+              <span>Confirmadas</span>
+            </div>
+            <div className="stat-tile">
+              <strong>{skippedCount}</strong>
+              <span>Omitidas / Pend.</span>
+            </div>
+          </div>
+
+          {!summarySent ? (
+            <button type="button" className="btn success full" disabled={busy} onClick={() => void finish()}>
+              <IconCheck size={16} />
+              <span>{demo ? 'Cerrar demostración' : 'Finalizar recorrido'}</span>
+            </button>
+          ) : (
+            <>
+              <div className="status-box good" style={{ textAlign: 'left' }}>
+                <IconCheck size={15} />
+                <span>Cada fila quedó registrada en SIGCE. Una confirmación en pantalla no reemplaza la conciliación oficial del SIE.</span>
+              </div>
+              <div className="action-stack">
+                <button
+                  type="button"
+                  className="btn primary full"
+                  onClick={() => {
+                    setPlan(null);
+                    setEntries([]);
+                    setInspection(null);
+                    setFillResult(null);
+                    setSummarySent(false);
+                  }}
+                >
+                  Cargar otro curso o materia
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
+      {/* ERROR GLOBAL */}
+      {error && (
+        <p role="alert" className="global-error">
+          <IconAlert size={16} />
+          <span>{error}</span>
+        </p>
+      )}
+
+      <footer>SIGCE rellena campos visibles · Tú revisas y decides qué guardar.</footer>
+    </div>
+  );
 }

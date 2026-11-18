@@ -3,7 +3,14 @@ import { createVisualCursor } from '../src/visual-cursor';
 import type { PortalRequest, PortalResponse, SavedMessage } from '../src/types';
 
 export default defineContentScript({
-  matches: ['https://academico.sie.gob.bo/*', 'http://localhost:4174/*'],
+  matches: [
+    'https://academico.sie.gob.bo/*',
+    'http://localhost:4174/*',
+    'http://localhost:5173/sie-demo*',
+    'https://sigce.lat/sie-demo*',
+    'https://*.sigce.lat/sie-demo*',
+    'https://*.vercel.app/sie-demo*',
+  ],
   runAt: 'document_idle',
   main() {
     let observer: MutationObserver | null = null;

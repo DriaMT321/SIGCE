@@ -9,9 +9,19 @@ export interface SigceSession {
   apiBase: string;
 }
 
+function isHostedDemoOrigin(origin: string): boolean {
+  return (
+    origin === 'http://localhost:5173' ||
+    origin === 'https://sigce.lat' ||
+    origin.endsWith('.sigce.lat') ||
+    origin.endsWith('.vercel.app')
+  );
+}
+
 export function isDemoPortal(portalUrl: string): boolean {
   const url = new URL(portalUrl);
-  return url.origin === 'http://localhost:4174' && url.pathname === '/demo';
+  if (url.origin === 'http://localhost:4174' && url.pathname === '/demo') return true;
+  return isHostedDemoOrigin(url.origin) && url.pathname.startsWith('/sie-demo');
 }
 
 export function isReferencePortal(portalUrl: string): boolean {
@@ -21,9 +31,12 @@ export function isReferencePortal(portalUrl: string): boolean {
 
 export function apiForPortal(portalUrl: string): string {
   const url = new URL(portalUrl);
-  if (url.origin === 'http://localhost:4174') return localApi;
+  if (url.origin === 'http://localhost:4174' || (url.origin === 'http://localhost:5173' && url.pathname.startsWith('/sie-demo'))) {
+    return localApi;
+  }
   if (url.origin === 'https://academico.sie.gob.bo') return officialApi;
-  throw new Error('Abre el SIE oficial o la réplica local autorizada para usar el asistente.');
+  if (isHostedDemoOrigin(url.origin) && url.pathname.startsWith('/sie-demo')) return officialApi;
+  throw new Error('Abre el SIE oficial o la réplica autorizada para usar el asistente.');
 }
 
 async function jsonResponse<T>(response: Response): Promise<T> {
