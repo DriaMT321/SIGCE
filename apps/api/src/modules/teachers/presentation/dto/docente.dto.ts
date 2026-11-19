@@ -9,7 +9,9 @@ import {
   MaxLength,
   Min,
   MinLength,
+  Validate,
 } from 'class-validator';
+import { ValidadorArchivoDocente, ValidadorDocumentosDocente } from './validacionarchivosdocente';
 
 export class dtocreardocente {
   @IsEmail()
@@ -56,6 +58,7 @@ export class dtocreardocente {
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @MaxLength(50)
   rdaNumber?: string;
 
@@ -71,9 +74,11 @@ export class dtocreardocente {
 
   @IsOptional()
   @IsString()
+  @Validate(ValidadorArchivoDocente)
   photoUrl?: string;
 
   @IsOptional()
+  @Validate(ValidadorDocumentosDocente)
   documents?: any;
 }
 
@@ -122,6 +127,7 @@ export class dtoactualizardocente {
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @MaxLength(50)
   rdaNumber?: string;
 
@@ -137,8 +143,10 @@ export class dtoactualizardocente {
 
   @IsOptional()
   @IsString()
+  @Validate(ValidadorArchivoDocente)
   photoUrl?: string;
 
   @IsOptional()
+  @Validate(ValidadorDocumentosDocente)
   documents?: any;
 }

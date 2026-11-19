@@ -584,16 +584,14 @@ export function PaginaEventosAcademicos({
         <button
           type="button"
           onClick={() => establecerFiltroTipo('TODOS')}
-          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${
-            filtroTipo === 'TODOS'
-              ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-900'
-              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-          }`}
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${filtroTipo === 'TODOS'
+            ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-900'
+            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
         >
           <span>Todos los tipos</span>
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-            filtroTipo === 'TODOS' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-          }`}>
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${filtroTipo === 'TODOS' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
+            }`}>
             {conteoPorTipo.TODOS ?? 0}
           </span>
         </button>
@@ -606,17 +604,15 @@ export function PaginaEventosAcademicos({
               key={tipo}
               type="button"
               onClick={() => establecerFiltroTipo(tipo)}
-              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${
-                activo
-                  ? `${cfg.bgLight} ${cfg.textColor} border ${cfg.borderColor} ring-2 ring-indigo-500/20 shadow-xs font-bold`
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-              }`}
+              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${activo
+                ? `${cfg.bgLight} ${cfg.textColor} border ${cfg.borderColor} ring-2 ring-indigo-500/20 shadow-xs font-bold`
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                }`}
             >
               <span className={`h-2.5 w-2.5 rounded-full ${cfg.dotColor}`} />
               <span>{cfg.label}</span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                activo ? 'bg-white/60 text-slate-800' : 'bg-slate-100 text-slate-600'
-              }`}>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${activo ? 'bg-white/60 text-slate-800' : 'bg-slate-100 text-slate-600'
+                }`}>
                 {conteoPorTipo[tipo] ?? 0}
               </span>
             </button>
@@ -915,9 +911,8 @@ export function PaginaEventosAcademicos({
                     return (
                       <div
                         key={dia}
-                        className={`py-2.5 text-[11px] font-bold uppercase tracking-wider ${
-                          esFin ? 'text-indigo-400 bg-indigo-50/20' : 'text-slate-600'
-                        }`}
+                        className={`py-2.5 text-[11px] font-bold uppercase tracking-wider ${esFin ? 'text-indigo-400 bg-indigo-50/20' : 'text-slate-600'
+                          }`}
                       >
                         {dia}
                       </div>
@@ -939,30 +934,27 @@ export function PaginaEventosAcademicos({
                         onClick={() => establecerDiaSeleccionado(celda.clave)}
                         aria-pressed={seleccionado}
                         aria-label={`Día ${celda.dia}, ${actividades.length} actividades`}
-                        className={`group relative min-h-[82px] sm:min-h-[118px] p-1.5 sm:p-2 text-left transition-all duration-150 cursor-pointer flex flex-col justify-between ${
-                          !celda.esMesActual
-                            ? 'bg-slate-50/40 text-slate-400'
-                            : celda.esFinDeSemana
-                              ? 'bg-slate-50/25'
-                              : 'bg-white'
-                        } ${
-                          seleccionado
+                        className={`group relative min-h-[82px] sm:min-h-[118px] p-1.5 sm:p-2 text-left transition-all duration-150 cursor-pointer flex flex-col justify-between ${!celda.esMesActual
+                          ? 'bg-slate-50/40 text-slate-400'
+                          : celda.esFinDeSemana
+                            ? 'bg-slate-50/25'
+                            : 'bg-white'
+                          } ${seleccionado
                             ? 'ring-2 ring-inset ring-indigo-600 bg-indigo-50/40 z-10 shadow-xs'
                             : 'hover:bg-slate-50/90'
-                        }`}
+                          }`}
                       >
                         {/* Indicador superior del número de día */}
                         <div className="flex items-center justify-between w-full">
                           <span
-                            className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full text-xs font-bold transition-transform ${
-                              eshoy
-                                ? 'bg-indigo-600 text-white shadow-xs scale-105'
-                                : seleccionado
-                                  ? 'bg-slate-900 text-white font-extrabold'
-                                  : celda.esMesActual
-                                    ? 'text-slate-800 group-hover:text-indigo-600'
-                                    : 'text-slate-400'
-                            }`}
+                            className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full text-xs font-bold transition-transform ${eshoy
+                              ? 'bg-indigo-600 text-white shadow-xs scale-105'
+                              : seleccionado
+                                ? 'bg-slate-900 text-white font-extrabold'
+                                : celda.esMesActual
+                                  ? 'text-slate-800 group-hover:text-indigo-600'
+                                  : 'text-slate-400'
+                              }`}
                           >
                             {celda.dia}
                           </span>
@@ -1145,13 +1137,12 @@ export function PaginaEventosAcademicos({
                                   {cfg.label}
                                 </span>
                                 <span
-                                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                                    evento.status === 'CANCELADO'
-                                      ? 'bg-rose-100 text-rose-800'
-                                      : evento.status === 'REALIZADO'
-                                        ? 'bg-emerald-100 text-emerald-800'
-                                        : 'bg-slate-100 text-slate-700'
-                                  }`}
+                                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${evento.status === 'CANCELADO'
+                                    ? 'bg-rose-100 text-rose-800'
+                                    : evento.status === 'REALIZADO'
+                                      ? 'bg-emerald-100 text-emerald-800'
+                                      : 'bg-slate-100 text-slate-700'
+                                    }`}
                                 >
                                   {estadoetiqueta(evento)}
                                 </span>

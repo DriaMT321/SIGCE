@@ -14,6 +14,16 @@ export class dtocreardocente {
   phone?: string;
 
   itemNumber?: string;
+
+  rdaNumber?: string;
+
+  escalafonCategory?: string;
+
+  yearsOfService?: number;
+
+  photoUrl?: string;
+
+  documents?: Record<string, unknown>;
 }
 
 export class dtoactualizardocente {
@@ -30,4 +40,14 @@ export class dtoactualizardocente {
   phone?: string;
 
   itemNumber?: string;
+
+  rdaNumber?: string;
+
+  escalafonCategory?: string;
+
+  yearsOfService?: number;
+
+  photoUrl?: string;
+
+  documents?: Record<string, unknown>;
 }

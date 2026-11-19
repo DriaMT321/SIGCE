@@ -233,6 +233,18 @@ export async function comprimirArchivoADataUrl(archivo: File, maxAncho = 1600, c
   });
 }
 
+async function descargarArchivoAdjunto(dataUrl: string, nombreArchivo?: string) {
+  const blob = await (await fetch(dataUrl)).blob();
+  const urlTemporal = URL.createObjectURL(blob);
+  const enlace = document.createElement('a');
+  enlace.href = urlTemporal;
+  enlace.download = (nombreArchivo || 'respaldo-docente').replace(/[\\/:*?"<>|]/g, '_').slice(0, 120);
+  document.body.append(enlace);
+  enlace.click();
+  enlace.remove();
+  window.setTimeout(() => URL.revokeObjectURL(urlTemporal), 60_000);
+}
+
 /**
  * Componente para subir y previsualizar documentos/fotos
  */
@@ -254,20 +266,43 @@ export function SubidorDocumentoFoto({
   onVerCompleto?: (url: string, titulo: string) => void;
 }) {
   const [cargando, setCargando] = useState(false);
+  const [errorArchivo, setErrorArchivo] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const manejarArchivo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const tiposPermitidos = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp']);
+    if (!tiposPermitidos.has(file.type)) {
+      setErrorArchivo('Usa un archivo PDF, JPG, PNG o WebP.');
+      if (inputRef.current) inputRef.current.value = '';
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setErrorArchivo('El archivo supera el límite de 8 MB.');
+      if (inputRef.current) inputRef.current.value = '';
+      return;
+    }
     try {
+      setErrorArchivo(null);
       setCargando(true);
       const resultado = await comprimirArchivoADataUrl(file);
       onChange(resultado.dataUrl, resultado.nombre);
-    } catch (error) {
-      console.error('Error al procesar archivo:', error);
+    } catch {
+      setErrorArchivo('No se pudo procesar el archivo. Inténtalo nuevamente.');
     } finally {
       setCargando(false);
       if (inputRef.current) inputRef.current.value = '';
+    }
+  };
+
+  const descargarParaRevision = async () => {
+    if (!archivoUrl?.startsWith('data:application/pdf;base64,')) return;
+    try {
+      await descargarArchivoAdjunto(archivoUrl, nombreArchivo || 'documento-docente.pdf');
+      setErrorArchivo(null);
+    } catch {
+      setErrorArchivo('No se pudo preparar el PDF para revisarlo.');
     }
   };
 
@@ -282,7 +317,7 @@ export function SubidorDocumentoFoto({
         </div>
         {archivoUrl ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 border border-emerald-200">
-            <CheckCircle2 className="w-3 h-3" /> Adjuntado
+            <CheckCircle2 className="w-3 h-3" /> Adjunto para cotejo
           </span>
         ) : (
           <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 border border-amber-200">
@@ -294,7 +329,7 @@ export function SubidorDocumentoFoto({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*,application/pdf"
+        accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={manejarArchivo}
       />
@@ -346,6 +381,16 @@ export function SubidorDocumentoFoto({
                 </span>
               </div>
               <div className="flex items-center gap-1">
+                {archivoUrl.startsWith('data:application/pdf;base64,') && (
+                  <button
+                    type="button"
+                    onClick={() => void descargarParaRevision()}
+                    className="rounded px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+                    title="Descargar el PDF para revisar su contenido"
+                  >
+                    Descargar para revisar
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => inputRef.current?.click()}
@@ -380,8 +425,13 @@ export function SubidorDocumentoFoto({
           <span className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
             {cargando ? 'Procesando archivo...' : 'Subir foto o documento escaneado'}
           </span>
-          <span className="text-[10px] text-slate-400">JPG, PNG o PDF (hasta 15MB)</span>
+          <span className="text-[10px] text-slate-400">PDF, JPG, PNG o WebP · máximo 8 MB</span>
         </button>
+      )}
+      {errorArchivo && (
+        <p role="alert" className="mt-2 text-xs font-medium text-rose-700">
+          {errorArchivo}
+        </p>
       )}
     </div>
   );
@@ -553,9 +603,12 @@ export function EditorRequisitosMagisterio({
             <div className="rounded-lg bg-blue-50/60 p-3 text-xs text-blue-900 border border-blue-100 flex items-start gap-2.5">
               <FileCheck2 className="w-4 h-4 text-blue-700 shrink-0 mt-0.5" />
               <div>
-                <strong className="font-semibold text-blue-950">1. Registro Docente Administrativo (RDA):</strong>{' '}
-                Documento central y oficial del Ministerio de Educación de Bolivia. Certifica la formación académica,
-                categoría de escalafón, años de servicio acumulados, carga horaria y distrito/unidad educativa.
+                <strong className="font-semibold text-blue-950">
+                  1. Registro Docente Administrativo (RDA):
+                </strong>{' '}
+                Transcribe aquí los datos que aparecen en el documento y adjunta una copia para que el personal autorizado
+                pueda cotejarlos. SIGCE conserva el respaldo, pero no valida automáticamente su autenticidad. Cada archivo
+                adjunto puede pesar hasta 8 MB; el legajo completo admite hasta 10 MB.
               </div>
             </div>
 
@@ -586,7 +639,7 @@ export function EditorRequisitosMagisterio({
                     onChange={(e) => actualizarRda('numeroRda', e.target.value)}
                     placeholder="Ej. 5894102"
                   />
-                  <p className="text-[10px] text-slate-500">Código único de registro del docente</p>
+                  <p className="text-[10px] text-slate-500">Código único del docente; obligatorio si adjuntas el respaldo</p>
                 </div>
 
                 <div className="space-y-1">
@@ -1040,6 +1093,7 @@ export function ModalDetalleLegajoDocente({
   onCerrar: () => void;
   onVerImagenCompleta?: (url: string, titulo: string) => void;
 }) {
+  const [errorDescargaRda, setErrorDescargaRda] = useState<string | null>(null);
   const reqs = normalizarRequisitosDocente(docente);
   const esImagen = (url?: string) => Boolean(url && (url.startsWith('data:image/') || /\.(jpg|jpeg|png|webp)$/i.test(url)));
 
@@ -1204,7 +1258,24 @@ export function ModalDetalleLegajoDocente({
                 <span className="text-xs text-slate-500">
                   Archivo: <strong>{reqs.rda.nombreArchivo || 'Extracto_RDA'}</strong>
                 </span>
-                {onVerImagenCompleta && (
+                {reqs.rda.archivoUrl.startsWith('data:application/pdf;base64,') ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void descargarArchivoAdjunto(
+                        reqs.rda.archivoUrl!,
+                        reqs.rda.nombreArchivo || 'respaldo-rda.pdf',
+                      )
+                        .then(() => setErrorDescargaRda(null))
+                        .catch(() => {
+                          setErrorDescargaRda('No se pudo descargar el respaldo del RDA.');
+                        });
+                    }}
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
+                  >
+                    <FileText className="w-3.5 h-3.5" /> Descargar PDF para revisar
+                  </button>
+                ) : onVerImagenCompleta ? (
                   <button
                     type="button"
                     onClick={() => onVerImagenCompleta(reqs.rda.archivoUrl!, 'Registro Docente Administrativo (RDA)')}
@@ -1212,8 +1283,11 @@ export function ModalDetalleLegajoDocente({
                   >
                     <Eye className="w-3.5 h-3.5" /> Ver imagen completa
                   </button>
-                )}
+                ) : null}
               </div>
+            )}
+            {errorDescargaRda && (
+              <p role="alert" className="mt-2 text-xs text-rose-700">{errorDescargaRda}</p>
             )}
           </div>
 

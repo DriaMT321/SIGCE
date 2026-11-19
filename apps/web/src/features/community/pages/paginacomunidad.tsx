@@ -183,7 +183,8 @@ export function ComunidadPagina({
   const [eliminacionelemento, establecereliminacionelemento] =
     useState<eliminarelementoestado | null>(null);
 
-  const puedegestionar = actualrol === 'ADMINISTRATIVE';
+  const puedegestionar = actualrol === 'ADMINISTRATIVE' || actualrol === 'SECRETARY';
+  const puedeeliminar = actualrol === 'ADMINISTRATIVE';
   const puedeleer =
     modo === 'teachers'
       ? ['ADMINISTRATIVE', 'SECRETARY', 'TEACHER'].includes(actualrol ?? '')
@@ -437,7 +438,7 @@ export function ComunidadPagina({
             <div>
               <h2 className="text-sm font-bold text-slate-900">Registrar Nuevo Docente</h2>
               <p className="text-xs text-slate-500">
-                Complete los datos personales, credenciales de acceso y los 5 requerimientos oficiales del magisterio boliviano
+                Complete los datos del docente, su número RDA y los documentos de respaldo del legajo profesional
               </p>
             </div>
             <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -569,7 +570,7 @@ export function ComunidadPagina({
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
               <p className="text-xs text-slate-500">
-                Los 5 requerimientos y fotos pueden ser actualizados o complementados posteriormente en cualquier momento.
+                El número RDA y los datos del documento se pueden completar o actualizar luego. Los archivos quedan disponibles en el legajo para su cotejo por personal autorizado.
               </p>
               <div className="flex items-center gap-2">
                 <Boton
@@ -730,6 +731,7 @@ export function ComunidadPagina({
           <DocenteTabla
             data={docentesconsulta.data?.data ?? []}
             canManage={puedegestionar}
+            canDelete={puedeeliminar}
             onVerLegajo={(docente) => setDocenteParaVerLegajo(docente)}
             onEdit={(docente) => {
               const reqs = normalizarRequisitosDocente(docente);
@@ -764,6 +766,7 @@ export function ComunidadPagina({
           <FamiliarTabla
             data={familiaresconsulta.data?.data ?? []}
             canManage={puedegestionar}
+            canDelete={puedeeliminar}
             onEdit={(familiar) =>
               estableceredicionfamiliar({
                 id: familiar.id,
@@ -1709,6 +1712,7 @@ export function ComunidadPagina({
 function DocenteTabla({
   data: datos,
   canManage: puedegestionar,
+  canDelete: puedeeliminar,
   onEdit: oneditar,
   onDelete: oneliminar,
   onVerLegajo: onverlegajo,
@@ -1730,6 +1734,7 @@ function DocenteTabla({
     documents?: any;
   }>;
   canManage: boolean;
+  canDelete: boolean;
   onEdit: (docente: any) => void;
   onDelete: (docente: { id: string; firstName: string; lastName: string }) => void;
   onVerLegajo: (docente: any) => void;
@@ -1860,14 +1865,16 @@ function DocenteTabla({
 
                 <td className="py-3 pl-3 pr-5 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <button
-                      type="button"
-                      onClick={() => onverlegajo(elemento)}
-                      className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
-                      title="Ver Legajo Oficial (RDA, Título, Escalafón, Boleta, Titularidad)"
-                    >
-                      <FileText className="w-4 h-4" />
-                    </button>
+                    {puedegestionar && (
+                      <button
+                        type="button"
+                        onClick={() => onverlegajo(elemento)}
+                        className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                        title="Ver Legajo Oficial (RDA, Título, Escalafón, Boleta, Titularidad)"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </button>
+                    )}
                     {puedegestionar && (
                       <>
                         <button
@@ -1878,14 +1885,16 @@ function DocenteTabla({
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => oneliminar(elemento)}
-                          className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                          title="Eliminar docente (Baja lógica)"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {puedeeliminar && (
+                          <button
+                            type="button"
+                            onClick={() => oneliminar(elemento)}
+                            className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title="Eliminar docente (Baja lógica)"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </>
                     )}
                   </div>
@@ -1902,6 +1911,7 @@ function DocenteTabla({
 function FamiliarTabla({
   data: datos,
   canManage: puedegestionar,
+  canDelete: puedeeliminar,
   onEdit: oneditar,
   onDelete: oneliminar,
   onResetPassword,
@@ -1925,6 +1935,7 @@ function FamiliarTabla({
     }>;
   }>;
   canManage: boolean;
+  canDelete: boolean;
   onEdit: (familiar: {
     id: string;
     firstName: string;
@@ -2046,14 +2057,16 @@ function FamiliarTabla({
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => oneliminar(elemento)}
-                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                        title="Eliminar familiar (Baja lógica)"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {puedeeliminar && (
+                        <button
+                          type="button"
+                          onClick={() => oneliminar(elemento)}
+                          className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                          title="Eliminar familiar (Baja lógica)"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 )}

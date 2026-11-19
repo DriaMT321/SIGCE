@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Patch,
   Post,
   Param,
@@ -38,9 +39,13 @@ export class controladordocentes {
   ) {}
 
   @Get()
+  @Header('Cache-Control', 'no-store')
   @definirroles(rolusuario.ADMINISTRATIVE, rolusuario.SECRETARY, rolusuario.TEACHER)
   @definirpermisos('teachers:read')
-  async listar(@Query() filtros: dtopaginacion) {
+  async listar(
+    @Query() filtros: dtopaginacion,
+    @usuarioactual() usuario: usuarioautenticado,
+  ) {
     const resultado = await this.listardocentes.ejecutar({
       search: filtros.search,
       limit: Math.min(filtros.limit ?? 50, 100),
@@ -49,7 +54,10 @@ export class controladordocentes {
     return {
       statusCode: 200,
       message: 'Docentes obtenidos exitosamente',
-      data: resultado.items,
+      data:
+        usuario.role === rolusuario.TEACHER
+          ? resultado.items.map(({ documents: _documents, ...docente }) => docente)
+          : resultado.items,
       total: resultado.total,
     };
   }
