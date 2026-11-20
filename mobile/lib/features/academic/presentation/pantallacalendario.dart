@@ -307,6 +307,32 @@ class _pantallacalendarioestado extends ConsumerState<pantallacalendario> {
           ),
           const SizedBox(width: 6),
           _pildoraFiltro(
+            label: _filtroPlazo == 'ESPECIFICA' && _diaSeleccionado != null
+                ? 'Día: ${_formatearFecha(_diaSeleccionado!)}'
+                : 'Fecha específica',
+            activo: _filtroPlazo == 'ESPECIFICA',
+            icono: Icons.calendar_today,
+            onTap: () async {
+              final seleccion = await showDatePicker(
+                context: context,
+                initialDate: _diaSeleccionado ?? DateTime.now(),
+                firstDate: DateTime(2025, 1, 1),
+                lastDate: DateTime(2027, 12, 31),
+                helpText: 'Seleccionar fecha específica',
+                confirmText: 'Aplicar',
+                cancelText: 'Cancelar',
+              );
+              if (seleccion != null) {
+                setState(() {
+                  _filtroPlazo = 'ESPECIFICA';
+                  _diaSeleccionado = seleccion;
+                  _mesActual = DateTime(seleccion.year, seleccion.month, 1);
+                });
+              }
+            },
+          ),
+          const SizedBox(width: 6),
+          _pildoraFiltro(
             label: 'Todas las fechas',
             activo: _filtroPlazo == 'TODO',
             onTap: () => setState(() => _filtroPlazo = 'TODO'),
@@ -554,7 +580,7 @@ class _pantallacalendarioestado extends ConsumerState<pantallacalendario> {
     final hoy = DateTime.now();
 
     // 1. Filtrar por plazo
-    final eventosFiltrados = todosEventos.filter((e) {
+    final eventosFiltrados = todosEventos.where((e) {
       if (_filtroPlazo == 'HOY') {
         return _esMismoDia(e.fechainicio, hoy);
       }
@@ -562,6 +588,11 @@ class _pantallacalendarioestado extends ConsumerState<pantallacalendario> {
         final limite = hoy.add(const Duration(days: 7));
         return e.fechainicio.isAfter(hoy.subtract(const Duration(days: 1))) &&
             e.fechainicio.isBefore(limite);
+      }
+      if (_filtroPlazo == 'ESPECIFICA' && _diaSeleccionado != null) {
+        return _esMismoDia(e.fechainicio, _diaSeleccionado!) ||
+            (_diaSeleccionado!.isAfter(e.fechainicio) &&
+                _diaSeleccionado!.isBefore(e.fechafin.add(const Duration(days: 1))));
       }
       if (_filtroPlazo == 'MES') {
         if (_diaSeleccionado != null) {
@@ -588,7 +619,7 @@ class _pantallacalendarioestado extends ConsumerState<pantallacalendario> {
     }).toList();
 
     // Tareas y Exámenes creados por profesores para estudiantes
-    final asignacionesFiltradas = todasAsignaciones.filter((a) {
+    final asignacionesFiltradas = todasAsignaciones.where((a) {
       // Las tareas están orientadas principalmente a estudiantes y padres (seguimiento)
       if (_filtroAudiencia == 'PROFESORES') return false;
 
@@ -599,6 +630,9 @@ class _pantallacalendarioestado extends ConsumerState<pantallacalendario> {
         final limite = hoy.add(const Duration(days: 7));
         return a.fechalimite.isAfter(hoy.subtract(const Duration(days: 1))) &&
             a.fechalimite.isBefore(limite);
+      }
+      if (_filtroPlazo == 'ESPECIFICA' && _diaSeleccionado != null) {
+        return _esMismoDia(a.fechalimite, _diaSeleccionado!);
       }
       if (_filtroPlazo == 'MES') {
         if (_diaSeleccionado != null) {
@@ -616,6 +650,8 @@ class _pantallacalendarioestado extends ConsumerState<pantallacalendario> {
       encabezado = 'Actividades para Hoy (${_formatearFecha(hoy)})';
     } else if (_filtroPlazo == 'SEMANA') {
       encabezado = 'Próximos 7 días';
+    } else if (_filtroPlazo == 'ESPECIFICA' && _diaSeleccionado != null) {
+      encabezado = 'Actividades del ${_formatearFecha(_diaSeleccionado!)}';
     } else if (_diaSeleccionado != null) {
       encabezado = 'Actividades del ${_formatearFecha(_diaSeleccionado!)}';
     } else {

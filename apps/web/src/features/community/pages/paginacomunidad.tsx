@@ -23,6 +23,7 @@ import {
   Eye,
   FileCheck2,
   ExternalLink,
+  CheckCircle2,
 } from 'lucide-react';
 import {
   EditorRequisitosMagisterio,
@@ -491,7 +492,7 @@ export function ComunidadPagina({
               </h3>
 
               <div className="grid gap-4 md:grid-cols-12 items-start">
-                <div className="md:col-span-3">
+                <div className="md:col-span-4 space-y-3">
                   <SubidorDocumentoFoto
                     label="Foto Carnet / Perfil"
                     subtitulo="Foto institucional del maestro"
@@ -505,9 +506,29 @@ export function ComunidadPagina({
                     }
                     onVerCompleto={(url, titulo) => setImagenVisor({ url, titulo })}
                   />
+
+                  <SubidorDocumentoFoto
+                    label="Documento / Duplicado RDA"
+                    subtitulo="Extracto informatizado oficial (PDF o Foto)"
+                    archivoUrl={requisitosNuevoDocente.rda.archivoUrl}
+                    nombreArchivo={requisitosNuevoDocente.rda.nombreArchivo}
+                    onChange={(url, nombre) =>
+                      setRequisitosNuevoDocente((actual) => ({
+                        ...actual,
+                        rda: { ...actual.rda, archivoUrl: url, nombreArchivo: nombre },
+                      }))
+                    }
+                    onRemove={() =>
+                      setRequisitosNuevoDocente((actual) => ({
+                        ...actual,
+                        rda: { ...actual.rda, archivoUrl: '', nombreArchivo: '' },
+                      }))
+                    }
+                    onVerCompleto={(url, titulo) => setImagenVisor({ url, titulo })}
+                  />
                 </div>
 
-                <div className="md:col-span-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="md:col-span-8 grid gap-4 sm:grid-cols-2">
                   <Campo
                     label="Correo institucional / personal"
                     error={docenteformulario.formState.errors.email?.message}
@@ -538,18 +559,30 @@ export function ComunidadPagina({
                     label="Número RDA (Registro Docente)"
                     error={docenteformulario.formState.errors.rdaNumber?.message}
                   >
-                    <Entrada
-                      {...docenteformulario.register('rdaNumber', {
-                        onChange: (e) => {
-                          const val = e.target.value;
-                          setRequisitosNuevoDocente((actual) => ({
-                            ...actual,
-                            rda: { ...actual.rda, numeroRda: val },
-                          }));
-                        },
-                      })}
-                      placeholder="Ej. 10482915"
-                    />
+                    <div className="space-y-1">
+                      <Entrada
+                        {...docenteformulario.register('rdaNumber', {
+                          onChange: (e) => {
+                            const val = e.target.value;
+                            setRequisitosNuevoDocente((actual) => ({
+                              ...actual,
+                              rda: { ...actual.rda, numeroRda: val },
+                            }));
+                          },
+                        })}
+                        placeholder="Ej. 10482915"
+                      />
+                      {requisitosNuevoDocente.rda.archivoUrl ? (
+                        <p className="text-[11px] text-emerald-700 flex items-center gap-1 font-medium">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Archivo RDA listo para subir</span>
+                        </p>
+                      ) : (
+                        <p className="text-[10px] text-slate-500">
+                          Puedes adjuntar el PDF o foto en el cuadro de la izquierda.
+                        </p>
+                      )}
+                    </div>
                   </Campo>
 
                   <Campo label="Nombres" error={docenteformulario.formState.errors.firstName?.message}>
@@ -1201,7 +1234,7 @@ export function ComunidadPagina({
                 className="space-y-4"
               >
                 <div className="grid gap-4 md:grid-cols-12 items-start">
-                  <div className="md:col-span-3">
+                  <div className="md:col-span-4 space-y-3">
                     <SubidorDocumentoFoto
                       label="Foto Carnet / Perfil"
                       subtitulo="Foto oficial del maestro"
@@ -1215,9 +1248,29 @@ export function ComunidadPagina({
                       }
                       onVerCompleto={(url, titulo) => setImagenVisor({ url, titulo })}
                     />
+
+                    <SubidorDocumentoFoto
+                      label="Documento / Duplicado RDA"
+                      subtitulo="Extracto informatizado oficial (PDF o Foto)"
+                      archivoUrl={requisitosEdicionDocente.rda.archivoUrl}
+                      nombreArchivo={requisitosEdicionDocente.rda.nombreArchivo}
+                      onChange={(url, nombre) =>
+                        setRequisitosEdicionDocente((actual) => ({
+                          ...actual,
+                          rda: { ...actual.rda, archivoUrl: url, nombreArchivo: nombre },
+                        }))
+                      }
+                      onRemove={() =>
+                        setRequisitosEdicionDocente((actual) => ({
+                          ...actual,
+                          rda: { ...actual.rda, archivoUrl: '', nombreArchivo: '' },
+                        }))
+                      }
+                      onVerCompleto={(url, titulo) => setImagenVisor({ url, titulo })}
+                    />
                   </div>
 
-                  <div className="md:col-span-9 space-y-4">
+                  <div className="md:col-span-8 space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -1311,6 +1364,16 @@ export function ComunidadPagina({
                           }}
                           placeholder="Ej. 10482915"
                         />
+                        {requisitosEdicionDocente.rda.archivoUrl ? (
+                          <p className="mt-1 text-[11px] text-emerald-700 flex items-center gap-1 font-medium">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Archivo RDA cargado</span>
+                          </p>
+                        ) : (
+                          <p className="mt-1 text-[10px] text-slate-500">
+                            Puedes subir el extracto oficial a la izquierda.
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

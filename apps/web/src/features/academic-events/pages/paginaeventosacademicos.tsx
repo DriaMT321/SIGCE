@@ -45,7 +45,7 @@ const diasdelasemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const tiposevento = ['ACTIVIDAD', 'REUNION', 'ACTO_ESCOLAR', 'SUSPENSION_CLASES', 'OTRO'] as const;
 
 export type AudienciaEvento = 'TODOS' | 'PROFESORES' | 'PADRES' | 'ESTUDIANTES';
-export type PlazoFiltro = 'MES' | 'HOY' | 'SEMANA' | 'PROXIMOS_30' | 'TODO';
+export type PlazoFiltro = 'MES' | 'HOY' | 'SEMANA' | 'PROXIMOS_30' | 'FECHA_ESPECIFICA' | 'TODO';
 
 export function obtenerAudiencia(desc?: string | null, targetCourseId?: string | null, tipo?: string): AudienciaEvento {
   if (desc?.includes('[AUDIENCIA:PROFESORES]')) return 'PROFESORES';
@@ -312,6 +312,8 @@ export function PaginaEventosAcademicos({
   const puedeprogramar = ['ADMINISTRATIVE', 'SECRETARY', 'TEACHER'].includes(rol);
   const esdocente = rol === 'TEACHER';
   const esadministrativo = rol === 'ADMINISTRATIVE' || rol === 'SECRETARY';
+  // La vinculación con tareas y exámenes docentes es exclusiva para profesores, padres y estudiantes
+  const puedeverTareas = !esadministrativo;
 
   const [mesvisible, establecerMesVisible] = useState(() => {
     const hoy = partesfecha(new Date());
@@ -321,6 +323,7 @@ export function PaginaEventosAcademicos({
   const [filtroTipo, establecerFiltroTipo] = useState<string>('TODOS');
   const [filtroAudiencia, establecerFiltroAudiencia] = useState<AudienciaEvento>('TODOS');
   const [filtroPlazo, establecerFiltroPlazo] = useState<PlazoFiltro>('MES');
+  const [fechaEspecificaFiltro, setFechaEspecificaFiltro] = useState<string>(() => clavededia(new Date()));
   const [mostrarFormulario, establecerMostrarFormulario] = useState(false);
   const [eventoEditado, establecerEventoEditado] = useState<eventoacademico | null>(null);
   const [cancelacionPendiente, establecerCancelacionPendiente] = useState<string | null>(null);
@@ -345,6 +348,7 @@ export function PaginaEventosAcademicos({
   const asignacionesconsulta = useQuery({
     queryKey: ['assignments-calendar'],
     queryFn: () => academicoapi.listarasignaciones(),
+    enabled: puedeverTareas,
   });
 
   const cursosconsulta = useQuery({
@@ -433,11 +437,17 @@ export function PaginaEventosAcademicos({
         const limite = new Date(hoyObj.getTime() + 30 * 24 * 60 * 60 * 1000);
         return fInicio >= new Date(hoyObj.getTime() - 24 * 60 * 60 * 1000) && fInicio <= limite;
       }
+      if (filtroPlazo === 'FECHA_ESPECIFICA') {
+        const cInicio = clavededia(fInicio);
+        const cFin = clavededia(new Date(evento.endsAt));
+        return cInicio <= fechaEspecificaFiltro && cFin >= fechaEspecificaFiltro;
+      }
       return true;
     });
-  }, [eventos, filtroTipo, filtroAudiencia, filtroPlazo, hoy]);
+  }, [eventos, filtroTipo, filtroAudiencia, filtroPlazo, fechaEspecificaFiltro, hoy]);
 
   const asignacionesfiltradas = useMemo(() => {
+    if (!puedeverTareas) return [];
     return asignaciones.filter((asig) => {
       if (filtroAudiencia === 'PROFESORES') return false;
       if (filtroTipo === 'TAREAS' && asig.type === 'EXAMEN') return false;
@@ -457,13 +467,16 @@ export function PaginaEventosAcademicos({
         const limite = new Date(hoyObj.getTime() + 30 * 24 * 60 * 60 * 1000);
         return fDue >= new Date(hoyObj.getTime() - 24 * 60 * 60 * 1000) && fDue <= limite;
       }
+      if (filtroPlazo === 'FECHA_ESPECIFICA') {
+        return clavededia(fDue) === fechaEspecificaFiltro;
+      }
       if (filtroPlazo === 'MES') {
         const claveDue = clavededia(fDue);
         return claveDue.startsWith(`${mesvisible.anio}-${String(mesvisible.mes + 1).padStart(2, '0')}`);
       }
       return true;
     });
-  }, [asignaciones, filtroAudiencia, filtroTipo, filtroPlazo, hoy, mesvisible]);
+  }, [asignaciones, puedeverTareas, filtroAudiencia, filtroTipo, filtroPlazo, fechaEspecificaFiltro, hoy, mesvisible]);
 
   const eventosdeldia = useMemo(
     () =>
@@ -585,15 +598,15 @@ export function PaginaEventosAcademicos({
 
   const conteoPorTipo = useMemo(() => {
     const conteos: Record<string, number> = {
-      TODOS: eventos.length + asignaciones.length,
-      TAREAS: asignaciones.filter((a) => a.type !== 'EXAMEN').length,
-      EXAMENES: asignaciones.filter((a) => a.type === 'EXAMEN').length,
+      TODOS: eventos.length + (puedeverTareas ? asignaciones.length : 0),
+      TAREAS: puedeverTareas ? asignaciones.filter((a) => a.type !== 'EXAMEN').length : 0,
+      EXAMENES: puedeverTareas ? asignaciones.filter((a) => a.type === 'EXAMEN').length : 0,
     };
     for (const t of tiposevento) {
       conteos[t] = eventos.filter((e) => e.type === t).length;
     }
     return conteos;
-  }, [eventos, asignaciones]);
+  }, [eventos, asignaciones, puedeverTareas]);
 
   const errorapi = mutacionguardar.error ?? mutacioncancelar.error;
 
@@ -641,19 +654,30 @@ export function PaginaEventosAcademicos({
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 border-t border-white/10 pt-4">
           <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
             <p className="text-[11px] font-medium text-slate-400">Total actividades</p>
-            <p className="text-lg font-bold text-white mt-0.5">{eventos.length + asignaciones.length}</p>
+            <p className="text-lg font-bold text-white mt-0.5">
+              {eventos.length + (puedeverTareas ? asignaciones.length : 0)}
+            </p>
           </div>
-          <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
-            <p className="text-[11px] font-medium text-slate-400">Tareas y Exámenes</p>
-            <p className="text-lg font-bold text-indigo-300 mt-0.5">{asignaciones.length}</p>
-          </div>
+          {puedeverTareas ? (
+            <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
+              <p className="text-[11px] font-medium text-slate-400">Tareas y Exámenes</p>
+              <p className="text-lg font-bold text-indigo-300 mt-0.5">{asignaciones.length}</p>
+            </div>
+          ) : (
+            <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
+              <p className="text-[11px] font-medium text-slate-400">Próximos eventos</p>
+              <p className="text-lg font-bold text-indigo-300 mt-0.5">{proximoseventos}</p>
+            </div>
+          )}
           <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
             <p className="text-[11px] font-medium text-slate-400">Institucionales</p>
             <p className="text-lg font-bold text-purple-300 mt-0.5">{eventosinstitucionales}</p>
           </div>
           <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
             <p className="text-[11px] font-medium text-slate-400">Por curso</p>
-            <p className="text-lg font-bold text-emerald-300 mt-0.5">{(eventos.length - eventosinstitucionales) + asignaciones.length}</p>
+            <p className="text-lg font-bold text-emerald-300 mt-0.5">
+              {(eventos.length - eventosinstitucionales) + (puedeverTareas ? asignaciones.length : 0)}
+            </p>
           </div>
         </div>
       </header>
@@ -724,6 +748,7 @@ export function PaginaEventosAcademicos({
             { id: 'HOY', label: 'Hoy' },
             { id: 'SEMANA', label: 'Próximos 7 días' },
             { id: 'PROXIMOS_30', label: '30 días' },
+            { id: 'FECHA_ESPECIFICA', label: 'Fecha específica' },
             { id: 'TODO', label: 'Todo el año' },
           ].map((item) => {
             const activo = filtroPlazo === item.id;
@@ -731,7 +756,12 @@ export function PaginaEventosAcademicos({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => establecerFiltroPlazo(item.id as PlazoFiltro)}
+                onClick={() => {
+                  establecerFiltroPlazo(item.id as PlazoFiltro);
+                  if (item.id === 'FECHA_ESPECIFICA') {
+                    establecerDiaSeleccionado(fechaEspecificaFiltro);
+                  }
+                }}
                 className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
                   activo
                     ? 'bg-slate-900 text-white shadow-xs font-bold ring-2 ring-slate-900/20'
@@ -742,6 +772,31 @@ export function PaginaEventosAcademicos({
               </button>
             );
           })}
+
+          {filtroPlazo === 'FECHA_ESPECIFICA' && (
+            <div className="flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 rounded-xl px-2.5 py-1 text-xs text-indigo-950 animate-in fade-in">
+              <CalendarDays className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+              <label htmlFor="input-fecha-especifica" className="text-[11px] font-bold text-indigo-900">
+                Día:
+              </label>
+              <input
+                id="input-fecha-especifica"
+                type="date"
+                value={fechaEspecificaFiltro}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (!val) return;
+                  setFechaEspecificaFiltro(val);
+                  establecerDiaSeleccionado(val);
+                  const [y, m] = val.split('-').map(Number);
+                  if (!isNaN(y) && !isNaN(m)) {
+                    establecerMesVisible({ anio: y, mes: m - 1 });
+                  }
+                }}
+                className="h-7 rounded-lg border border-indigo-300 bg-white px-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -785,38 +840,42 @@ export function PaginaEventosAcademicos({
           );
         })}
 
-        {/* PILLS DE TAREAS Y EXÁMENES VINCULADOS */}
-        <button
-          type="button"
-          onClick={() => establecerFiltroTipo('TAREAS')}
-          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${filtroTipo === 'TAREAS'
-            ? 'bg-blue-600 text-white shadow-xs font-bold ring-2 ring-blue-500/30'
-            : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-50'
-            }`}
-        >
-          <BookOpen className="w-3.5 h-3.5" />
-          <span>Tareas asignadas</span>
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${filtroTipo === 'TAREAS' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'
-            }`}>
-            {conteoPorTipo.TAREAS ?? 0}
-          </span>
-        </button>
+        {/* PILLS DE TAREAS Y EXÁMENES VINCULADOS: SOLO PARA PROFESORES, PADRES Y ESTUDIANTES */}
+        {puedeverTareas && (
+          <>
+            <button
+              type="button"
+              onClick={() => establecerFiltroTipo('TAREAS')}
+              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${filtroTipo === 'TAREAS'
+                ? 'bg-blue-600 text-white shadow-xs font-bold ring-2 ring-blue-500/30'
+                : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-50'
+                }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Tareas asignadas</span>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${filtroTipo === 'TAREAS' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'
+                }`}>
+                {conteoPorTipo.TAREAS ?? 0}
+              </span>
+            </button>
 
-        <button
-          type="button"
-          onClick={() => establecerFiltroTipo('EXAMENES')}
-          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${filtroTipo === 'EXAMENES'
-            ? 'bg-purple-700 text-white shadow-xs font-bold ring-2 ring-purple-500/30'
-            : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-50'
-            }`}
-        >
-          <FileCheck2 className="w-3.5 h-3.5" />
-          <span>Exámenes y Evaluaciones</span>
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${filtroTipo === 'EXAMENES' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'
-            }`}>
-            {conteoPorTipo.EXAMENES ?? 0}
-          </span>
-        </button>
+            <button
+              type="button"
+              onClick={() => establecerFiltroTipo('EXAMENES')}
+              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${filtroTipo === 'EXAMENES'
+                ? 'bg-purple-700 text-white shadow-xs font-bold ring-2 ring-purple-500/30'
+                : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-50'
+                }`}
+            >
+              <FileCheck2 className="w-3.5 h-3.5" />
+              <span>Exámenes y Evaluaciones</span>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${filtroTipo === 'EXAMENES' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'
+                }`}>
+                {conteoPorTipo.EXAMENES ?? 0}
+              </span>
+            </button>
+          </>
+        )}
       </div>
 
       {/* 3. MODAL MODERNO PARA CREAR O EDITAR EVENTO */}
