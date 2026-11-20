@@ -64,8 +64,15 @@ export const Barranavegacion: React.FC = () => {
   return (
     <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between sticky top-0 z-20">
       {/* Left: Page context */}
-      <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-        <span className="font-medium text-slate-900 dark:text-slate-100">Gestión 2026</span>
+      <div className="flex items-center gap-3 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="font-bold text-slate-900 dark:text-slate-100">Gestión Escolar 2026</span>
+          <span className="hidden sm:inline text-slate-300 dark:text-slate-700">·</span>
+          <span className="hidden sm:inline text-xs text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 px-2.5 py-0.5 rounded-full font-semibold">
+            1er Trimestre
+          </span>
+        </div>
       </div>
 
       {/* Right: Actions */}

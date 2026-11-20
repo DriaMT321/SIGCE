@@ -497,48 +497,55 @@ export const CalificacionesPagina = ({
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header - Institutional Centralizer */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Gestión de Calificaciones</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Evaluación Cuantitativa Ley 070
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs font-medium text-slate-500">Gestión Escolar 2026</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Planilla Centralizadora de Calificaciones</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            {calificaciones.length} notas registradas · Escala Ministerial Ley 070 (0–100 pts)
+            {calificaciones.length} calificaciones registradas · Escala ministerial (1 a 100 puntos) con nota mínima de aprobación de 51 pts.
           </p>
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-lg bg-slate-100 p-1 border border-slate-200">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center rounded-xl bg-slate-100 p-1 border border-slate-200 shadow-2xs">
             <button
               type="button"
               onClick={() => establecervistamodo('ROSTER')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 vistamodo === 'ROSTER'
-                  ? 'bg-white text-slate-900 shadow-sm'
+                  ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              Planilla por Curso (Carga Grupal)
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+              Planilla por Curso
             </button>
             <button
               type="button"
               onClick={() => establecervistamodo('LIST')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 vistamodo === 'LIST'
-                  ? 'bg-white text-slate-900 shadow-sm'
+                  ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <List className="w-3.5 h-3.5" />
-              Lista de Calificaciones
+              <List className="w-3.5 h-3.5 text-indigo-600" />
+              Lista de Notas
             </button>
           </div>
 
           {puedeeditar && (
-            <button
-              type="button"
+            <Boton
               onClick={() => establecermostrarunicoformulario((anterior) => !anterior)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 transition-colors"
+              className="h-9 bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium gap-1.5 px-3 shadow-2xs transition-colors"
             >
               {mostrarunicoformulario ? (
                 <X className="w-3.5 h-3.5" />
@@ -546,38 +553,45 @@ export const CalificacionesPagina = ({
                 <Plus className="w-3.5 h-3.5" />
               )}
               {mostrarunicoformulario ? 'Cerrar' : 'Nota Individual'}
-            </button>
+            </Boton>
           )}
         </div>
       </div>
 
-      {/* Ley 070 Scale Reference */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {/* Ley 070 Scale Reference - Clean semantic cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {[
           {
-            label: 'Desarrollo Pleno',
-            range: '85-100 pts',
-            color: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+            label: 'Desarrollo Pleno (DP)',
+            range: '85 – 100 pts',
+            color: 'bg-emerald-50/80 text-emerald-900 border-emerald-200 shadow-2xs',
+            accent: 'bg-emerald-500',
           },
           {
-            label: 'Desarrollo Óptimo',
-            range: '69-84 pts',
-            color: 'bg-blue-50 text-blue-800 border-blue-200',
+            label: 'Desarrollo Óptimo (DO)',
+            range: '69 – 84 pts',
+            color: 'bg-blue-50/80 text-blue-900 border-blue-200 shadow-2xs',
+            accent: 'bg-blue-500',
           },
           {
-            label: 'Desarrollo Aceptable',
-            range: '51-68 pts',
-            color: 'bg-amber-50 text-amber-800 border-amber-200',
+            label: 'Desarrollo Aceptable (DA)',
+            range: '51 – 68 pts',
+            color: 'bg-amber-50/80 text-amber-900 border-amber-200 shadow-2xs',
+            accent: 'bg-amber-500',
           },
           {
-            label: 'En Desarrollo',
-            range: '1-50 pts',
-            color: 'bg-rose-50 text-rose-800 border-rose-200',
+            label: 'En Desarrollo (ED)',
+            range: '1 – 50 pts',
+            color: 'bg-rose-50/80 text-rose-900 border-rose-200 shadow-2xs',
+            accent: 'bg-rose-500',
           },
         ].map((elemento) => (
-          <div key={elemento.label} className={`p-2.5 rounded-lg border ${elemento.color}`}>
-            <span className="text-xs font-semibold">{elemento.label}</span>
-            <p className="text-xs font-bold font-mono mt-0.5">{elemento.range}</p>
+          <div key={elemento.label} className={`p-3 rounded-xl border flex items-center justify-between gap-2 ${elemento.color}`}>
+            <div>
+              <span className="text-[11px] font-semibold block leading-tight">{elemento.label}</span>
+              <p className="text-xs font-bold font-mono mt-0.5">{elemento.range}</p>
+            </div>
+            <span className={`h-2.5 w-2.5 rounded-full ${elemento.accent} shrink-0`} />
           </div>
         ))}
       </div>

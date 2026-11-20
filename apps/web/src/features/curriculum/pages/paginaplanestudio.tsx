@@ -168,13 +168,19 @@ export const CurriculoPagina: React.FC<{ planning: curriculoplanificacion }> = (
 
   return (
     <div className="space-y-5">
-      {/* Header - Clean */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header - Institutional Curriculum */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Avance Curricular</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Planificación y Avance Curricular Ley 070
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs font-medium text-slate-500">Gestión Escolar 2026</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Campos y Áreas de Saberes</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            {estadisticas?.totalTopics ?? 0} temas · {estadisticas?.averageProgress ?? 0}% avance
-            global
+            {estadisticas?.totalTopics ?? 0} contenidos temáticos programados · {estadisticas?.averageProgress ?? 0}% de avance institucional ponderado.
           </p>
         </div>
 
@@ -184,19 +190,19 @@ export const CurriculoPagina: React.FC<{ planning: curriculoplanificacion }> = (
             variant="outline"
             size="sm"
             onClick={() => establecermostrarcrearmateria(true)}
-            className="gap-1.5"
+            className="gap-1.5 border-slate-300 text-slate-700 hover:bg-slate-50 shadow-2xs h-10 px-3"
             title="Registrar una nueva asignatura (RF-15)"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-emerald-600" />
             Nueva Materia
           </Boton>
           <div className="text-right">
-            <div className="text-xs text-slate-500">Avance Global</div>
-            <div className="text-2xl font-bold text-slate-900 font-mono">
+            <div className="text-xs text-slate-500 font-medium">Avance Global</div>
+            <div className="text-2xl font-extrabold text-slate-900 font-mono tracking-tight">
               {estadisticas?.averageProgress ?? 0}%
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-slate-900 text-amber-400 flex flex-col items-center justify-center font-bold text-xs font-mono">
+          <div className="w-11 h-11 rounded-xl bg-slate-900 text-amber-400 flex flex-col items-center justify-center font-bold text-xs font-mono shadow-xs border border-slate-800">
             <span>{estadisticas?.completed ?? 0}</span>
             <span className="text-[9px] text-slate-400 font-normal">
               /{estadisticas?.totalTopics ?? 0}
@@ -205,18 +211,18 @@ export const CurriculoPagina: React.FC<{ planning: curriculoplanificacion }> = (
         </div>
       </div>
 
-      {/* Level Progress - Compact */}
+      {/* Level Progress - Bolivian Colors */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
-          { label: 'Inicial', stats: estadisticas?.byLevel?.inicial, color: 'bg-sky-500' },
-          { label: 'Primaria', stats: estadisticas?.byLevel?.primaria, color: 'bg-blue-500' },
+          { label: 'Inicial', stats: estadisticas?.byLevel?.inicial, color: 'bg-amber-500' },
+          { label: 'Primaria', stats: estadisticas?.byLevel?.primaria, color: 'bg-orange-500' },
           {
             label: 'Secundaria',
             stats: estadisticas?.byLevel?.secundaria,
-            color: 'bg-emerald-500',
+            color: 'bg-rose-600',
           },
         ].map((nivel) => (
-          <div key={nivel.label} className="bg-white rounded-xl border border-slate-200 p-4">
+          <div key={nivel.label} className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-slate-700">{nivel.label}</span>
               <span className="text-sm font-bold text-slate-900 font-mono">

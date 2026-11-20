@@ -349,20 +349,20 @@ export const AnunciosPagina: React.FC<{
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header - Institutional Announcements */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-slate-900 text-white">
-              <Megaphone className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">Comunicados Institucionales</h1>
-              <p className="text-sm text-slate-500">
-                Difusión de circulares, citaciones a padres y avisos con niveles de urgencia
-              </p>
-            </div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              Canal Oficial de Difusión y Circulares
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs font-medium text-slate-500">Gestión Escolar 2026</span>
           </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Comunicados y Circulares Institucionales</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Difusión de citaciones a padres, circulares internas y avisos con niveles de urgencia.
+          </p>
         </div>
 
         {puedecrear && (
@@ -372,7 +372,7 @@ export const AnunciosPagina: React.FC<{
               restablecerformulario();
               estableceresmodalabrir(true);
             }}
-            className="bg-slate-900 hover:bg-slate-800 text-white gap-2 shadow-sm"
+            className="h-10 bg-slate-900 hover:bg-slate-800 text-white gap-2 px-4 shadow-2xs text-sm font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>Emitir Comunicado</span>

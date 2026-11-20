@@ -115,25 +115,32 @@ export function AlertasPagina({
   return (
     <div className="space-y-5">
       {puedeconfigurarreglas && <AlertaReglasPanel management={gestion} />}
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header - Early Warnings */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Bandeja de Alertas Tempranas</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+              Sistema de Detección Temprana (Inasistencias y Rendimiento)
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs font-medium text-slate-500">Gestión Escolar 2026</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Bandeja de Alertas Tempranas</h1>
           <p className="text-sm text-slate-500 mt-0.5">
             {abrircantidad > 0
-              ? `${abrircantidad} alertas abiertas que requieren intervención`
-              : 'Todas las alertas atendidas'}
-            {sinleercantidad > 0 && ` (${sinleercantidad} sin leer)`}
+              ? `${abrircantidad} alertas abiertas que requieren intervención pedagógica o seguimiento con apoderados`
+              : 'Todas las alertas académicas se encuentran atendidas y resueltas'}
+            {sinleercantidad > 0 && ` (${sinleercantidad} sin leer)`}.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center rounded-lg bg-slate-100 p-0.5 text-xs font-medium">
+        <div className="flex flex-wrap items-center rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-semibold shadow-2xs">
           <button
             type="button"
             onClick={() => establecerfiltro('ALL')}
-            className={`px-2.5 py-1.5 rounded-md transition-colors ${
+            className={`px-3 py-1.5 rounded-lg transition-all ${
               filtro === 'ALL'
-                ? 'bg-white text-slate-900 font-semibold shadow-sm'
+                ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >

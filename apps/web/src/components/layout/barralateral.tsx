@@ -180,19 +180,31 @@ export const Barralateral: React.FC = () => {
   return (
     <aside
       aria-label="Barra lateral"
-      className="w-60 lg:w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 select-none"
+      className="w-60 lg:w-64 bg-[#090e1a] text-slate-300 flex flex-col flex-shrink-0 select-none border-r border-slate-800/80 shadow-xl"
     >
       {/* Brand Header */}
-      <div className="h-16 flex items-center px-4 border-b border-white/10 gap-3">
-        <img src="/logo-sf.png" alt="Logo Colegio Comunidad Cristiana" className="h-9 w-auto object-contain shrink-0" />
+      <div className="h-16 flex items-center px-4 border-b border-white/10 gap-3 bg-gradient-to-b from-white/[0.03] to-transparent">
+        <div className="relative">
+          <img
+            src="/logo-sf.png"
+            alt="Logo Colegio Comunidad Cristiana"
+            className="h-9 w-auto object-contain shrink-0 drop-shadow-md"
+          />
+          <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-[#090e1a]" />
+        </div>
         <div className="min-w-0">
-          <span className="text-base font-bold text-white tracking-tight">SIGCE</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-base font-extrabold text-white tracking-tight">SIGCE</span>
+            <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/15 border border-indigo-500/30 px-1 rounded">
+              2026
+            </span>
+          </div>
           <p className="text-[11px] text-slate-400 truncate">U.E. Comunidad Cristiana B</p>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav aria-label="Navegación principal" className="flex-1 px-2 py-4 space-y-5 overflow-y-auto">
+      <nav aria-label="Navegación principal" className="flex-1 px-3 py-4 space-y-5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
         {navegacionsecciones.map((seccion) => {
           const visibleelementos = seccion.items.filter((elemento) =>
             elemento.roles.includes(actualrol),
@@ -200,8 +212,8 @@ export const Barralateral: React.FC = () => {
           if (visibleelementos.length === 0) return null;
 
           return (
-            <div key={seccion.title} className="space-y-0.5">
-              <div className="px-3 pb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            <div key={seccion.title} className="space-y-1">
+              <div className="px-3 pb-1 text-[11px] font-semibold text-slate-400 tracking-wide">
                 {seccion.title}
               </div>
 
@@ -213,14 +225,14 @@ export const Barralateral: React.FC = () => {
                     to={elemento.href}
                     end={elemento.href === '/dashboard'}
                     className={({ isActive: estaactivo }) =>
-                      `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+                      `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
                         estaactivo
-                          ? 'bg-white/10 text-white font-medium'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5'
+                          ? 'bg-indigo-600/20 text-white font-semibold border-l-2 border-indigo-500 shadow-2xs'
+                          : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
                       }`
                     }
                   >
-                    <Icono className="w-4 h-4 shrink-0" />
+                    <Icono className="w-4 h-4 shrink-0 transition-transform group-hover:scale-105" />
                     <span className="truncate">{elemento.name}</span>
                   </NavLink>
                 );
@@ -230,17 +242,17 @@ export const Barralateral: React.FC = () => {
         })}
       </nav>
 
-      {/* User Profile - Simplified */}
-      <div className="p-3 border-t border-white/10">
+      {/* User Profile Footer */}
+      <div className="p-3 border-t border-white/10 bg-white/[0.02]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
             {iniciales}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-white truncate">
+            <p className="text-xs sm:text-sm font-semibold text-white truncate">
               {actualusuario?.firstName} {actualusuario?.lastName}
             </p>
-            <p className="text-[11px] text-slate-500 truncate">
+            <p className="text-[11px] text-slate-400 truncate">
               {roletiquetas[actualrol] || actualrol}
             </p>
           </div>
@@ -250,7 +262,7 @@ export const Barralateral: React.FC = () => {
             onClick={() => void autenticacion.cerrarsesion()}
             aria-label="Cerrar sesión"
             title="Cerrar sesión"
-            className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0 cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
           </button>

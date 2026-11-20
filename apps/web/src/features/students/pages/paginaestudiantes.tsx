@@ -301,22 +301,31 @@ export const EstudiantesPagina = ({
 
   return (
     <div className="space-y-5">
-      {/* Header - Clean and minimal */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header - Institutional and clean */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Estudiantes</h1>
-          <p className="text-sm text-slate-500 mt-0.5">{totalcantidad} registrados</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              Padrón RUDE · Gestión 2026
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs font-medium text-slate-500">Unidad Educativa Comunidad Cristiana B</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Directorio de Estudiantes</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            {totalcantidad} alumnos registrados con código RUDE, cédula de identidad y parentesco familiar.
+          </p>
         </div>
 
         {puedegestionar && (
-          <button
+          <Boton
             type="button"
             onClick={() => establecermostrarformulario((anterior) => !anterior)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
+            className="h-10 bg-slate-900 hover:bg-slate-800 text-white gap-2 px-4 shadow-2xs text-sm font-medium transition-colors"
           >
             {mostrarformulario ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {mostrarformulario ? 'Cerrar' : 'Nuevo Estudiante'}
-          </button>
+            {mostrarformulario ? 'Cerrar formulario' : 'Nuevo Estudiante'}
+          </Boton>
         )}
       </div>
 
@@ -617,8 +626,8 @@ export const EstudiantesPagina = ({
 
       )}
 
-      {/* Search and Filters - Single row */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+      {/* Search and Filters - Clean Unified Toolbar */}
+      <div className="rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Entrada
@@ -628,7 +637,7 @@ export const EstudiantesPagina = ({
               establecerpagina(1);
             }}
             placeholder="Buscar por nombre, RUDE o cédula..."
-            className="pl-9 h-10 text-sm"
+            className="pl-9 h-10 text-sm border-slate-200 bg-slate-50/50 focus:bg-white"
           />
           {buscar && (
             <button
@@ -641,64 +650,66 @@ export const EstudiantesPagina = ({
           )}
         </div>
 
-        {puedegestionar && (
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            Curso
-            <select
-              value={cursoid}
-              onChange={(evento) => { establecercursoid(evento.target.value); establecerpagina(1); }}
-              className="h-10 max-w-72 rounded-lg border border-slate-200 bg-white px-3 text-sm"
-            >
-              <option value="">Todos los cursos</option>
-              {(cursosconsulta.data ?? []).map((curso) => (
-                <option key={curso.id} value={curso.id}>{cursoetiqueta(curso.name)}</option>
-              ))}
-            </select>
-          </label>
-        )}
+        <div className="flex flex-wrap items-center gap-3">
+          {puedegestionar && (
+            <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+              Curso:
+              <select
+                value={cursoid}
+                onChange={(evento) => { establecercursoid(evento.target.value); establecerpagina(1); }}
+                className="h-10 max-w-64 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 shadow-2xs font-medium focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+              >
+                <option value="">Todos los cursos</option>
+                {(cursosconsulta.data ?? []).map((curso) => (
+                  <option key={curso.id} value={curso.id}>{cursoetiqueta(curso.name)}</option>
+                ))}
+              </select>
+            </label>
+          )}
 
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-slate-500">Mostrar:</span>
-          <select
-            value={paginatamano}
-            onChange={(e) => {
-              establecerpaginatamano(Number(e.target.value));
-              establecerpagina(1);
-            }}
-            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700"
-          >
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-            <option value={200}>200</option>
-            <option value={1000}>Todos</option>
-          </select>
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+            <span>Mostrar:</span>
+            <select
+              value={paginatamano}
+              onChange={(e) => {
+                establecerpaginatamano(Number(e.target.value));
+                establecerpagina(1);
+              }}
+              className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-2xs focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+            >
+              <option value={50}>50 por pág.</option>
+              <option value={100}>100 por pág.</option>
+              <option value={200}>200 por pág.</option>
+              <option value={1000}>Todos</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* Table - Clean */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      {/* Table - High-craft domain styling */}
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
         {estudiantesconsulta.isLoading ? (
           <div className="flex items-center justify-center p-16 text-slate-500 gap-3">
-            <Loader2 className="w-5 h-5 animate-spin" />
-            <span className="text-sm">Cargando estudiantes...</span>
+            <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
+            <span className="text-sm font-medium">Cargando nómina de estudiantes...</span>
           </div>
         ) : estudiantesconsulta.isError ? (
           <div className="p-12 text-center text-sm text-rose-600">
-            No se pudo conectar con el servidor.
+            No se pudo conectar con el servidor académico.
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500 uppercase tracking-wide">
-                    <th className="py-3 pl-5 pr-3">Estudiante</th>
-                    <th className="px-3 py-3">RUDE</th>
-                    <th className="px-3 py-3">C.I.</th>
-                    <th className="px-3 py-3">Curso</th>
-                    <th className="px-3 py-3">Familiar / Tutor</th>
-                    <th className="px-3 py-3">Estado</th>
-                    {puedegestionar && <th className="py-3 pl-3 pr-5 text-right">Acciones</th>}
+                  <tr className="border-b border-slate-200/80 bg-slate-50/75 text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="py-3.5 pl-5 pr-3">Estudiante</th>
+                    <th className="px-3 py-3.5">RUDE</th>
+                    <th className="px-3 py-3.5">C.I.</th>
+                    <th className="px-3 py-3.5">Curso</th>
+                    <th className="px-3 py-3.5">Familiar / Tutor</th>
+                    <th className="px-3 py-3.5">Estado</th>
+                    {puedegestionar && <th className="py-3.5 pl-3 pr-5 text-right">Acciones</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -725,16 +736,16 @@ export const EstudiantesPagina = ({
                         `${estudiante.firstName[0] ?? ''}${estudiante.lastName[0] ?? ''}`.toUpperCase();
                       return (
                         <tr key={estudiante.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="py-3 pl-5 pr-3">
+                          <td className="py-3.5 pl-5 pr-3">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center font-semibold text-xs">
+                              <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0">
                                 {iniciales}
                               </div>
                               <div>
-                                <p className="font-medium text-slate-900">
-                                  {estudiante.firstName} {estudiante.lastName}
+                                <p className="font-semibold text-slate-900 leading-tight">
+                                  {estudiante.lastName}, {estudiante.firstName}
                                 </p>
-                                <span className="text-xs text-slate-400">
+                                <span className="text-[11px] text-slate-400">
                                   {estudiante.gender === 'MALE'
                                     ? 'Varón'
                                     : estudiante.gender === 'FEMALE'
@@ -745,17 +756,17 @@ export const EstudiantesPagina = ({
                             </div>
                           </td>
 
-                          <td className="px-3 py-3">
-                            <div className="inline-flex items-center gap-1.5">
-                              <span className="font-mono text-slate-700">{estudiante.rude}</span>
+                          <td className="px-3 py-3.5">
+                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800">
+                              <span>{estudiante.rude}</span>
                               <button
                                 type="button"
                                 onClick={() => manejarcopiarrude(estudiante.rude)}
-                                className="text-slate-400 hover:text-slate-600"
-                                title="Copiar RUDE"
+                                className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                                title="Copiar código RUDE"
                               >
                                 {copiadorude === estudiante.rude ? (
-                                  <Check className="w-3.5 h-3.5 text-emerald-500" />
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
                                 ) : (
                                   <Copy className="w-3.5 h-3.5" />
                                 )}
@@ -763,26 +774,26 @@ export const EstudiantesPagina = ({
                             </div>
                           </td>
 
-                          <td className="px-3 py-3 font-mono text-slate-600">{estudiante.ci || '—'}</td>
+                          <td className="px-3 py-3.5 font-mono text-xs font-semibold text-slate-700">{estudiante.ci || '—'}</td>
 
-                          <td className="px-3 py-3">
+                          <td className="px-3 py-3.5">
                             {estudiante.enrollments?.[0]?.course ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-xs font-medium">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs font-medium">
                                 {cursoetiqueta(estudiante.enrollments[0].course.name)}
                               </span>
                             ) : (
-                              <span className="text-xs text-slate-400">Sin matrícula</span>
+                              <span className="text-xs text-slate-400 italic">Sin matrícula</span>
                             )}
                           </td>
 
-                          <td className="px-3 py-3">
+                          <td className="px-3 py-3.5">
                             {estudiante.parents && estudiante.parents.length > 0 ? (
                               <div>
-                                <p className="font-medium text-slate-800 text-xs">
+                                <p className="font-medium text-slate-900 text-xs">
                                   {estudiante.parents[0].parent.lastName}{' '}
                                   {estudiante.parents[0].parent.firstName}
                                 </p>
-                                <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                                <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                                   {estudiante.parents[0].relationship === 'FATHER' ||
                                   estudiante.parents[0].relationship === 'PADRE'
                                     ? 'Padre'
@@ -801,12 +812,12 @@ export const EstudiantesPagina = ({
                             )}
                           </td>
 
-                          <td className="px-3 py-3">
+                          <td className="px-3 py-3.5">
                             <span
-                              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                                 estudiante.isActive
-                                  ? 'bg-emerald-50 text-emerald-700'
-                                  : 'bg-slate-100 text-slate-600'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  : 'bg-slate-100 text-slate-600 border border-slate-200'
                               }`}
                             >
                               <span

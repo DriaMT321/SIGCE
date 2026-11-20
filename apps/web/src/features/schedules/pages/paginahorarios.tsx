@@ -520,18 +520,25 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
 
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header - Institutional Schedules */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              Distribución de Periodos Pedagógicos
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs font-medium text-slate-500">Gestión Escolar 2026</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             {esfamiliaroestudiante
-              ? `Horario — ${cursoetiqueta(activocurso?.name || '') || 'Gestión 2026'}`
-              : 'Horarios de Clases'}
+              ? `Horario Escolar Semanal · ${cursoetiqueta(activocurso?.name || '') || 'Gestión 2026'}`
+              : 'Horarios de Clases y Carga Pedagógica'}
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
             {esfamiliaroestudiante
-              ? 'Malla horaria semanal'
-              : 'Malla semanal por curso o docente con edición y generación automatizada'}
+              ? 'Malla horaria semanal por día y periodos pedagógicos.'
+              : 'Malla semanal por curso o docente con asignación de periodos y generación automatizada.'}
           </p>
         </div>
 
@@ -545,7 +552,7 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                   establecerautomaticoerror(null);
                   estableceresautomaticomodalabrir(true);
                 }}
-                className="gap-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
+                className="gap-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs h-9 px-3"
               >
                 <Sparkles className="w-4 h-4 text-amber-300" />
                 Generar Automático
@@ -555,9 +562,9 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                 size="sm"
                 variant="outline"
                 onClick={() => manejarabrirbloque('LUNES', 1)}
-                className="gap-1.5 text-xs text-slate-700"
+                className="gap-1.5 text-xs border-slate-300 text-slate-700 hover:bg-slate-50 shadow-2xs h-9 px-3"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 text-emerald-600" />
                 Asignar Manual
               </Boton>
             </>
@@ -567,14 +574,14 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
             size="sm"
             variant="outline"
             onClick={() => window.print()}
-            className="gap-1.5 text-xs text-slate-700"
+            className="gap-1.5 text-xs border-slate-300 text-slate-700 hover:bg-slate-50 shadow-2xs h-9 px-3"
           >
             <Printer className="w-4 h-4" />
             Imprimir
           </Boton>
 
           {!esfamiliaroestudiante && (
-            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
+            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 shadow-2xs">
               <Boton
                 size="sm"
                 variant={vistamodo === 'course' ? 'default' : 'ghost'}

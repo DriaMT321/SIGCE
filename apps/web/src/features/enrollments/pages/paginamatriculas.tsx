@@ -216,22 +216,31 @@ export function InscripcionesPagina({
 
   return (
     <div className="space-y-5">
-      {/* Header - Clean */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header - Institutional Enrollments */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Matrículas</h1>
-          <p className="text-sm text-slate-500 mt-0.5">{inscripciones.length} inscripciones</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              Inscripción y Asignación de Plazas
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs font-medium text-slate-500">Gestión Escolar 2026</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Registro de Matrículas e Inscripciones</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            {inscripciones.length} matrículas asentadas · Asignación de curso, paralelo y estado académico.
+          </p>
         </div>
 
         {puedegestionar && (
-          <button
+          <Boton
             type="button"
             onClick={() => establecermostrarformulario((anterior) => !anterior)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
+            className="h-10 bg-slate-900 hover:bg-slate-800 text-white gap-2 px-4 shadow-2xs text-sm font-medium transition-colors"
           >
             {mostrarformulario ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {mostrarformulario ? 'Cerrar' : 'Registrar Matrícula'}
-          </button>
+            {mostrarformulario ? 'Cerrar formulario' : 'Registrar Matrícula'}
+          </Boton>
         )}
       </div>
 

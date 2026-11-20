@@ -611,12 +611,19 @@ export const AsistenciaPagina = ({
 
   return (
     <div className="space-y-5">
-      {/* Header - Clean with View Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header - Institutional Attendance Center */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Asistencia Escolar</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Control Biométrico y Parte Diario
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs font-medium text-slate-500">Gestión Escolar 2026</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Control de Asistencia Escolar</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            Registro, planilla tipo Excel por fechas y reportes individuales
+            Registro diario de puntualidad, planilla mensual consolidada y gestión de justificaciones médicas o familiares.
           </p>
         </div>
 

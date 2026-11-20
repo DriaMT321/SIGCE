@@ -430,23 +430,31 @@ export const InformesPagina: React.FC<{ queries: informeconsultas }> = ({ querie
 
   return (
     <div className="reports-page space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      {/* Header - Institutional Reports Center */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Reportes</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Borradores elaborados con los registros disponibles en SIGCE.
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Documentación Oficial y Archivo Académico
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs font-medium text-slate-500">Gestión Escolar 2026</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Centro de Informes y Centralizadores</h1>
+          <p className="mt-0.5 text-sm text-slate-500">
+            Generación de centralizadores oficiales, libretas escolares individuales y resúmenes estadísticos conforme a la Ley 070.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {(esreportegeneral || activoinforme === 'REPORT_CARD') && (
-            <label className="flex items-center gap-2 text-xs text-slate-600">
-              Papel
+            <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+              Formato de impresión:
               <select
                 value={tamanopapelgeneral}
                 onChange={(evento) =>
                   establecertamanopapelgeneral(evento.target.value as typeof tamanopapelgeneral)
                 }
-                className="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900"
+                className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-800 shadow-2xs font-semibold focus:outline-none focus:ring-2 focus:ring-slate-900/10"
               >
                 <option value="legal">
                   Oficio {activoinforme === 'REPORT_CARD' ? 'horizontal' : 'vertical'}
@@ -462,30 +470,35 @@ export const InformesPagina: React.FC<{ queries: informeconsultas }> = ({ querie
             size="sm"
             onClick={exportacioncsv}
             disabled={!puedeexportacion}
-            className="gap-2"
+            className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50 shadow-2xs h-9 px-3"
           >
-            <Download className="h-4 w-4" /> CSV
+            <Download className="h-4 w-4 text-emerald-600" /> Exportar CSV
           </Boton>
           <Boton
             size="sm"
             onClick={() => window.print()}
             disabled={!puedeexportacion}
-            className="gap-2"
+            className="gap-2 bg-slate-900 hover:bg-slate-800 text-white shadow-2xs h-9 px-3"
           >
-            <Printer className="h-4 w-4" /> Imprimir
+            <Printer className="h-4 w-4" /> Imprimir Documento
           </Boton>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
         {informes.map(({ id, label: etiqueta, icon: Icono }) => (
           <button
             key={id}
             type="button"
             onClick={() => estableceractivoinforme(id)}
-            className={`flex items-center gap-2 rounded-lg border p-3 text-left text-sm ${activoinforme === id ? 'border-brand-600 bg-brand-50 text-slate-900' : 'border-slate-200 bg-white text-slate-700'}`}
+            className={`flex items-center gap-2 rounded-xl border p-3 text-left text-xs font-semibold transition-all shadow-2xs ${
+              activoinforme === id
+                ? 'border-indigo-600 bg-indigo-50 text-indigo-950 shadow-xs'
+                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+            }`}
           >
-            <Icono className="h-4 w-4 shrink-0" aria-hidden="true" /> {etiqueta}
+            <Icono className={`h-4 w-4 shrink-0 ${activoinforme === id ? 'text-indigo-600' : 'text-slate-400'}`} aria-hidden="true" />
+            <span className="truncate">{etiqueta}</span>
           </button>
         ))}
       </div>

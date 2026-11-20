@@ -193,16 +193,41 @@ export const AuditoriaPagina: React.FC<{ queries: consultasauditoria }> = ({ que
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Header - Institutional Audit Trail */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Historial de cambios</h1>
-          <p className="mt-0.5 text-sm text-slate-500">Consulta quién realizó cambios en la información académica y cuándo.</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              Pistas de Auditoría y Trazabilidad
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs font-medium text-slate-500">Gestión Escolar 2026</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Historial de Operaciones del Sistema</h1>
+          <p className="mt-0.5 text-sm text-slate-500">
+            Registro cronológico inmutable de cambios, matriculaciones, notas y sincronizaciones SIE.
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Boton variant="outline" size="sm" onClick={() => registrosconsulta.refetch()} disabled={registrosconsulta.isFetching}>
-            <RefreshCw className={`h-4 w-4 ${registrosconsulta.isFetching ? 'animate-spin' : ''}`} />Actualizar
+        <div className="flex flex-wrap items-center gap-2">
+          <Boton
+            variant="outline"
+            size="sm"
+            onClick={() => registrosconsulta.refetch()}
+            disabled={registrosconsulta.isFetching}
+            className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50 shadow-2xs h-9 px-3"
+          >
+            <RefreshCw className={`h-4 w-4 ${registrosconsulta.isFetching ? 'animate-spin' : ''}`} />
+            Actualizar
           </Boton>
-          <Boton size="sm" onClick={exportar} disabled={!filtrados.length}><Download className="h-4 w-4" />Descargar lista</Boton>
+          <Boton
+            size="sm"
+            onClick={exportar}
+            disabled={!filtrados.length}
+            className="gap-2 bg-slate-900 hover:bg-slate-800 text-white shadow-2xs h-9 px-3"
+          >
+            <Download className="h-4 w-4" />
+            Descargar CSV
+          </Boton>
         </div>
       </div>
 

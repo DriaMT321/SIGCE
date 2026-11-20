@@ -61,25 +61,34 @@ export function EstudianteActivacionPagina() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
+    <main className="relative flex min-h-screen items-center justify-center bg-[#090e1a] px-4 py-10 overflow-hidden">
+      {/* Ambient background glows */}
+      <div className="absolute top-0 -left-20 h-96 w-96 rounded-full bg-indigo-600/15 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 -right-20 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+
       <section
-        className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+        className="relative z-10 w-full max-w-md rounded-2xl border border-slate-800 bg-white p-7 shadow-2xl sm:p-8"
         aria-labelledby="activation-title"
       >
-        <div className="mb-6 flex items-center gap-3">
-          <img src="/logo-sf.png" alt="Logo Colegio Comunidad Cristiana" className="h-11 w-auto object-contain shrink-0" />
-          <div>
-            <p className="text-sm font-semibold text-slate-900">SIGCE</p>
-            <p className="text-xs text-slate-500">U.E. Comunidad Cristiana B</p>
+        <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-3">
+            <img src="/logo-sf.png" alt="Logo Colegio Comunidad Cristiana" className="h-11 w-auto object-contain shrink-0" />
+            <div>
+              <p className="text-sm font-bold tracking-tight text-slate-900">SIGCE</p>
+              <p className="text-xs text-slate-500 font-medium">U.E. Comunidad Cristiana B</p>
+            </div>
           </div>
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            Portal Estudiantil
+          </span>
         </div>
 
         <div className="mb-6">
-          <h1 id="activation-title" className="text-2xl font-bold tracking-tight text-slate-950">
+          <h1 id="activation-title" className="text-2xl font-extrabold tracking-tight text-slate-900">
             Activar cuenta estudiantil
           </h1>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            Ingresa el código entregado por la institución y crea una clave personal.
+          <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
+            Ingresa el código entregado por la secretaría de la institución y crea tu clave personal de acceso.
           </p>
         </div>
 

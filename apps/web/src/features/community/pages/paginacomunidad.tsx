@@ -406,29 +406,33 @@ export function ComunidadPagina({
 
   return (
     <div className="space-y-5">
-      {/* Header - Clean */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header - Institutional and clean */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">{titulo}</h1>
-          <p className="text-sm text-slate-500 mt-0.5">{datoscantidad} registros activos</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              {modo === 'teachers' ? 'Planta Docente · Magisterio Ley 070' : 'Comunidad de Padres y Tutores'}
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs font-medium text-slate-500">Gestión Escolar 2026</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            {modo === 'teachers' ? 'Directorio del Plantel Docente' : 'Padrón de Padres de Familia y Tutores'}
+          </h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            {modo === 'teachers'
+              ? `${datoscantidad} docentes registrados con RDA, categoría de escalafón y asignación curricular activa.`
+              : `${datoscantidad} padres o tutores vinculados con estudiantes de la institución.`}
+          </p>
         </div>
 
         {puedegestionar && (
           <Boton
             onClick={() => establecermostrarformulario((anterior) => !anterior)}
-            className="h-9 bg-slate-900 hover:bg-slate-800 text-white gap-1.5"
+            className="h-10 bg-slate-900 hover:bg-slate-800 text-white gap-2 px-4 shadow-2xs text-sm font-medium transition-colors"
           >
-            {mostrarformulario ? (
-              <>
-                <X className="w-4 h-4" />
-                <span>Cancelar</span>
-              </>
-            ) : (
-              <>
-                <Plus className="w-4 h-4" />
-                <span>Nuevo</span>
-              </>
-            )}
+            {mostrarformulario ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            <span>{mostrarformulario ? 'Cerrar formulario' : modo === 'teachers' ? 'Nuevo Docente' : 'Nuevo Familiar'}</span>
           </Boton>
         )}
       </div>
@@ -751,23 +755,28 @@ export function ComunidadPagina({
         </div>
       )}
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <Entrada
-          value={buscar}
-          onChange={(e) => establecerbuscar(e.target.value)}
-          placeholder={`Buscar ${modo === 'teachers' ? 'docente' : 'familiar'}...`}
-          className="pl-9 h-9 text-sm"
-        />
-        {buscar && (
-          <button
-            onClick={() => establecerbuscar('')}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
+      {/* Search Toolbar */}
+      <div className="rounded-xl border border-slate-200/90 bg-white p-3 shadow-2xs flex items-center justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Entrada
+            value={buscar}
+            onChange={(e) => establecerbuscar(e.target.value)}
+            placeholder={`Buscar por nombre, apellido, cédula o ${modo === 'teachers' ? 'RDA' : 'teléfono'}...`}
+            className="pl-9 h-10 text-sm border-slate-200 bg-slate-50/50 focus:bg-white"
+          />
+          {buscar && (
+            <button
+              onClick={() => establecerbuscar('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <div className="text-xs text-slate-500 font-medium hidden sm:block">
+          Mostrando registros de la gestión activa
+        </div>
       </div>
 
       {restablecerexito && (

@@ -110,12 +110,19 @@ export const CursosPagina = ({
 
   return (
     <div className="space-y-5">
-      {/* Header - Clean */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header - Institutional Courses */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Cursos</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              Estructura Curricular y Paralelos
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs font-medium text-slate-500">Gestión Escolar 2026</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Catálogo General de Cursos</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            {totalcantidad} cursos · {totalestudiantes} matriculados
+            {totalcantidad} cursos organizados por nivel y turno · {totalestudiantes} plazas ocupadas en la gestión activa.
           </p>
         </div>
 
@@ -126,20 +133,20 @@ export const CursosPagina = ({
               variant="outline"
               size="sm"
               onClick={() => establecermostrarcreargestion(true)}
-              className="gap-1.5"
+              className="gap-1.5 border-slate-300 text-slate-700 hover:bg-slate-50 shadow-2xs text-xs font-medium h-10 px-3"
               title="Registrar una nueva gestión académica (RF-13)"
             >
-              <Calendar className="w-4 h-4" />
+              <Calendar className="w-4 h-4 text-emerald-600" />
               Nueva Gestión
             </Boton>
-            <button
+            <Boton
               type="button"
               onClick={() => establecermostrarformulario((anterior) => !anterior)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
+              className="h-10 bg-slate-900 hover:bg-slate-800 text-white gap-2 px-4 shadow-2xs text-sm font-medium transition-colors"
             >
               {mostrarformulario ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-              {mostrarformulario ? 'Cerrar' : 'Nuevo Curso'}
-            </button>
+              {mostrarformulario ? 'Cerrar formulario' : 'Nuevo Curso'}
+            </Boton>
           </div>
         )}
       </div>

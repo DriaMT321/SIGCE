@@ -26,6 +26,7 @@ interface metricatarjetapropiedades {
   icon: LucideIcon;
   link: string;
   linkLabel: string;
+  tone?: 'indigo' | 'emerald' | 'amber' | 'purple';
 }
 
 function FiltroGrafico({
@@ -45,7 +46,7 @@ function FiltroGrafico({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-8 min-w-28 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
+        className="h-8 min-w-28 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700 shadow-2xs"
       >
         {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
       </select>
@@ -66,6 +67,36 @@ const filtrosturno = [
   { value: 'EVENING', label: 'Noche' },
 ];
 
+const toneStyles: Record<
+  'indigo' | 'emerald' | 'amber' | 'purple',
+  { iconBg: string; iconColor: string; accentBorder: string; linkColor: string }
+> = {
+  indigo: {
+    iconBg: 'bg-indigo-50 border-indigo-100',
+    iconColor: 'text-indigo-600',
+    accentBorder: 'hover:border-indigo-300',
+    linkColor: 'text-indigo-600 hover:text-indigo-700',
+  },
+  emerald: {
+    iconBg: 'bg-emerald-50 border-emerald-100',
+    iconColor: 'text-emerald-600',
+    accentBorder: 'hover:border-emerald-300',
+    linkColor: 'text-emerald-700 hover:text-emerald-800',
+  },
+  amber: {
+    iconBg: 'bg-amber-50 border-amber-100',
+    iconColor: 'text-amber-600',
+    accentBorder: 'hover:border-amber-300',
+    linkColor: 'text-amber-700 hover:text-amber-800',
+  },
+  purple: {
+    iconBg: 'bg-purple-50 border-purple-100',
+    iconColor: 'text-purple-600',
+    accentBorder: 'hover:border-purple-300',
+    linkColor: 'text-purple-600 hover:text-purple-700',
+  },
+};
+
 const MetricaTarjeta: React.FC<metricatarjetapropiedades> = ({
   title: titulo,
   value: valor,
@@ -73,21 +104,30 @@ const MetricaTarjeta: React.FC<metricatarjetapropiedades> = ({
   icon: Icono,
   link: enlace,
   linkLabel: enlaceetiqueta,
-}) => (
-  <div data-panel-card className="rounded-xl border border-slate-200 bg-white p-5">
-    <div className="flex items-center justify-between gap-3">
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{titulo}</h2>
-      <Icono className="h-4 w-4 text-slate-500" aria-hidden="true" />
+  tone = 'indigo',
+}) => {
+  const currentTone = toneStyles[tone];
+  return (
+    <div
+      data-panel-card
+      className={`group relative rounded-xl border border-slate-200/90 bg-white p-5 shadow-2xs transition-all duration-200 hover:shadow-md ${currentTone.accentBorder}`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-xs font-semibold text-slate-600">{titulo}</h2>
+        <div className={`grid h-8 w-8 place-items-center rounded-lg border ${currentTone.iconBg}`}>
+          <Icono className={`h-4 w-4 ${currentTone.iconColor}`} aria-hidden="true" />
+        </div>
+      </div>
+      <p className="mt-3 text-3xl font-extrabold tracking-tight tabular-nums text-slate-900">{valor}</p>
+      <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-slate-100 pt-2 text-xs text-slate-500">
+        <span className="truncate">{detalle}</span>
+        <Link className={`shrink-0 font-medium ${currentTone.linkColor}`} to={enlace}>
+          {enlaceetiqueta}
+        </Link>
+      </div>
     </div>
-    <p className="mt-3 text-3xl font-bold tabular-nums text-slate-900">{valor}</p>
-    <div className="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500">
-      <span>{detalle}</span>
-      <Link className="shrink-0 font-medium text-brand-600 hover:text-brand-700" to={enlace}>
-        {enlaceetiqueta}
-      </Link>
-    </div>
-  </div>
-);
+  );
+};
 
 function cantidadetiqueta(
   total: number | undefined,
@@ -176,9 +216,9 @@ export const TableroResumenPagina: React.FC<{
     && (filtros.turnoParalelo === 'ALL' || curso.shift === filtros.turnoParalelo),
   );
   const nivelesbase = [
-    { label: 'Inicial', nivel: 'INITIAL', color: '#f3ba4e' },
-    { label: 'Primaria', nivel: 'PRIMARY', color: '#d47753' },
-    { label: 'Secundaria', nivel: 'SECONDARY', color: '#9f3144' },
+    { label: 'Inicial', nivel: 'INITIAL', color: '#d97706' },
+    { label: 'Primaria', nivel: 'PRIMARY', color: '#ea580c' },
+    { label: 'Secundaria', nivel: 'SECONDARY', color: '#be123c' },
   ];
   const agregarporNivel = (cursos: typeof cursosdetalle) => nivelesbase.map((grupo) => {
     const cursosdelnivel = cursos.filter(
@@ -247,23 +287,32 @@ export const TableroResumenPagina: React.FC<{
 
   return (
     <div ref={panelref} className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Header institucional */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/80 pb-5">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Panel académico</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Datos registrados en SIGCE y visibles para su cuenta.
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              1er Trimestre Vigente
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs font-medium text-slate-500">Gestión Escolar 2026</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Panel académico institucional</h1>
+          <p className="mt-0.5 text-sm text-slate-500">
+            Resumen centralizado de matrículas, carga docente y avance curricular según normativa Ley 070.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link to="/dashboard/reports">
-            <Boton variant="outline" size="sm" className="gap-2">
-              <FileSpreadsheet className="h-4 w-4" /> Reportes
+            <Boton variant="outline" size="sm" className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50 shadow-2xs">
+              <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Centralizadores
             </Boton>
           </Link>
           {['ADMINISTRATIVE', 'SECRETARY'].includes(rol ?? '') && (
             <Link to="/dashboard/sie-sync">
-              <Boton variant="outline" size="sm" className="gap-2">
-                <RefreshCw className="h-4 w-4" /> Carga SIE
+              <Boton variant="outline" size="sm" className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50 shadow-2xs">
+                <RefreshCw className="h-4 w-4 text-indigo-600" /> Sincronización SIE
               </Boton>
             </Link>
           )}
@@ -272,54 +321,58 @@ export const TableroResumenPagina: React.FC<{
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricaTarjeta
-          title="Estudiantes visibles"
+          title="Estudiantes matriculados"
           value={cantidadetiqueta(
             estudiantesconsulta.data,
             estudiantesconsulta.isPending,
             estudiantesconsulta.isError,
           )}
-          detail="Registros accesibles"
+          detail="Registros de alumnos activos"
           icon={Users}
           link="/dashboard/students"
-          linkLabel="Ver estudiantes"
+          linkLabel="Ver lista"
+          tone="indigo"
         />
         <MetricaTarjeta
-          title="Cursos registrados"
+          title="Cursos habilitados"
           value={cantidadetiqueta(
             cursosconsulta.data,
             cursosconsulta.isPending,
             cursosconsulta.isError,
             puedeleercursos,
           )}
-          detail="Según la API"
+          detail="Inicial, Primaria y Secundaria"
           icon={GraduationCap}
           link="/dashboard/courses"
           linkLabel="Ver cursos"
+          tone="emerald"
         />
         <MetricaTarjeta
-          title="Docentes registrados"
+          title="Docentes en Magisterio"
           value={cantidadetiqueta(
             docentesconsulta.data,
             docentesconsulta.isPending,
             docentesconsulta.isError,
             puedeleerdocentes,
           )}
-          detail="Según la API"
+          detail="Expediente RDA y Escalafón"
           icon={BookOpen}
           link="/dashboard/teachers"
           linkLabel="Ver docentes"
+          tone="amber"
         />
         <MetricaTarjeta
-          title="Actividades visibles"
+          title="Actividades y evaluaciones"
           value={cantidadetiqueta(
             asignacionesconsulta.data,
             asignacionesconsulta.isPending,
             asignacionesconsulta.isError,
           )}
-          detail="Tareas y evaluaciones"
+          detail="Tareas y exámenes vigentes"
           icon={ClipboardList}
           link="/dashboard/assignments"
           linkLabel="Ver actividades"
+          tone="purple"
         />
       </div>
 

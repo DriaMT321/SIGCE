@@ -68,13 +68,13 @@ export function Sesion04Formulario({
   onActivateStudent: onactivarestudiante,
 }: sesion04formulariopropiedades) {
   return (
-    <div className="mx-auto w-full max-w-[360px] space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-[#292820] sm:text-3xl">
-          Iniciar sesión
+    <div className="mx-auto w-full max-w-[400px] space-y-6">
+      <div className="space-y-1">
+        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+          Iniciar Sesión
         </h2>
-        <p className="mt-1 text-xs leading-relaxed text-[#706e64] sm:text-sm">
-          Seleccione el tipo de acceso e introduzca sus datos.
+        <p className="text-xs leading-relaxed text-slate-500 sm:text-sm">
+          Seleccione su perfil institucional e ingrese sus credenciales.
         </p>
       </div>
 
@@ -88,18 +88,18 @@ export function Sesion04Formulario({
                 type="button"
                 onClick={() => onrolcambio(opcion.value)}
                 aria-pressed={esseleccionado}
-                className={`flex min-h-[62px] items-start gap-2 rounded-md border p-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                className={`flex min-h-[64px] items-start gap-2.5 rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
                   esseleccionado
-                    ? 'border-primary bg-secondary text-secondary-foreground'
-                    : 'border-[#8c897e] bg-white text-[#292820] hover:border-[#706e64] hover:bg-[#fbfaf6]'
+                    ? 'border-indigo-600 bg-indigo-50/80 text-indigo-950 ring-2 ring-indigo-500/20 shadow-xs'
+                    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50/80'
                 }`}
               >
                 <div
                   aria-hidden="true"
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors ${
                     esseleccionado
-                      ? 'border-[#d4c476] bg-white text-[#806719]'
-                      : 'border-[#e7e4da] bg-[#fbfaf6] text-[#706e64]'
+                      ? 'border-indigo-200 bg-white text-indigo-600 shadow-2xs'
+                      : 'border-slate-200 bg-slate-50 text-slate-500'
                   }`}
                 >
                   <RolIcono role={opcion.value} className="w-4 h-4" />
@@ -108,7 +108,7 @@ export function Sesion04Formulario({
                   <p className="whitespace-normal text-xs font-bold leading-tight">
                     {opcion.label}
                   </p>
-                  <p className="mt-0.5 truncate text-[10px] leading-tight text-[#706e64]">
+                  <p className="mt-0.5 truncate text-[10px] leading-tight text-slate-500">
                     {opcion.subtitle}
                   </p>
                 </div>
@@ -120,22 +120,22 @@ export function Sesion04Formulario({
         {errormensaje && (
           <div
             role="alert"
-            className="flex items-start gap-2 rounded-md border border-[#efd3cf] bg-[#f8ecea] p-3 text-xs text-[#9b4038]"
+            className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800 shadow-2xs animate-in fade-in"
           >
-            <AlertCircle aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
+            <AlertCircle aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
             <span className="font-medium leading-relaxed">{errormensaje}</span>
           </div>
         )}
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Etiqueta htmlFor="identifier" className="text-xs font-bold text-[#292820]">
+            <Etiqueta htmlFor="identifier" className="text-xs font-bold text-slate-700">
               {obteneridentificadoretiqueta(rol)}
             </Etiqueta>
             <div className="relative">
               <IconId
                 aria-hidden="true"
-                className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#706e64]"
+                className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
               />
               <Entrada
                 {...registrar('identifier')}
@@ -143,13 +143,13 @@ export function Sesion04Formulario({
                 type="text"
                 autoComplete="username"
                 placeholder={obteneridentificadorprovisional(rol)}
-                className="h-11 rounded-md border-[#8c897e] bg-[#fbfaf6] pl-10 text-xs font-medium text-[#292820] placeholder:text-[#706e64] focus-visible:border-primary focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
+                className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus-visible:border-indigo-600 focus-visible:ring-2 focus-visible:ring-indigo-500 sm:text-sm"
                 aria-invalid={Boolean(errores.identifier)}
                 aria-describedby={errores.identifier ? 'error-identificador' : undefined}
               />
             </div>
             {errores.identifier && (
-              <p id="error-identificador" className="text-[11px] font-semibold text-[#9b4038]">
+              <p id="error-identificador" className="text-[11px] font-semibold text-rose-600">
                 {errores.identifier.message}
               </p>
             )}
@@ -157,13 +157,13 @@ export function Sesion04Formulario({
 
           {rol === 'FAMILY' && (
             <div className="space-y-1.5">
-              <Etiqueta htmlFor="secondaryIdentifier" className="text-xs font-bold text-[#292820]">
+              <Etiqueta htmlFor="secondaryIdentifier" className="text-xs font-bold text-slate-700">
                 Número de teléfono celular
               </Etiqueta>
               <div className="relative">
                 <IconUsersGroup
                   aria-hidden="true"
-                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#706e64]"
+                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
                 />
                 <Entrada
                   {...registrar('secondaryIdentifier')}
@@ -171,7 +171,7 @@ export function Sesion04Formulario({
                   type="tel"
                   autoComplete="tel"
                   placeholder="Ingrese su número de teléfono"
-                  className="h-11 rounded-md border-[#8c897e] bg-[#fbfaf6] pl-10 text-xs font-medium text-[#292820] placeholder:text-[#706e64] focus-visible:border-primary focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
+                  className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus-visible:border-indigo-600 focus-visible:ring-2 focus-visible:ring-indigo-500 sm:text-sm"
                   aria-invalid={Boolean(errores.secondaryIdentifier)}
                   aria-describedby={
                     errores.secondaryIdentifier ? 'error-identificador-secundario' : undefined
@@ -181,7 +181,7 @@ export function Sesion04Formulario({
               {errores.secondaryIdentifier && (
                 <p
                   id="error-identificador-secundario"
-                  className="text-[11px] font-semibold text-[#9b4038]"
+                  className="text-[11px] font-semibold text-rose-600"
                 >
                   {errores.secondaryIdentifier.message}
                 </p>
@@ -190,13 +190,13 @@ export function Sesion04Formulario({
           )}
 
           <div className="space-y-1.5">
-            <Etiqueta htmlFor="secret" className="text-xs font-bold text-[#292820]">
+            <Etiqueta htmlFor="secret" className="text-xs font-bold text-slate-700">
               Contraseña de acceso
             </Etiqueta>
             <div className="relative">
               <IconKey
                 aria-hidden="true"
-                className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#706e64]"
+                className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
               />
               <Entrada
                 {...registrar('secret')}
@@ -204,13 +204,13 @@ export function Sesion04Formulario({
                 type="password"
                 autoComplete="current-password"
                 placeholder="••••••••••••"
-                className="h-11 rounded-md border-[#8c897e] bg-[#fbfaf6] pl-10 text-xs font-medium text-[#292820] placeholder:text-[#706e64] focus-visible:border-primary focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
+                className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus-visible:border-indigo-600 focus-visible:ring-2 focus-visible:ring-indigo-500 sm:text-sm"
                 aria-invalid={Boolean(errores.secret)}
                 aria-describedby={errores.secret ? 'error-clave' : undefined}
               />
             </div>
             {errores.secret && (
-              <p id="error-clave" className="text-[11px] font-semibold text-[#9b4038]">
+              <p id="error-clave" className="text-[11px] font-semibold text-rose-600">
                 {errores.secret.message}
               </p>
             )}
@@ -220,17 +220,17 @@ export function Sesion04Formulario({
         <Boton
           type="submit"
           disabled={escarga}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-xs font-bold tracking-wide text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-wait disabled:opacity-70 sm:text-sm"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-xs font-bold tracking-wide text-white shadow-lg shadow-indigo-600/25 transition-all hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:ring-indigo-500 disabled:cursor-wait disabled:opacity-70 sm:text-sm cursor-pointer"
         >
           {escarga ? (
             <>
-              <Loader2 aria-hidden="true" className="mr-1.5 h-4 w-4 animate-spin text-[#d9c56a]" />
+              <Loader2 aria-hidden="true" className="mr-1.5 h-4 w-4 animate-spin text-white" />
               <span>Verificando datos de acceso...</span>
             </>
           ) : (
             <>
               <span>Ingresar al sistema</span>
-              <ArrowRight aria-hidden="true" className="h-4 w-4 text-primary-foreground" />
+              <ArrowRight aria-hidden="true" className="h-4 w-4 text-white" />
             </>
           )}
         </Boton>
@@ -239,14 +239,14 @@ export function Sesion04Formulario({
           <button
             type="button"
             onClick={onactivarestudiante}
-            className="w-full rounded-md px-3 py-2 text-sm font-semibold text-[#706e64] underline-offset-4 hover:text-[#292820] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="w-full rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors cursor-pointer"
           >
-            Activar mi cuenta estudiantil
+            Activar mi cuenta estudiantil con código
           </button>
         )}
 
-        <div className="border-t border-[#e7e4da] pt-3 text-center text-[11px] font-medium text-[#706e64]">
-          <span>U.E. Comunidad Cristiana B</span>
+        <div className="border-t border-slate-100 pt-3 text-center text-[11px] font-medium text-slate-400">
+          <span>U.E. Comunidad Cristiana B · Sistema Seguro</span>
         </div>
       </form>
     </div>
