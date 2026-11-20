@@ -237,6 +237,52 @@ class mapeadorregistrosacademicos {
     );
   }
 
+  static eventoacademico evento(Map<String, dynamic> json) {
+    final descripcionRaw = json['description'] as String?;
+    String audiencia = 'TODOS';
+    String? descripcionLimpia = descripcionRaw;
+
+    if (descripcionRaw != null) {
+      if (descripcionRaw.contains('[AUDIENCIA:PROFESORES]') ||
+          descripcionRaw.contains('[AUDIENCIA:DOCENTES]')) {
+        audiencia = 'PROFESORES';
+        descripcionLimpia = descripcionRaw
+            .replaceAll('[AUDIENCIA:PROFESORES]', '')
+            .replaceAll('[AUDIENCIA:DOCENTES]', '')
+            .trim();
+      } else if (descripcionRaw.contains('[AUDIENCIA:PADRES]')) {
+        audiencia = 'PADRES';
+        descripcionLimpia = descripcionRaw
+            .replaceAll('[AUDIENCIA:PADRES]', '')
+            .trim();
+      } else if (descripcionRaw.contains('[AUDIENCIA:ESTUDIANTES]')) {
+        audiencia = 'ESTUDIANTES';
+        descripcionLimpia = descripcionRaw
+            .replaceAll('[AUDIENCIA:ESTUDIANTES]', '')
+            .trim();
+      } else if (descripcionRaw.contains('[AUDIENCIA:GENERAL]')) {
+        audiencia = 'TODOS';
+        descripcionLimpia = descripcionRaw
+            .replaceAll('[AUDIENCIA:GENERAL]', '')
+            .trim();
+      }
+    }
+
+    return eventoacademico(
+      identificador: _cadenadefecto(json, 'id', ''),
+      titulo: _cadenadefecto(json, 'title', 'Actividad Académica'),
+      tipo: _cadenadefecto(json, 'type', 'ACTIVIDAD'),
+      fechainicio: _fechadefecto(json, 'startsAt'),
+      fechafin: _fechadefecto(json, 'endsAt'),
+      tododia: json['allDay'] is bool ? json['allDay'] as bool : false,
+      estado: _cadenadefecto(json, 'status', 'PROGRAMADO'),
+      descripcion: descripcionLimpia,
+      lugar: json['location'] as String?,
+      idcurso: json['targetCourseId'] as String?,
+      audiencia: audiencia,
+    );
+  }
+
   static String _cadenarequerida(Map<String, dynamic> json, String key) {
     final valor = json[key];
     if (valor is! String || valor.trim().isEmpty) {

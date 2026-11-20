@@ -67,6 +67,13 @@ final proveedorobtenermihorarioencache =
       ),
     );
 
+final proveedorobtenereventosacademicosencache =
+    Provider<casoobtenereventosacademicosencache>(
+      (ref) => casoobtenereventosacademicosencache(
+        ref.watch(proveedorrepositorioacademico),
+      ),
+    );
+
 final proveedorcasosolicitarentrevista =
     Provider<casosolicitarentrevista>(
       (ref) => casosolicitarentrevista(

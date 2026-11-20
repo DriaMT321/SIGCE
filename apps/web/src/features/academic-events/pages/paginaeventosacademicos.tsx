@@ -25,9 +25,14 @@ import {
   Tag,
   Building2,
   CalendarRange,
+  BookOpen,
+  FileCheck2,
+  UserCheck,
+  Filter,
 } from 'lucide-react';
 import { Boton } from '../../../components/ui/boton';
 import { Entrada } from '../../../components/ui/entrada';
+import { academicoapi } from '../../../lib/apiacademica';
 import type {
   cursoeventoopcion,
   eventoacademico,
@@ -38,6 +43,23 @@ import type {
 const zonabolivia = 'America/La_Paz';
 const diasdelasemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const tiposevento = ['ACTIVIDAD', 'REUNION', 'ACTO_ESCOLAR', 'SUSPENSION_CLASES', 'OTRO'] as const;
+
+export type AudienciaEvento = 'TODOS' | 'PROFESORES' | 'PADRES' | 'ESTUDIANTES';
+export type PlazoFiltro = 'MES' | 'HOY' | 'SEMANA' | 'PROXIMOS_30' | 'TODO';
+
+export function obtenerAudiencia(desc?: string | null, targetCourseId?: string | null, tipo?: string): AudienciaEvento {
+  if (desc?.includes('[AUDIENCIA:PROFESORES]')) return 'PROFESORES';
+  if (desc?.includes('[AUDIENCIA:PADRES]')) return 'PADRES';
+  if (desc?.includes('[AUDIENCIA:ESTUDIANTES]')) return 'ESTUDIANTES';
+  if (targetCourseId) return 'ESTUDIANTES';
+  if (tipo === 'REUNION') return 'PADRES';
+  return 'TODOS';
+}
+
+export function limpiarDescripcion(desc?: string | null): string {
+  if (!desc) return '';
+  return desc.replace(/\[AUDIENCIA:[A-Z]+\]\s*/g, '').trim();
+}
 
 interface TipoEventoConfig {
   label: string;
@@ -140,6 +162,7 @@ function crearvaloresiniciales() {
     title: '',
     type: 'ACTIVIDAD' as tipoeventoacademico,
     description: '',
+    audience: 'TODOS' as AudienciaEvento,
     startDate: hoy,
     startTime: '08:00',
     endDate: hoy,
@@ -156,6 +179,7 @@ const esquemaformulario = z
     title: z.string().trim().min(3, 'Escribe un título de al menos 3 caracteres.').max(120),
     type: z.enum(tiposevento),
     description: z.string().max(2000, 'La descripción admite hasta 2000 caracteres.'),
+    audience: z.enum(['TODOS', 'PROFESORES', 'PADRES', 'ESTUDIANTES']).default('TODOS'),
     startDate: z.string().min(1, 'Selecciona el día de inicio.'),
     startTime: z.string(),
     endDate: z.string().min(1, 'Selecciona el día de finalización.'),
@@ -295,6 +319,8 @@ export function PaginaEventosAcademicos({
   });
   const [diaseleccionado, establecerDiaSeleccionado] = useState(() => clavededia(new Date()));
   const [filtroTipo, establecerFiltroTipo] = useState<string>('TODOS');
+  const [filtroAudiencia, establecerFiltroAudiencia] = useState<AudienciaEvento>('TODOS');
+  const [filtroPlazo, establecerFiltroPlazo] = useState<PlazoFiltro>('MES');
   const [mostrarFormulario, establecerMostrarFormulario] = useState(false);
   const [eventoEditado, establecerEventoEditado] = useState<eventoacademico | null>(null);
   const [cancelacionPendiente, establecerCancelacionPendiente] = useState<string | null>(null);
@@ -314,6 +340,11 @@ export function PaginaEventosAcademicos({
   const eventosconsulta = useQuery({
     queryKey: ['academic-events', mesvisible.anio, mesvisible.mes],
     queryFn: () => gestion.listar(rango.desde, rango.hasta),
+  });
+
+  const asignacionesconsulta = useQuery({
+    queryKey: ['assignments-calendar'],
+    queryFn: () => academicoapi.listarasignaciones(),
   });
 
   const cursosconsulta = useQuery({
@@ -336,10 +367,15 @@ export function PaginaEventosAcademicos({
         });
         throw new Error('Selecciona un curso asignado antes de guardar.');
       }
+      const descConAudiencia =
+        datos.audience !== 'TODOS'
+          ? `[AUDIENCIA:${datos.audience}] ${datos.description}`.trim()
+          : datos.description.trim();
+
       const comun = {
         title: datos.title,
         type: datos.type,
-        description: datos.description,
+        description: descConAudiencia || undefined,
         startsAt: isoBolivia(datos.startDate, datos.startTime, datos.allDay),
         endsAt: isoBolivia(datos.endDate, datos.endTime, datos.allDay, true),
         allDay: datos.allDay,
@@ -371,10 +407,63 @@ export function PaginaEventosAcademicos({
   });
 
   const eventos = eventosconsulta.data ?? [];
-  const eventosfiltrados = useMemo(
-    () => (filtroTipo === 'TODOS' ? eventos : eventos.filter((evento) => evento.type === filtroTipo)),
-    [eventos, filtroTipo],
-  );
+  const asignaciones = asignacionesconsulta.data?.data ?? [];
+  const hoy = clavededia(new Date());
+
+  const eventosfiltrados = useMemo(() => {
+    return eventos.filter((evento) => {
+      if (filtroTipo === 'TAREAS' || filtroTipo === 'EXAMENES') return false;
+      if (filtroTipo !== 'TODOS' && evento.type !== filtroTipo) return false;
+
+      if (filtroAudiencia !== 'TODOS') {
+        const aud = obtenerAudiencia(evento.description, evento.targetCourseId, evento.type);
+        if (aud !== 'TODOS' && aud !== filtroAudiencia) return false;
+      }
+
+      const fInicio = new Date(evento.startsAt);
+      const hoyObj = new Date();
+      if (filtroPlazo === 'HOY') {
+        return clavededia(fInicio) === hoy || (clavededia(fInicio) <= hoy && clavededia(new Date(evento.endsAt)) >= hoy);
+      }
+      if (filtroPlazo === 'SEMANA') {
+        const limite = new Date(hoyObj.getTime() + 7 * 24 * 60 * 60 * 1000);
+        return fInicio >= new Date(hoyObj.getTime() - 24 * 60 * 60 * 1000) && fInicio <= limite;
+      }
+      if (filtroPlazo === 'PROXIMOS_30') {
+        const limite = new Date(hoyObj.getTime() + 30 * 24 * 60 * 60 * 1000);
+        return fInicio >= new Date(hoyObj.getTime() - 24 * 60 * 60 * 1000) && fInicio <= limite;
+      }
+      return true;
+    });
+  }, [eventos, filtroTipo, filtroAudiencia, filtroPlazo, hoy]);
+
+  const asignacionesfiltradas = useMemo(() => {
+    return asignaciones.filter((asig) => {
+      if (filtroAudiencia === 'PROFESORES') return false;
+      if (filtroTipo === 'TAREAS' && asig.type === 'EXAMEN') return false;
+      if (filtroTipo === 'EXAMENES' && asig.type !== 'EXAMEN') return false;
+      if (filtroTipo !== 'TODOS' && filtroTipo !== 'TAREAS' && filtroTipo !== 'EXAMENES') return false;
+
+      const fDue = new Date(asig.dueDate);
+      const hoyObj = new Date();
+      if (filtroPlazo === 'HOY') {
+        return clavededia(fDue) === hoy;
+      }
+      if (filtroPlazo === 'SEMANA') {
+        const limite = new Date(hoyObj.getTime() + 7 * 24 * 60 * 60 * 1000);
+        return fDue >= new Date(hoyObj.getTime() - 24 * 60 * 60 * 1000) && fDue <= limite;
+      }
+      if (filtroPlazo === 'PROXIMOS_30') {
+        const limite = new Date(hoyObj.getTime() + 30 * 24 * 60 * 60 * 1000);
+        return fDue >= new Date(hoyObj.getTime() - 24 * 60 * 60 * 1000) && fDue <= limite;
+      }
+      if (filtroPlazo === 'MES') {
+        const claveDue = clavededia(fDue);
+        return claveDue.startsWith(`${mesvisible.anio}-${String(mesvisible.mes + 1).padStart(2, '0')}`);
+      }
+      return true;
+    });
+  }, [asignaciones, filtroAudiencia, filtroTipo, filtroPlazo, hoy, mesvisible]);
 
   const eventosdeldia = useMemo(
     () =>
@@ -384,6 +473,14 @@ export function PaginaEventosAcademicos({
           clavededia(new Date(evento.endsAt)) >= diaseleccionado,
       ),
     [eventosfiltrados, diaseleccionado],
+  );
+
+  const asignacionesdeldia = useMemo(
+    () =>
+      asignacionesfiltradas.filter(
+        (asig) => clavededia(new Date(asig.dueDate)) === diaseleccionado,
+      ),
+    [asignacionesfiltradas, diaseleccionado],
   );
 
   const celdas = useMemo(() => generarCuadriculaCalendario(mesvisible.anio, mesvisible.mes), [mesvisible]);
@@ -415,7 +512,6 @@ export function PaginaEventosAcademicos({
   ).length;
 
   const eventosinstitucionales = eventos.filter((evento) => !evento.targetCourseId).length;
-  const hoy = clavededia(new Date());
 
   function cambiarMes(delta: number) {
     const nuevo = new Date(Date.UTC(mesvisible.anio, mesvisible.mes + delta, 1));
@@ -441,12 +537,15 @@ export function PaginaEventosAcademicos({
   function abrirEdicion(evento: eventoacademico) {
     const inicio = partesfecha(new Date(evento.startsAt));
     const fin = partesfecha(new Date(evento.endsAt));
+    const aud = obtenerAudiencia(evento.description, evento.targetCourseId, evento.type);
+    const descLimpia = limpiarDescripcion(evento.description);
     establecerEventoEditado(evento);
     establecerMensajeDeExito('');
     formulario.reset({
       title: evento.title,
       type: evento.type,
-      description: evento.description ?? '',
+      description: descLimpia,
+      audience: aud,
       startDate: `${inicio.anio}-${inicio.mes}-${inicio.dia}`,
       startTime: `${inicio.hora}:${inicio.minuto}`,
       endDate: `${fin.anio}-${fin.mes}-${fin.dia}`,
@@ -485,12 +584,16 @@ export function PaginaEventosAcademicos({
   }
 
   const conteoPorTipo = useMemo(() => {
-    const conteos: Record<string, number> = { TODOS: eventos.length };
+    const conteos: Record<string, number> = {
+      TODOS: eventos.length + asignaciones.length,
+      TAREAS: asignaciones.filter((a) => a.type !== 'EXAMEN').length,
+      EXAMENES: asignaciones.filter((a) => a.type === 'EXAMEN').length,
+    };
     for (const t of tiposevento) {
       conteos[t] = eventos.filter((e) => e.type === t).length;
     }
     return conteos;
-  }, [eventos]);
+  }, [eventos, asignaciones]);
 
   const errorapi = mutacionguardar.error ?? mutacioncancelar.error;
 
@@ -517,7 +620,7 @@ export function PaginaEventosAcademicos({
               Calendario Académico e Institucional
             </h1>
             <p className="max-w-2xl text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Cronograma oficial de evaluaciones, feriados pedagógicos, reuniones de comunidad y actos cívicos bajo normativa del Ministerio de Educación.
+              Cronograma oficial de evaluaciones, feriados pedagógicos, reuniones de comunidad y tareas docentes bajo normativa del Ministerio de Educación.
             </p>
           </div>
 
@@ -537,12 +640,12 @@ export function PaginaEventosAcademicos({
         {/* TARJETAS RESUMEN EN EL HEADER */}
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 border-t border-white/10 pt-4">
           <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
-            <p className="text-[11px] font-medium text-slate-400">Total en el mes</p>
-            <p className="text-lg font-bold text-white mt-0.5">{eventos.length}</p>
+            <p className="text-[11px] font-medium text-slate-400">Total actividades</p>
+            <p className="text-lg font-bold text-white mt-0.5">{eventos.length + asignaciones.length}</p>
           </div>
           <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
-            <p className="text-[11px] font-medium text-slate-400">Próximas actividades</p>
-            <p className="text-lg font-bold text-indigo-300 mt-0.5">{proximoseventos}</p>
+            <p className="text-[11px] font-medium text-slate-400">Tareas y Exámenes</p>
+            <p className="text-lg font-bold text-indigo-300 mt-0.5">{asignaciones.length}</p>
           </div>
           <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
             <p className="text-[11px] font-medium text-slate-400">Institucionales</p>
@@ -550,7 +653,7 @@ export function PaginaEventosAcademicos({
           </div>
           <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
             <p className="text-[11px] font-medium text-slate-400">Por curso</p>
-            <p className="text-lg font-bold text-emerald-300 mt-0.5">{eventos.length - eventosinstitucionales}</p>
+            <p className="text-lg font-bold text-emerald-300 mt-0.5">{(eventos.length - eventosinstitucionales) + asignaciones.length}</p>
           </div>
         </div>
       </header>
@@ -579,7 +682,70 @@ export function PaginaEventosAcademicos({
         </div>
       ) : null}
 
-      {/* 2. BARRA DE FILTROS POR CATEGORÍA ESTILO PILL */}
+      {/* 2A. BARRA DE FILTROS PERSONALIZADA: AUDIENCIA Y PLAZO */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center gap-1.5 mr-1">
+            <Users className="w-4 h-4 text-indigo-600" />
+            <span>Audiencia:</span>
+          </span>
+          {[
+            { id: 'TODOS', label: 'Toda la comunidad' },
+            { id: 'ESTUDIANTES', label: 'Estudiantes', icon: GraduationCap },
+            { id: 'PADRES', label: 'Padres de Familia', icon: Users },
+            { id: 'PROFESORES', label: 'Profesores', icon: School },
+          ].map((item) => {
+            const activo = filtroAudiencia === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => establecerFiltroAudiencia(item.id as AudienciaEvento)}
+                className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                  activo
+                    ? 'bg-indigo-600 text-white shadow-xs font-bold ring-2 ring-indigo-500/20'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80'
+                }`}
+              >
+                {item.icon && <item.icon className="w-3.5 h-3.5" />}
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center gap-1.5 mr-1">
+            <Clock className="w-4 h-4 text-slate-500" />
+            <span>Plazo:</span>
+          </span>
+          {[
+            { id: 'MES', label: 'Este mes' },
+            { id: 'HOY', label: 'Hoy' },
+            { id: 'SEMANA', label: 'Próximos 7 días' },
+            { id: 'PROXIMOS_30', label: '30 días' },
+            { id: 'TODO', label: 'Todo el año' },
+          ].map((item) => {
+            const activo = filtroPlazo === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => establecerFiltroPlazo(item.id as PlazoFiltro)}
+                className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                  activo
+                    ? 'bg-slate-900 text-white shadow-xs font-bold ring-2 ring-slate-900/20'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80'
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 2B. BARRA DE FILTROS POR CATEGORÍA Y TAREAS VINCULADAS */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         <button
           type="button"
@@ -618,6 +784,39 @@ export function PaginaEventosAcademicos({
             </button>
           );
         })}
+
+        {/* PILLS DE TAREAS Y EXÁMENES VINCULADOS */}
+        <button
+          type="button"
+          onClick={() => establecerFiltroTipo('TAREAS')}
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${filtroTipo === 'TAREAS'
+            ? 'bg-blue-600 text-white shadow-xs font-bold ring-2 ring-blue-500/30'
+            : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-50'
+            }`}
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          <span>Tareas asignadas</span>
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${filtroTipo === 'TAREAS' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'
+            }`}>
+            {conteoPorTipo.TAREAS ?? 0}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => establecerFiltroTipo('EXAMENES')}
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${filtroTipo === 'EXAMENES'
+            ? 'bg-purple-700 text-white shadow-xs font-bold ring-2 ring-purple-500/30'
+            : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-50'
+            }`}
+        >
+          <FileCheck2 className="w-3.5 h-3.5" />
+          <span>Exámenes y Evaluaciones</span>
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${filtroTipo === 'EXAMENES' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'
+            }`}>
+            {conteoPorTipo.EXAMENES ?? 0}
+          </span>
+        </button>
       </div>
 
       {/* 3. MODAL MODERNO PARA CREAR O EDITAR EVENTO */}
@@ -678,7 +877,7 @@ export function PaginaEventosAcademicos({
                   </select>
                 </CampoFormulario>
 
-                <CampoFormulario etiqueta="Alcance / Destinatarios *" error={formulario.formState.errors.courseId?.message}>
+                <CampoFormulario etiqueta="Alcance por Curso" error={formulario.formState.errors.courseId?.message}>
                   <select
                     className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                     disabled={cursosconsulta.isLoading}
@@ -694,6 +893,18 @@ export function PaginaEventosAcademicos({
                         {nombrecurso(curso)}
                       </option>
                     ))}
+                  </select>
+                </CampoFormulario>
+
+                <CampoFormulario etiqueta="Audiencia Destinataria *" error={formulario.formState.errors.audience?.message}>
+                  <select
+                    className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    {...formulario.register('audience')}
+                  >
+                    <option value="TODOS">Toda la Comunidad Educativa (General)</option>
+                    <option value="ESTUDIANTES">Estudiantes y Cursos</option>
+                    <option value="PADRES">Padres de Familia y Tutores</option>
+                    <option value="PROFESORES">Profesores / Plantel Docente</option>
                   </select>
                 </CampoFormulario>
               </div>
@@ -924,6 +1135,8 @@ export function PaginaEventosAcademicos({
                 <div className="grid grid-cols-7 divide-x divide-y divide-slate-100">
                   {celdas.map((celda) => {
                     const actividades = eventosdelacelda(celda.clave);
+                    const tareasCelda = asignacionesfiltradas.filter((a) => clavededia(new Date(a.dueDate)) === celda.clave);
+                    const totalCelda = actividades.length + tareasCelda.length;
                     const seleccionado = diaseleccionado === celda.clave;
                     const eshoy = hoy === celda.clave;
 
@@ -933,7 +1146,7 @@ export function PaginaEventosAcademicos({
                         type="button"
                         onClick={() => establecerDiaSeleccionado(celda.clave)}
                         aria-pressed={seleccionado}
-                        aria-label={`Día ${celda.dia}, ${actividades.length} actividades`}
+                        aria-label={`Día ${celda.dia}, ${totalCelda} actividades y tareas`}
                         className={`group relative min-h-[82px] sm:min-h-[118px] p-1.5 sm:p-2 text-left transition-all duration-150 cursor-pointer flex flex-col justify-between ${!celda.esMesActual
                           ? 'bg-slate-50/40 text-slate-400'
                           : celda.esFinDeSemana
@@ -959,14 +1172,14 @@ export function PaginaEventosAcademicos({
                             {celda.dia}
                           </span>
 
-                          {actividades.length > 0 && (
+                          {totalCelda > 0 && (
                             <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-semibold text-slate-400">
-                              {actividades.length} {actividades.length === 1 ? 'act.' : 'acts.'}
+                              {totalCelda} {totalCelda === 1 ? 'act.' : 'acts.'}
                             </span>
                           )}
                         </div>
 
-                        {/* Eventos dentro de la celda (pantallas sm y mayores) */}
+                        {/* Eventos y Tareas dentro de la celda (pantallas sm y mayores) */}
                         <div className="mt-1 space-y-1 w-full hidden sm:block">
                           {actividades.slice(0, 2).map((actividad) => {
                             const cfg = configportipo[actividad.type];
@@ -981,18 +1194,43 @@ export function PaginaEventosAcademicos({
                             );
                           })}
 
-                          {actividades.length > 2 && (
+                          {actividades.length < 2 &&
+                            tareasCelda.slice(0, 2 - actividades.length).map((tarea) => {
+                              const esExamen = tarea.type === 'EXAMEN';
+                              return (
+                                <div
+                                  key={tarea.id}
+                                  className={`flex items-center gap-1 truncate rounded-md border px-1.5 py-0.5 text-[10px] font-semibold leading-tight shadow-2xs ${
+                                    esExamen
+                                      ? 'bg-purple-50 text-purple-800 border-purple-200'
+                                      : 'bg-blue-50 text-blue-800 border-blue-200'
+                                  }`}
+                                >
+                                  <span
+                                    className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                                      esExamen ? 'bg-purple-600' : 'bg-blue-600'
+                                    }`}
+                                  />
+                                  <span className="truncate">
+                                    {esExamen ? 'Examen: ' : 'Tarea: '}
+                                    {tarea.title}
+                                  </span>
+                                </div>
+                              );
+                            })}
+
+                          {totalCelda > 2 && (
                             <span className="block text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded px-1 text-center">
-                              +{actividades.length - 2} más
+                              +{totalCelda - 2} más
                             </span>
                           )}
                         </div>
 
                         {/* Indicador compacto en móvil */}
-                        {actividades.length > 0 && (
+                        {totalCelda > 0 && (
                           <div className="mt-1 flex items-center justify-center gap-1 sm:hidden">
                             <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
-                            <span className="text-[10px] font-bold text-slate-700">{actividades.length}</span>
+                            <span className="text-[10px] font-bold text-slate-700">{totalCelda}</span>
                           </div>
                         )}
                       </button>
@@ -1069,21 +1307,25 @@ export function PaginaEventosAcademicos({
 
                 <div className="flex items-center justify-between mb-3 px-1">
                   <h4 className="text-xs font-bold uppercase tracking-wide text-slate-600">
-                    Actividades de la jornada ({eventosdeldia.length})
+                    Actividades de la jornada ({eventosdeldia.length + asignacionesdeldia.length})
                   </h4>
-                  {filtroTipo !== 'TODOS' && (
+                  {(filtroTipo !== 'TODOS' || filtroAudiencia !== 'TODOS' || filtroPlazo !== 'MES') && (
                     <button
                       type="button"
-                      onClick={() => establecerFiltroTipo('TODOS')}
-                      className="text-[11px] text-indigo-600 hover:underline"
+                      onClick={() => {
+                        establecerFiltroTipo('TODOS');
+                        establecerFiltroAudiencia('TODOS');
+                        establecerFiltroPlazo('MES');
+                      }}
+                      className="text-[11px] text-indigo-600 hover:underline cursor-pointer"
                     >
-                      Quitar filtro
+                      Restablecer filtros
                     </button>
                   )}
                 </div>
 
-                {/* Lista de eventos del día */}
-                {eventosdeldia.length === 0 ? (
+                {/* Lista de eventos y asignaciones del día */}
+                {eventosdeldia.length === 0 && asignacionesdeldia.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center">
                     <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
                       <CalendarDays className="h-6 w-6 text-indigo-400" />
@@ -1091,8 +1333,8 @@ export function PaginaEventosAcademicos({
                     <p className="text-sm font-bold text-slate-800">Sin actividades programadas</p>
                     <p className="mt-1 text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
                       {puedeprogramar
-                        ? 'No hay eventos previstos para este día. Puedes crear uno usando el botón de agregar.'
-                        : 'No hay actividades escolares ni reuniones calendarizadas para esta fecha.'}
+                        ? 'No hay eventos ni tareas docentes previstas para este día. Puedes crear un evento usando el botón de añadir.'
+                        : 'No hay actividades escolares ni tareas programadas para esta fecha.'}
                     </p>
                     {puedeprogramar && (
                       <Boton
@@ -1100,7 +1342,7 @@ export function PaginaEventosAcademicos({
                         variant="outline"
                         size="sm"
                         onClick={abrirNuevo}
-                        className="mt-4 gap-1 text-xs font-semibold"
+                        className="mt-4 gap-1 text-xs font-semibold cursor-pointer"
                       >
                         <Plus className="h-3.5 w-3.5" /> Programar Actividad
                       </Boton>
@@ -1108,11 +1350,106 @@ export function PaginaEventosAcademicos({
                   </div>
                 ) : (
                   <ul className="space-y-3 max-h-[620px] overflow-y-auto pr-1">
+                    {/* 1. Tareas y Evaluaciones de Profesores */}
+                    {asignacionesdeldia.map((asig) => {
+                      const esExamen = asig.type === 'EXAMEN';
+                      const horaEntrega = asig.dueDate.includes('T') ? formatohora(asig.dueDate) : 'Fin de jornada';
+
+                      return (
+                        <li
+                          key={`asig-${asig.id}`}
+                          className={`rounded-2xl border bg-white p-4 shadow-2xs border-l-4 transition-all hover:shadow-xs ${
+                            esExamen
+                              ? 'border-purple-200/90 border-l-purple-600'
+                              : 'border-blue-200/90 border-l-blue-600'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-1 min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span
+                                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${
+                                    esExamen
+                                      ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                      : 'bg-blue-50 text-blue-700 border-blue-200'
+                                  }`}
+                                >
+                                  {esExamen ? (
+                                    <FileCheck2 className="h-3 w-3 text-purple-600" />
+                                  ) : (
+                                    <BookOpen className="h-3 w-3 text-blue-600" />
+                                  )}
+                                  {esExamen ? 'Examen / Evaluación' : 'Tarea Docente'}
+                                </span>
+
+                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                                  Entrega
+                                </span>
+
+                                <span className="rounded-full bg-indigo-50 border border-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
+                                  Estudiantes
+                                </span>
+                              </div>
+
+                              <h5 className="text-sm font-bold text-slate-900 break-words pt-1">
+                                {asig.title}
+                              </h5>
+                            </div>
+
+                            {asig.maxScore != null && (
+                              <span className="shrink-0 rounded-lg bg-emerald-50 border border-emerald-200 px-2 py-1 text-[11px] font-bold text-emerald-700">
+                                /{asig.maxScore} pts
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="mt-3 space-y-1.5 text-xs text-slate-600 border-t border-slate-100 pt-2.5">
+                            <div className="flex items-center gap-2">
+                              <Clock3 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                              <span className="font-medium text-slate-700">Plazo límite: {horaEntrega}</span>
+                            </div>
+
+                            {asig.subject && (
+                              <div className="flex items-center gap-2">
+                                <BookOpen className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                                <span className="font-medium text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded text-[11px] border border-indigo-100">
+                                  {asig.subject.name}
+                                </span>
+                                {asig.course && (
+                                  <span className="text-[11px] text-slate-600">
+                                    · {asig.course.name}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            {asig.teacher && (
+                              <div className="flex items-center gap-2">
+                                <UserCheck className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                                <span className="text-[11px] text-slate-600">
+                                  Docente: {asig.teacher.firstName} {asig.teacher.lastName}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {asig.description && (
+                            <div className="mt-2.5 rounded-xl bg-slate-50 p-2.5 text-xs text-slate-600 leading-relaxed border border-slate-100">
+                              <p className="whitespace-pre-wrap break-words">{asig.description}</p>
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
+
+                    {/* 2. Actividades y Eventos del Calendario */}
                     {eventosdeldia.map((evento) => {
                       const puedeEditarEvento = puedeEditar(evento);
                       const inicioeneldia = clavededia(new Date(evento.startsAt)) === diaseleccionado;
                       const fineneldia = clavededia(new Date(evento.endsAt)) === diaseleccionado;
                       const cfg = configportipo[evento.type];
+                      const aud = obtenerAudiencia(evento.description, evento.targetCourseId, evento.type);
+                      const descLimpia = limpiarDescripcion(evento.description);
 
                       const horario = evento.allDay
                         ? 'Jornada completa (Todo el día)'
@@ -1146,6 +1483,12 @@ export function PaginaEventosAcademicos({
                                 >
                                   {estadoetiqueta(evento)}
                                 </span>
+
+                                {aud !== 'TODOS' && (
+                                  <span className="rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                                    {aud === 'ESTUDIANTES' ? 'Estudiantes' : aud === 'PADRES' ? 'Padres de Familia' : 'Profesores'}
+                                  </span>
+                                )}
                               </div>
                               <h5 className="text-sm font-bold text-slate-900 break-words pt-1">
                                 {evento.title}
@@ -1208,9 +1551,9 @@ export function PaginaEventosAcademicos({
                             )}
                           </div>
 
-                          {evento.description && (
+                          {descLimpia && (
                             <div className="mt-2.5 rounded-xl bg-slate-50 p-2.5 text-xs text-slate-600 leading-relaxed border border-slate-100">
-                              <p className="whitespace-pre-wrap break-words">{evento.description}</p>
+                              <p className="whitespace-pre-wrap break-words">{descLimpia}</p>
                             </div>
                           )}
 

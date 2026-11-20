@@ -219,6 +219,36 @@ class AcademicRepository implements puertorepositorioacademico {
   }
 
   @override
+  Future<resultadoencache<List<eventoacademico>>> obtenereventosacademicosencache({
+    DateTime? desde,
+    DateTime? hasta,
+  }) {
+    final query = <String, dynamic>{};
+    if (desde != null) query['from'] = desde.toIso8601String();
+    if (hasta != null) query['to'] = hasta.toIso8601String();
+    return _obtenerlistaencache(
+      cacheKey: 'academic_events',
+      path: '/academic-events',
+      queryParameters: query,
+      pageSize: 100,
+      paginated: false,
+      parse: (items) =>
+          items.map(mapeadorregistrosacademicos.evento).toList(),
+    );
+  }
+
+  @override
+  Future<List<eventoacademico>> obtenereventosacademicos({
+    DateTime? desde,
+    DateTime? hasta,
+  }) async {
+    return (await obtenereventosacademicosencache(
+      desde: desde,
+      hasta: hasta,
+    )).datos;
+  }
+
+  @override
   Future<void> solicitarentrevista({
     required String idestudiante,
     required String nombreestudiante,

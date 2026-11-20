@@ -54,6 +54,7 @@ const docenteformularioesquema = z.object({
   specialty: z.string().min(1, 'Selecciona la materia principal'),
   phone: z.string().optional(),
   itemNumber: z.string().optional(),
+  rdaNumber: z.string().optional(),
 });
 
 const familiarformularioesquema = z.object({
@@ -447,20 +448,33 @@ export function ComunidadPagina({
           </div>
 
           <form
-            onSubmit={docenteformulario.handleSubmit((datos) =>
+            onSubmit={docenteformulario.handleSubmit((datos) => {
+              const rdaFinal = datos.rdaNumber?.trim() || requisitosNuevoDocente.rda.numeroRda?.trim() || undefined;
+              const escalafonFinal = requisitosNuevoDocente.rda.categoriaEscalafon || undefined;
+              const itemFinal = datos.itemNumber || requisitosNuevoDocente.boletaPago.numeroItem || undefined;
               creardocente.mutate({
                 ...datos,
                 photoUrl: requisitosNuevoDocente.fotoPerfil || undefined,
-                rdaNumber: requisitosNuevoDocente.rda.numeroRda || undefined,
-                escalafonCategory: requisitosNuevoDocente.rda.categoriaEscalafon || undefined,
+                rdaNumber: rdaFinal,
+                escalafonCategory: escalafonFinal,
                 yearsOfService:
                   typeof requisitosNuevoDocente.rda.anosServicio === 'number'
                     ? requisitosNuevoDocente.rda.anosServicio
                     : Number(requisitosNuevoDocente.rda.anosServicio) || undefined,
-                itemNumber: datos.itemNumber || requisitosNuevoDocente.boletaPago.numeroItem || undefined,
-                documents: requisitosNuevoDocente,
-              }),
-            )}
+                itemNumber: itemFinal,
+                documents: {
+                  ...requisitosNuevoDocente,
+                  rda: {
+                    ...requisitosNuevoDocente.rda,
+                    numeroRda: rdaFinal || '',
+                  },
+                  boletaPago: {
+                    ...requisitosNuevoDocente.boletaPago,
+                    numeroItem: itemFinal || '',
+                  },
+                },
+              });
+            })}
             className="space-y-5"
           >
             {creardocente.isError && (
@@ -520,6 +534,24 @@ export function ComunidadPagina({
                     <Entrada {...docenteformulario.register('ci')} placeholder="6849204" />
                   </Campo>
 
+                  <Campo
+                    label="Número RDA (Registro Docente)"
+                    error={docenteformulario.formState.errors.rdaNumber?.message}
+                  >
+                    <Entrada
+                      {...docenteformulario.register('rdaNumber', {
+                        onChange: (e) => {
+                          const val = e.target.value;
+                          setRequisitosNuevoDocente((actual) => ({
+                            ...actual,
+                            rda: { ...actual.rda, numeroRda: val },
+                          }));
+                        },
+                      })}
+                      placeholder="Ej. 10482915"
+                    />
+                  </Campo>
+
                   <Campo label="Nombres" error={docenteformulario.formState.errors.firstName?.message}>
                     <Entrada {...docenteformulario.register('firstName')} placeholder="Carlos" />
                   </Campo>
@@ -563,7 +595,12 @@ export function ComunidadPagina({
             <div className="pt-1">
               <EditorRequisitosMagisterio
                 valores={requisitosNuevoDocente}
-                onChange={setRequisitosNuevoDocente}
+                onChange={(nuevos) => {
+                  setRequisitosNuevoDocente(nuevos);
+                  if (nuevos.rda.numeroRda !== docenteformulario.getValues('rdaNumber')) {
+                    docenteformulario.setValue('rdaNumber', nuevos.rda.numeroRda || '');
+                  }
+                }}
                 onVerImagen={(url, titulo) => setImagenVisor({ url, titulo })}
               />
             </div>
@@ -1235,7 +1272,7 @@ export function ComunidadPagina({
                       </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-slate-700 mb-1">
                           Teléfono
@@ -1256,6 +1293,23 @@ export function ComunidadPagina({
                           onChange={(e) =>
                             establecerediciondocente({ ...ediciondocente, itemNumber: e.target.value })
                           }
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Número RDA (Registro Docente)
+                        </label>
+                        <Entrada
+                          value={ediciondocente.rdaNumber || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            establecerediciondocente({ ...ediciondocente, rdaNumber: val });
+                            setRequisitosEdicionDocente((actual) => ({
+                              ...actual,
+                              rda: { ...actual.rda, numeroRda: val },
+                            }));
+                          }}
+                          placeholder="Ej. 10482915"
                         />
                       </div>
                     </div>
@@ -1796,12 +1850,12 @@ function DocenteTabla({
                         {elemento.firstName} {elemento.lastName}
                       </span>
                       {elemento.rdaNumber ? (
-                        <span className="text-[11px] font-mono text-slate-500">
+                        <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[11px] font-mono font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
                           RDA: {elemento.rdaNumber}
                         </span>
                       ) : (
-                        <span className="text-[11px] text-slate-400 italic">
-                          Sin RDA
+                        <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] text-amber-700 bg-amber-50 border border-amber-200">
+                          Sin RDA registrado
                         </span>
                       )}
                     </div>

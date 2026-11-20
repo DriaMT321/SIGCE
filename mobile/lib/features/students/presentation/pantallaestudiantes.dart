@@ -86,6 +86,13 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Calendario Académico y Tareas',
+            icon: const Icon(Icons.calendar_month_outlined),
+            onPressed: () => context.push('/calendar'),
+          ),
+        ],
       ),
       body: FutureBuilder<resultadoencache<List<resumendeestudiante>>>(
         future: _futuroestudiantes,
@@ -130,6 +137,70 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
                   ),
                   const SizedBox(height: 12),
                 ],
+                // Tarjeta de acceso rápido al Calendario y Tareas
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.indigo.shade50.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: Colors.indigo.shade200,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.indigo.shade700,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.calendar_month,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Calendario de Actividades y Tareas',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                                color: temaaplicacion.tinta,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Fechas de exámenes, tareas de profesores y eventos.',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: temaaplicacion.tintatenue,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => context.push('/calendar'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.indigo.shade800,
+                          textStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        child: const Text('Ver Todo'),
+                      ),
+                    ],
+                  ),
+                ),
+
                 // Tarjeta de acceso rápido a citas con docentes
                 Container(
                   padding: const EdgeInsets.all(14),
@@ -384,6 +455,13 @@ class _estudiantespantallaestado extends ConsumerState<pantallaestudiantes> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Calendario Académico y Tareas',
+            icon: const Icon(Icons.calendar_month_outlined),
+            onPressed: () => context.push('/calendar'),
+          ),
+        ],
       ),
     );
   }

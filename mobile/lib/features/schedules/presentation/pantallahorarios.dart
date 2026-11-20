@@ -71,6 +71,13 @@ class _pantallahorariosestado extends ConsumerState<pantallahorarios> {
             const Text('Horario Escolar'),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Ver Calendario y Tareas',
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () => context.push('/calendar'),
+          ),
+        ],
       ),
       body: FutureBuilder<resultadoencache<horariomi>>(
         future: _futurohorario,

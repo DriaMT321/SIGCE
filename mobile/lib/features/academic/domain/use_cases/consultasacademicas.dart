@@ -75,6 +75,20 @@ class casoobtenermihorarioencache {
       _repositorio.obtenermihorarioencache();
 }
 
+class casoobtenereventosacademicosencache {
+  const casoobtenereventosacademicosencache(this._repositorio);
+
+  final puertorepositorioacademico _repositorio;
+
+  Future<resultadoencache<List<eventoacademico>>> ejecutar({
+    DateTime? desde,
+    DateTime? hasta,
+  }) => _repositorio.obtenereventosacademicosencache(
+    desde: desde,
+    hasta: hasta,
+  );
+}
+
 class casosolicitarentrevista {
   const casosolicitarentrevista(this._repositorio);
 

@@ -265,3 +265,42 @@ class solicitudcita {
   final String motivo;
   final DateTime fecharegistro;
 }
+
+/// Actividad o Evento del Calendario Académico
+class eventoacademico {
+  const eventoacademico({
+    required this.identificador,
+    required this.titulo,
+    required this.tipo,
+    required this.fechainicio,
+    required this.fechafin,
+    required this.tododia,
+    required this.estado,
+    this.descripcion,
+    this.lugar,
+    this.idcurso,
+    this.audiencia = 'TODOS',
+  });
+
+  final String identificador;
+  final String titulo;
+  final String tipo; // ACTIVIDAD, REUNION, ACTO_ESCOLAR, SUSPENSION_CLASES, OTRO
+  final DateTime fechainicio;
+  final DateTime fechafin;
+  final bool tododia;
+  final String estado; // PROGRAMADO, CANCELADO, REALIZADO
+  final String? descripcion;
+  final String? lugar;
+  final String? idcurso;
+  final String audiencia; // TODOS, PROFESORES, PADRES, ESTUDIANTES
+
+  String get tiponormalizado => switch (tipo) {
+    'ACTIVIDAD' => 'Actividad Académica',
+    'REUNION' => 'Reunión Institucional',
+    'ACTO_ESCOLAR' => 'Acto Cívico / Cultural',
+    'SUSPENSION_CLASES' => 'Suspensión de Clases',
+    _ => 'Evento General',
+  };
+
+  bool get esInstitucional => idcurso == null || idcurso!.isEmpty;
+}

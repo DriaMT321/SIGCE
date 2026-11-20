@@ -10,6 +10,7 @@ import '../../features/attendance/presentation/pantallaasistencia.dart';
 import '../../features/alerts/presentation/pantallaalertas.dart';
 import '../../features/profile/presentation/pantallaperfil.dart';
 import '../../features/schedules/presentation/pantallahorarios.dart';
+import '../../features/academic/presentation/pantallacalendario.dart';
 import '../../features/assignments/presentation/pantallatareas.dart';
 import '../../features/announcements/presentation/pantallacomunicados.dart';
 import '../../features/meetings/presentation/pantallasolicitudcita.dart';
@@ -78,6 +79,12 @@ final GoRouter enrutadoraplicacion = GoRouter(
       path: '/schedules',
       builder: (BuildContext contexto, GoRouterState estado) {
         return const pantallahorarios();
+      },
+    ),
+    GoRoute(
+      path: '/calendar',
+      builder: (BuildContext contexto, GoRouterState estado) {
+        return const pantallacalendario();
       },
     ),
     GoRoute(

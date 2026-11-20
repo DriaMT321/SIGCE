@@ -93,6 +93,13 @@ class _pantallatareasestado extends ConsumerState<pantallatareas> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Ver en Calendario',
+            icon: const Icon(Icons.calendar_month_outlined),
+            onPressed: () => context.push('/calendar'),
+          ),
+        ],
       ),
       body: FutureBuilder<resultadoencache<List<resumendeasignacion>>>(
         future: _futuroasignaciones,

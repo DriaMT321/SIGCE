@@ -38,6 +38,15 @@ abstract interface class puertorepositorioacademico {
   Future<resultadoencache<horariomi>> obtenermihorarioencache();
   Future<horariomi> obtenermihorario();
 
+  Future<resultadoencache<List<eventoacademico>>> obtenereventosacademicosencache({
+    DateTime? desde,
+    DateTime? hasta,
+  });
+  Future<List<eventoacademico>> obtenereventosacademicos({
+    DateTime? desde,
+    DateTime? hasta,
+  });
+
   Future<void> solicitarentrevista({
     required String idestudiante,
     required String nombreestudiante,
