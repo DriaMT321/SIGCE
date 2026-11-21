@@ -91,11 +91,10 @@ export const Barranavegacion: React.FC = () => {
               ? 'Tema Corporativo (Modo Oscuro)'
               : 'Tema Institucional (Modo Claro)'
           }
-          className={`p-2 rounded-lg transition-colors ${
-            esinstitucional
+          className={`p-2 rounded-lg transition-colors ${esinstitucional
               ? 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
               : 'text-amber-400 hover:text-amber-300 hover:bg-slate-800'
-          }`}
+            }`}
         >
           {esinstitucional ? (
             <Moon className="w-4 h-4" />

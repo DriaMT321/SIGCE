@@ -164,6 +164,8 @@ export class gestioncomunidad {
       specialty: entrada.specialty.trim(),
       phone: this.opcionaltexto(entrada.phone),
       itemNumber: this.opcionaltexto(entrada.itemNumber),
+      rdaNumber: this.opcionaltexto(entrada.rdaNumber),
+      escalafonCategory: this.opcionaltexto(entrada.escalafonCategory),
     });
   }
 

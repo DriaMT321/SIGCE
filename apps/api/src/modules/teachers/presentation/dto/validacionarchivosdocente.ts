@@ -14,13 +14,20 @@ function leerarchivo(
   if (valor === undefined || valor === null || valor === '') return { valido: true, bytes: 0 };
   if (typeof valor !== 'string') return { valido: false, bytes: 0 };
 
-  const coincidencia = /^data:(application\/pdf|image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(
-    valor,
+  const limpio = valor.trim();
+  if (/^https?:\/\//i.test(limpio) || /^\/[a-zA-Z0-9_\-./]+$/.test(limpio)) {
+    if (soloimagen && /\.(pdf)$/i.test(limpio)) return { valido: false, bytes: 0 };
+    return { valido: true, bytes: 0 };
+  }
+
+  const coincidencia = /^data:(application\/pdf|image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\s]+)$/.exec(
+    limpio,
   );
   if (!coincidencia || (soloimagen && coincidencia[1] === 'application/pdf')) {
     return { valido: false, bytes: 0 };
   }
-  const bytes = Buffer.from(coincidencia[2], 'base64').byteLength;
+  const cleanBase64 = coincidencia[2].replace(/\s+/g, '');
+  const bytes = Buffer.from(cleanBase64, 'base64').byteLength;
   return { valido: bytes > 0 && bytes <= maximoarchivobytes, bytes };
 }
 

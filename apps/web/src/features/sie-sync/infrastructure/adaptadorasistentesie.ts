@@ -9,8 +9,18 @@ export const adaptadorasistentesie: gestionasistentesie = {
   listargestiones: () => academicoapi.listaracademicogestiones(),
   listarperiodos: (gestionId) => academicoapi.listarperiodos(gestionId),
   listarcursos: async () => {
-    const respuesta = await academicoapi.listarcursos();
-    return respuesta.data ?? [];
+    try {
+      const respuesta = await academicoapi.listarcursos();
+      return respuesta.data ?? [];
+    } catch {
+      try {
+        const respuestaCruda = await clienteapi.get('/courses', { params: { limit: 100 } });
+        const items = respuestaCruda.data?.data ?? respuestaCruda.data ?? [];
+        return Array.isArray(items) ? items : [];
+      } catch {
+        return [];
+      }
+    }
   },
   listarmaterias: (cursoId) => academicoapi.listarmaterias(undefined, cursoId),
   prepararnotas: async (parametros) => {

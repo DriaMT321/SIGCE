@@ -13,6 +13,7 @@ import {
   Pencil,
   Trash2,
   AlertTriangle,
+  AlertCircle,
   Link2,
   Check,
   Unlink,
@@ -25,6 +26,7 @@ import {
   ExternalLink,
   CheckCircle2,
 } from 'lucide-react';
+import { gestionusoautenticacion } from '../../auth/presentation/contextodeautenticacion';
 import {
   EditorRequisitosMagisterio,
   ModalDetalleLegajoDocente,
@@ -128,8 +130,11 @@ export function ComunidadPagina({
   currentRole?: string;
 }) {
   const clientedeconsultas = useQueryClient();
+  const authGestion = gestionusoautenticacion();
+  const usuarioActual = authGestion.obtenerusuarioactual();
   const [mostrarformulario, establecermostrarformulario] = useState(false);
   const [buscar, establecerbuscar] = useState('');
+  const [filtroRda, setFiltroRda] = useState<'todos' | 'con-rda' | 'sin-rda'>('todos');
 
   // Modals state for Edit and Delete
   const [ediciondocente, establecerediciondocente] = useState<editardocenteestado | null>(null);
@@ -226,6 +231,7 @@ export function ComunidadPagina({
       specialty: '',
       phone: '',
       itemNumber: '',
+      rdaNumber: '',
     },
   });
 
@@ -328,18 +334,18 @@ export function ComunidadPagina({
         establecerfamiliarparavincular((actual) =>
           actual && !actual.students.some((item) => item.id === nuevo.id)
             ? {
-                ...actual,
-                students: [
-                  ...actual.students,
-                  {
-                    id: nuevo.id,
-                    rude: nuevo.rude,
-                    firstName: nuevo.firstName,
-                    lastName: nuevo.lastName,
-                    relationship: relacionparavincular,
-                  },
-                ],
-              }
+              ...actual,
+              students: [
+                ...actual.students,
+                {
+                  id: nuevo.id,
+                  rude: nuevo.rude,
+                  firstName: nuevo.firstName,
+                  lastName: nuevo.lastName,
+                  relationship: relacionparavincular,
+                },
+              ],
+            }
             : actual,
         );
         establecerrelacionesvinculadas((actual) => ({
@@ -436,6 +442,100 @@ export function ComunidadPagina({
           </Boton>
         )}
       </div>
+
+      {actualrol === 'TEACHER' && (() => {
+        const miDoc = (docentesconsulta.data?.data ?? []).find(
+          (d) => d.email.toLowerCase() === usuarioActual?.email?.toLowerCase(),
+        );
+        if (!miDoc) return null;
+        const rdaDoc = miDoc.rdaNumber || (miDoc.documents as any)?.rda?.numeroRda;
+        return (
+          <div className="rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-50/90 via-white to-indigo-50/50 p-4 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">
+                    Tu Expediente y Legajo Oficial RDA
+                  </h2>
+                  <p className="text-xs text-slate-600">
+                    {rdaDoc
+                      ? `RDA Registrado: ${rdaDoc} · Escalafón: ${miDoc.escalafonCategory || 'En registro'} · Ítem: ${miDoc.itemNumber || 'Por asignar'}`
+                      : 'Expediente docente activo según la Ley 070'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDocenteParaVerLegajo(miDoc)}
+                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-xs font-semibold shadow-xs transition-colors cursor-pointer shrink-0"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Ver Mi Legajo y Documentos RDA</span>
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
+      {modo === 'teachers' && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <button
+            type="button"
+            onClick={() => setFiltroRda('todos')}
+            className={`rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
+              filtroRda === 'todos'
+                ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-900'
+            }`}
+          >
+            <p className={`text-xs font-medium ${filtroRda === 'todos' ? 'text-slate-300' : 'text-slate-500'}`}>
+              Total Plantel Docente
+            </p>
+            <p className="text-xl font-bold mt-1">{datoscantidad}</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFiltroRda('con-rda')}
+            className={`rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
+              filtroRda === 'con-rda'
+                ? 'border-indigo-600 bg-indigo-600 text-white shadow-xs'
+                : 'border-indigo-100 bg-indigo-50/60 hover:bg-indigo-50 text-indigo-950'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <p className={`text-xs font-medium ${filtroRda === 'con-rda' ? 'text-indigo-100' : 'text-indigo-900'}`}>
+                Con RDA Registrado
+              </p>
+              <ShieldCheck className={`w-4 h-4 ${filtroRda === 'con-rda' ? 'text-indigo-200' : 'text-indigo-600'}`} />
+            </div>
+            <p className="text-xl font-bold mt-1">
+              {(docentesconsulta.data?.data ?? []).filter((d) => Boolean(d.rdaNumber?.trim() || (d.documents as any)?.rda?.numeroRda?.trim())).length}
+            </p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFiltroRda('sin-rda')}
+            className={`rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
+              filtroRda === 'sin-rda'
+                ? 'border-amber-600 bg-amber-600 text-white shadow-xs'
+                : 'border-amber-100 bg-amber-50/60 hover:bg-amber-50 text-amber-950'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <p className={`text-xs font-medium ${filtroRda === 'sin-rda' ? 'text-amber-100' : 'text-amber-900'}`}>
+                Pendientes de RDA
+              </p>
+              <AlertCircle className={`w-4 h-4 ${filtroRda === 'sin-rda' ? 'text-amber-200' : 'text-amber-600'}`} />
+            </div>
+            <p className="text-xl font-bold mt-1">
+              {(docentesconsulta.data?.data ?? []).filter((d) => !d.rdaNumber?.trim() && !(d.documents as any)?.rda?.numeroRda?.trim()).length}
+            </p>
+          </button>
+        </div>
+      )}
 
       {/* Form - Create Teacher */}
       {mostrarformulario && puedegestionar && modo === 'teachers' && (
@@ -808,7 +908,12 @@ export function ComunidadPagina({
           </div>
         ) : modo === 'teachers' ? (
           <DocenteTabla
-            data={docentesconsulta.data?.data ?? []}
+            data={(docentesconsulta.data?.data ?? []).filter((d) => {
+              const tieneRda = Boolean(d.rdaNumber?.trim() || (d.documents as any)?.rda?.numeroRda?.trim());
+              if (filtroRda === 'con-rda') return tieneRda;
+              if (filtroRda === 'sin-rda') return !tieneRda;
+              return true;
+            })}
             canManage={puedegestionar}
             canDelete={puedeeliminar}
             onVerLegajo={(docente) => setDocenteParaVerLegajo(docente)}
@@ -980,7 +1085,7 @@ export function ComunidadPagina({
                           disabled={
                             actualizarestudiantevinculadomutacion.isPending ||
                             (relacionesvinculadas[estudiante.id] ?? estudiante.relationship) ===
-                              estudiante.relationship
+                            estudiante.relationship
                           }
                           onClick={() =>
                             actualizarestudiantevinculadomutacion.mutate({
@@ -1176,22 +1281,20 @@ export function ComunidadPagina({
               <button
                 type="button"
                 onClick={() => setPestanaEdicionDocente('datos')}
-                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${
-                  pestanaEdicionDocente === 'datos'
+                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${pestanaEdicionDocente === 'datos'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
+                  }`}
               >
                 1. Datos Generales y Foto
               </button>
               <button
                 type="button"
                 onClick={() => setPestanaEdicionDocente('requisitos')}
-                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
-                  pestanaEdicionDocente === 'requisitos'
+                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${pestanaEdicionDocente === 'requisitos'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
+                  }`}
               >
                 2. Requisitos Magisterio (RDA, TPN, Escalafón, Boleta, Antigüedad)
                 <span className="text-[10px] bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-mono">
@@ -1201,11 +1304,10 @@ export function ComunidadPagina({
               <button
                 type="button"
                 onClick={() => setPestanaEdicionDocente('materias')}
-                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${
-                  pestanaEdicionDocente === 'materias'
+                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${pestanaEdicionDocente === 'materias'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
+                  }`}
               >
                 3. Materias Asignadas ({ediciondocente.teacherAssignments.length})
               </button>
@@ -1486,12 +1588,12 @@ export function ComunidadPagina({
                     establecerediciondocente((actual) =>
                       actual && actual.id === ediciondocente.id
                         ? {
-                            ...actual,
-                            teacherAssignments: [
-                              ...actual.teacherAssignments.filter((item) => item.courseId !== courseId),
-                              ...assignments,
-                            ],
-                          }
+                          ...actual,
+                          teacherAssignments: [
+                            ...actual.teacherAssignments.filter((item) => item.courseId !== courseId),
+                            ...assignments,
+                          ],
+                        }
                         : actual,
                     );
                   }}
@@ -1634,7 +1736,7 @@ export function ComunidadPagina({
       )}
 
       {/* MODAL: CONFIRMAR BAJA LÓGICA (SOFT DELETE) */}
-            {restablecerfamiliar && (
+      {restablecerfamiliar && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs">
           <div
             role="dialog"
@@ -1777,13 +1879,13 @@ export function ComunidadPagina({
             {(eliminacionelemento.type === 'teacher'
               ? eliminardocentemutacion.isError
               : eliminarfamiliarmutacion.isError) && (
-              <p role="alert" className="mt-3 text-sm text-rose-700">
-                {(eliminacionelemento.type === 'teacher'
-                  ? eliminardocentemutacion.error
-                  : eliminarfamiliarmutacion.error
-                )?.message || 'No se pudo dar de baja el registro.'}
-              </p>
-            )}
+                <p role="alert" className="mt-3 text-sm text-rose-700">
+                  {(eliminacionelemento.type === 'teacher'
+                    ? eliminardocentemutacion.error
+                    : eliminarfamiliarmutacion.error
+                  )?.message || 'No se pudo dar de baja el registro.'}
+                </p>
+              )}
 
             <div className="flex items-center justify-end gap-2 pt-5">
               <Boton
@@ -1880,8 +1982,8 @@ function DocenteTabla({
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500 uppercase tracking-wide">
             <th className="py-3 pl-5 pr-3">Docente</th>
-            <th className="px-3 py-3">RDA / Ítem</th>
-            <th className="px-3 py-3">Materia principal</th>
+            <th className="px-3 py-3">RDA y Legajo Oficial (Ley 070)</th>
+            <th className="px-3 py-3">Ítem / Materia principal</th>
             <th className="px-3 py-3">Carga en la gestión activa</th>
             <th className="px-3 py-3">Correo</th>
             <th className="py-3 pl-3 pr-5 text-right">Acciones</th>
@@ -1902,6 +2004,11 @@ function DocenteTabla({
             const cursosdistintos = new Set(
               elemento.teacherAssignments.map((asignacion) => asignacion.courseId),
             ).size;
+            const rdaNum = elemento.rdaNumber?.trim() || (elemento.documents as any)?.rda?.numeroRda?.trim();
+            const escalafon = elemento.escalafonCategory || (elemento.documents as any)?.rda?.categoriaEscalafon;
+            const anos = elemento.yearsOfService ?? (elemento.documents as any)?.rda?.anosServicio;
+            const tieneDoc = Boolean((elemento.documents as any)?.rda?.archivoUrl);
+
             return (
               <tr key={elemento.id} className="hover:bg-slate-50 transition-colors">
                 <td className="py-3 pl-5 pr-3">
@@ -1910,24 +2017,20 @@ function DocenteTabla({
                       <img
                         src={elemento.photoUrl}
                         alt={`${elemento.firstName} ${elemento.lastName}`}
-                        className="w-8 h-8 rounded-lg object-cover border border-slate-200 shadow-2xs shrink-0"
+                        className="w-9 h-9 rounded-lg object-cover border border-slate-200 shadow-2xs shrink-0"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 font-semibold text-xs flex items-center justify-center shrink-0 border border-indigo-100">
+                      <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-700 font-semibold text-xs flex items-center justify-center shrink-0 border border-indigo-100">
                         {iniciales}
                       </div>
                     )}
                     <div>
-                      <span className="font-medium text-slate-900 block">
+                      <span className="font-semibold text-slate-900 block">
                         {elemento.firstName} {elemento.lastName}
                       </span>
-                      {elemento.rdaNumber ? (
-                        <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[11px] font-mono font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                          RDA: {elemento.rdaNumber}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] text-amber-700 bg-amber-50 border border-amber-200">
-                          Sin RDA registrado
+                      {elemento.ci && (
+                        <span className="text-[11px] text-slate-500 font-mono">
+                          CI: {elemento.ci}
                         </span>
                       )}
                     </div>
@@ -1935,24 +2038,60 @@ function DocenteTabla({
                 </td>
 
                 <td className="px-3 py-3">
-                  <div className="space-y-0.5">
-                    <div className="font-mono text-xs text-slate-700 font-medium">
-                      {elemento.itemNumber ? `Ítem: ${elemento.itemNumber}` : <span className="text-slate-400 font-normal">Sin ítem</span>}
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {rdaNum ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs">
+                          <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+                          RDA: {rdaNum}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium text-amber-800 bg-amber-50 border border-amber-200">
+                          <AlertCircle className="w-3 h-3 text-amber-600" />
+                          Sin RDA registrado
+                        </span>
+                      )}
+                      {tieneDoc && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200" title="Respaldo PDF o digital adjunto">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          PDF Adjunto
+                        </span>
+                      )}
                     </div>
-                    {elemento.escalafonCategory && (
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        {elemento.escalafonCategory}
-                      </span>
-                    )}
+                    <div className="text-[11px] text-slate-600 flex flex-wrap items-center gap-1">
+                      {escalafon ? (
+                        <span className="font-medium text-slate-700">{escalafon}</span>
+                      ) : (
+                        <span className="text-slate-400">Escalafón no especificado</span>
+                      )}
+                      {anos !== undefined && anos !== null && anos !== '' && (
+                        <span className="text-slate-500">· {anos} años serv.</span>
+                      )}
+                    </div>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => onverlegajo(elemento)}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>Ver Legajo RDA</span>
+                      </button>
+                    </div>
                   </div>
                 </td>
 
                 <td className="px-3 py-3">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">
-                    {elemento.specialty === 'MAESTRA/O' || elemento.specialty === 'Maestro'
-                      ? 'Por asignar'
-                      : elemento.specialty}
-                  </span>
+                  <div className="space-y-1">
+                    <div className="font-mono text-xs text-slate-700 font-medium">
+                      {elemento.itemNumber ? `Ítem: ${elemento.itemNumber}` : <span className="text-slate-400 font-normal">Sin ítem</span>}
+                    </div>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">
+                      {elemento.specialty === 'MAESTRA/O' || elemento.specialty === 'Maestro'
+                        ? 'Por asignar'
+                        : elemento.specialty}
+                    </span>
+                  </div>
                 </td>
 
                 <td className="px-3 py-3">
@@ -1991,16 +2130,14 @@ function DocenteTabla({
 
                 <td className="py-3 pl-3 pr-5 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    {puedegestionar && (
-                      <button
-                        type="button"
-                        onClick={() => onverlegajo(elemento)}
-                        className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
-                        title="Ver Legajo Oficial (RDA, Título, Escalafón, Boleta, Titularidad)"
-                      >
-                        <FileText className="w-4 h-4" />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => onverlegajo(elemento)}
+                      className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                      title="Ver Legajo Oficial (RDA, Título, Escalafón, Boleta, Titularidad)"
+                    >
+                      <FileText className="w-4 h-4" />
+                    </button>
                     {puedegestionar && (
                       <>
                         <button

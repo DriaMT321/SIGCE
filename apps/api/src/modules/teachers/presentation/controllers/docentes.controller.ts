@@ -56,7 +56,23 @@ export class controladordocentes {
       message: 'Docentes obtenidos exitosamente',
       data:
         usuario.role === rolusuario.TEACHER
-          ? resultado.items.map(({ documents: _documents, ...docente }) => docente)
+          ? resultado.items.map((docente) => {
+              if (docente.userId === usuario.id) {
+                return docente;
+              }
+              const { documents: _documents, ...docenteSinDocs } = docente;
+              return {
+                ...docenteSinDocs,
+                documents: docente.documents
+                  ? {
+                      rda: {
+                        numeroRda: (docente.documents as any)?.rda?.numeroRda ?? docente.rdaNumber,
+                        categoriaEscalafon: (docente.documents as any)?.rda?.categoriaEscalafon ?? docente.escalafonCategory,
+                      },
+                    }
+                  : null,
+              };
+            })
           : resultado.items,
       total: resultado.total,
     };

@@ -260,11 +260,10 @@ export const CurriculoPagina: React.FC<{ planning: curriculoplanificacion }> = (
               <button
                 key={recortar.id}
                 onClick={() => establecerseleccionadotrimestre(recortar.id)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-                  seleccionadotrimestre === recortar.id
+                className={`px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${seleccionadotrimestre === recortar.id
                     ? 'bg-white text-slate-900 font-semibold shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
-                }`}
+                  }`}
               >
                 {recortar.label}
               </button>
@@ -282,11 +281,10 @@ export const CurriculoPagina: React.FC<{ planning: curriculoplanificacion }> = (
               <button
                 key={nivel.id}
                 onClick={() => establecerseleccionadonivel(nivel.id)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
-                  seleccionadonivel === nivel.id
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${seleccionadonivel === nivel.id
                     ? 'bg-slate-900 text-white border-slate-900'
                     : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 {nivel.label}
               </button>
@@ -439,13 +437,12 @@ export const CurriculoPagina: React.FC<{ planning: curriculoplanificacion }> = (
                     <div className="w-full md:w-56 shrink-0 flex flex-col gap-2 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
                       <div className="flex items-center justify-between text-xs">
                         <span
-                          className={`font-mono font-semibold px-2 py-0.5 rounded-full text-xs uppercase tracking-wide ${
-                            escompletado
+                          className={`font-mono font-semibold px-2 py-0.5 rounded-full text-xs uppercase tracking-wide ${escompletado
                               ? 'bg-emerald-50 text-emerald-700'
                               : esenavance
                                 ? 'bg-blue-50 text-blue-700'
                                 : 'bg-slate-100 text-slate-600'
-                          }`}
+                            }`}
                         >
                           {tema.status.replace(/_/g, ' ')}
                         </span>
@@ -456,13 +453,12 @@ export const CurriculoPagina: React.FC<{ planning: curriculoplanificacion }> = (
 
                       <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full ${
-                            escompletado
+                          className={`h-full rounded-full ${escompletado
                               ? 'bg-emerald-500'
                               : esenavance
                                 ? 'bg-blue-500'
                                 : 'bg-slate-300'
-                          }`}
+                            }`}
                           style={{ width: `${tema.progressPercent}%` }}
                         />
                       </div>

@@ -14,7 +14,7 @@ export function Paneldesincronizacionsie({ gestion }: { gestion: gestionasistent
     queryFn: () => gestion.listargestiones(),
   });
   const gestionSeleccionada =
-    gestionId || gestiones.data?.find((g) => g.isActive)?.id || '';
+    gestionId || gestiones.data?.find((g) => g.isActive)?.id || gestiones.data?.[0]?.id || '';
   const periodos = useQuery({
     queryKey: ['periods', gestionSeleccionada],
     queryFn: () => gestion.listarperiodos(gestionSeleccionada),
@@ -35,9 +35,13 @@ export function Paneldesincronizacionsie({ gestion }: { gestion: gestionasistent
         periodNumber: Number(periodoNumero),
       }),
   });
-  const cursosVisibles = (cursos.data ?? []).filter(
-    (curso) => curso.academicYearId === gestionSeleccionada,
-  );
+  const todosLosCursos = cursos.data ?? [];
+  const cursosFiltrados = todosLosCursos.filter((curso) => {
+    if (!gestionSeleccionada) return true;
+    const anioId = curso.academicYearId || (curso as any).academicYear?.id;
+    return !anioId || anioId === gestionSeleccionada;
+  });
+  const cursosVisibles = cursosFiltrados.length > 0 ? cursosFiltrados : todosLosCursos;
   const periodosCerrados = (periodos.data ?? []).filter((periodo) => periodo.isClosed);
 
   return <main className="space-y-5 pb-10">
@@ -94,8 +98,36 @@ export function Paneldesincronizacionsie({ gestion }: { gestion: gestionasistent
           </select>
         </label>
         <label className="grid gap-1.5 text-sm font-medium text-slate-700">Curso
-          <select value={cursoId} onChange={(e) => { setCursoId(e.target.value); setMateriaId(''); preparar.reset(); }} disabled={!gestionSeleccionada || preparar.isPending} className="h-11 rounded-lg border border-slate-300 bg-white px-3 font-normal text-slate-900 disabled:bg-slate-50">
-            <option value="">Selecciona un curso</option>{cursosVisibles.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          <select
+            value={cursoId}
+            onChange={(e) => {
+              const nuevoId = e.target.value;
+              setCursoId(nuevoId);
+              setMateriaId('');
+              preparar.reset();
+              if (nuevoId) {
+                const cursoEncontrado = todosLosCursos.find((c) => c.id === nuevoId);
+                const anioCurso = cursoEncontrado?.academicYearId || (cursoEncontrado as any)?.academicYear?.id;
+                if (anioCurso && anioCurso !== gestionSeleccionada) {
+                  setGestionId(anioCurso);
+                }
+              }
+            }}
+            disabled={preparar.isPending || cursos.isLoading}
+            className="h-11 rounded-lg border border-slate-300 bg-white px-3 font-normal text-slate-900 disabled:bg-slate-50"
+          >
+            <option value="">
+              {cursos.isLoading
+                ? 'Cargando cursos...'
+                : cursosVisibles.length === 0
+                  ? 'No hay cursos registrados'
+                  : 'Selecciona un curso'}
+            </option>
+            {cursosVisibles.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
           </select>
         </label>
         <label className="grid gap-1.5 text-sm font-medium text-slate-700">Materia

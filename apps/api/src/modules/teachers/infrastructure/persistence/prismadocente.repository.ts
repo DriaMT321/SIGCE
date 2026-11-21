@@ -86,6 +86,13 @@ export class repositoriodocenteprisma implements repositoriodocentes {
             role: UserRole.TEACHER,
           },
         });
+        const rdaParaGuardar = datos.rdaNumber ?? (datos.documents as any)?.rda?.numeroRda ?? null;
+        const escalafonParaGuardar = datos.escalafonCategory ?? (datos.documents as any)?.rda?.categoriaEscalafon ?? null;
+        const itemParaGuardar = datos.itemNumber ?? (datos.documents as any)?.boletaPago?.numeroItem ?? null;
+        const anosParaGuardar =
+          datos.yearsOfService ??
+          ((datos.documents as any)?.rda?.anosServicio ? Number((datos.documents as any)?.rda?.anosServicio) : null);
+
         const docentecreado = await tx.teacher.create({
           data: {
             userId: usuario.id,
@@ -94,10 +101,10 @@ export class repositoriodocenteprisma implements repositoriodocentes {
             lastName: datos.lastName,
             specialty: datos.specialty,
             phone: datos.phone,
-            itemNumber: datos.itemNumber,
-            rdaNumber: datos.rdaNumber,
-            escalafonCategory: datos.escalafonCategory,
-            yearsOfService: datos.yearsOfService,
+            itemNumber: itemParaGuardar,
+            rdaNumber: rdaParaGuardar,
+            escalafonCategory: escalafonParaGuardar,
+            yearsOfService: anosParaGuardar,
             photoUrl: datos.photoUrl,
             documents: datos.documents ?? Prisma.DbNull,
           },
@@ -157,10 +164,26 @@ export class repositoriodocenteprisma implements repositoriodocentes {
             },
           });
         }
+        const rdaActualizar =
+          docentecampos.rdaNumber !== undefined
+            ? docentecampos.rdaNumber
+            : (docDocumentos as any)?.rda?.numeroRda;
+        const escalafonActualizar =
+          docentecampos.escalafonCategory !== undefined
+            ? docentecampos.escalafonCategory
+            : (docDocumentos as any)?.rda?.categoriaEscalafon;
+        const itemActualizar =
+          docentecampos.itemNumber !== undefined
+            ? docentecampos.itemNumber
+            : (docDocumentos as any)?.boletaPago?.numeroItem;
+
         const actualizado = await tx.teacher.update({
           where: { id, deletedAt: null },
           data: {
             ...docentecampos,
+            ...(rdaActualizar !== undefined ? { rdaNumber: rdaActualizar } : {}),
+            ...(escalafonActualizar !== undefined ? { escalafonCategory: escalafonActualizar } : {}),
+            ...(itemActualizar !== undefined ? { itemNumber: itemActualizar } : {}),
             ...(nombres ? { firstName: nombres } : {}),
             ...(apellidos ? { lastName: apellidos } : {}),
             ...(docDocumentos !== undefined
@@ -290,11 +313,13 @@ export class repositoriodocenteprisma implements repositoriodocentes {
         academicYear: asignacion.academicYear.year,
       })),
       phone: valor.phone,
-      itemNumber: valor.itemNumber,
-      rdaNumber: valor.rdaNumber ?? null,
-      escalafonCategory: valor.escalafonCategory ?? null,
-      yearsOfService: valor.yearsOfService ?? null,
-      photoUrl: valor.photoUrl ?? null,
+      itemNumber: valor.itemNumber ?? (valor.documents as any)?.boletaPago?.numeroItem ?? null,
+      rdaNumber: valor.rdaNumber ?? (valor.documents as any)?.rda?.numeroRda ?? null,
+      escalafonCategory: valor.escalafonCategory ?? (valor.documents as any)?.rda?.categoriaEscalafon ?? null,
+      yearsOfService:
+        valor.yearsOfService ??
+        ((valor.documents as any)?.rda?.anosServicio ? Number((valor.documents as any)?.rda?.anosServicio) : null),
+      photoUrl: valor.photoUrl ?? (valor.documents as any)?.fotoPerfil ?? null,
       documents: valor.documents ?? null,
       email: valor.user.email,
       createdAt: valor.createdAt,

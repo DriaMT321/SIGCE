@@ -21,21 +21,26 @@ const puerto: puertogestioncomunidad = {
           yearsOfService: docenteAnos,
           photoUrl: docenteFoto,
           documents: docenteDocs,
-        }) => ({
-          id,
-          email: correo,
-          firstName: nombres,
-          lastName: apellidos,
-          specialty: especialidad,
-          teacherAssignments: asignacionesdocente,
-          phone: telefono,
-          itemNumber: elementonumero,
-          rdaNumber: docenteRda,
-          escalafonCategory: docenteEscalafon,
-          yearsOfService: docenteAnos,
-          photoUrl: docenteFoto,
-          documents: docenteDocs,
-        }),
+        }) => {
+          const rdaFinal = docenteRda || (docenteDocs as any)?.rda?.numeroRda || null;
+          const escalafonFinal = docenteEscalafon || (docenteDocs as any)?.rda?.categoriaEscalafon || null;
+          const anosFinal = docenteAnos ?? (docenteDocs as any)?.rda?.anosServicio ?? null;
+          return {
+            id,
+            email: correo,
+            firstName: nombres,
+            lastName: apellidos,
+            specialty: especialidad,
+            teacherAssignments: asignacionesdocente,
+            phone: telefono,
+            itemNumber: elementonumero,
+            rdaNumber: rdaFinal,
+            escalafonCategory: escalafonFinal,
+            yearsOfService: anosFinal,
+            photoUrl: docenteFoto,
+            documents: docenteDocs,
+          };
+        },
       ),
     };
   },
