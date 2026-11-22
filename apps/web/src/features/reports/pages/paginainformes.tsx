@@ -143,9 +143,9 @@ export const InformesPagina: React.FC<{ queries: informeconsultas }> = ({ querie
           : activoinforme === 'PROMOTION_LIST'
             ? { courseId: activocurso!.id }
             : {
-                studentId: activoestudiante!.id,
-                enrollmentId: cursoinscripcion(activoestudiante!, activocurso!)?.id,
-              },
+              studentId: activoestudiante!.id,
+              enrollmentId: cursoinscripcion(activoestudiante!, activocurso!)?.id,
+            },
       ),
     enabled:
       activoinforme === 'CENTRALIZER'
@@ -153,7 +153,7 @@ export const InformesPagina: React.FC<{ queries: informeconsultas }> = ({ querie
         : activoinforme === 'PROMOTION_LIST'
           ? Boolean(activocurso)
           : activoinforme === 'REPORT_CARD' &&
-            Boolean(activoestudiante && cursoinscripcion(activoestudiante, activocurso)),
+          Boolean(activoestudiante && cursoinscripcion(activoestudiante, activocurso)),
   });
   const asistenciaconsulta = useQuery({
     queryKey: ['reports', 'attendance', activocurso?.id],
@@ -491,11 +491,10 @@ export const InformesPagina: React.FC<{ queries: informeconsultas }> = ({ querie
             key={id}
             type="button"
             onClick={() => estableceractivoinforme(id)}
-            className={`flex items-center gap-2 rounded-xl border p-3 text-left text-xs font-semibold transition-all shadow-2xs ${
-              activoinforme === id
+            className={`flex items-center gap-2 rounded-xl border p-3 text-left text-xs font-semibold transition-all shadow-2xs ${activoinforme === id
                 ? 'border-brand-700 bg-brand-50 text-brand-950 shadow-xs'
                 : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-            }`}
+              }`}
           >
             <Icono className={`h-4 w-4 shrink-0 ${activoinforme === id ? 'text-brand-700' : 'text-slate-400'}`} aria-hidden="true" />
             <span className="truncate">{etiqueta}</span>
@@ -862,9 +861,9 @@ export const InformesPagina: React.FC<{ queries: informeconsultas }> = ({ querie
                 const promedioGeneral =
                   filasMaterias.length > 0
                     ? Math.round(
-                        filasMaterias.reduce((a, b) => a + b.promedio, 0) /
-                          filasMaterias.length,
-                      )
+                      filasMaterias.reduce((a, b) => a + b.promedio, 0) /
+                      filasMaterias.length,
+                    )
                     : 0;
                 const materiasAprobadas = filasMaterias.filter((m) => m.aprobado).length;
                 const esPromovido =

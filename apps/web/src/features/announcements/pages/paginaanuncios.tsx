@@ -591,10 +591,10 @@ export const AnunciosPagina: React.FC<{
                 docentesconsulta.isError ||
                 familiaresconsulta.isError ||
                 estudiantesconsulta.isError) && (
-                <p role="alert" className="text-sm text-rose-700">
-                  No se cargaron todos los destinatarios. Verifique el alcance antes de publicar.
-                </p>
-              )}
+                  <p role="alert" className="text-sm text-rose-700">
+                    No se cargaron todos los destinatarios. Verifique el alcance antes de publicar.
+                  </p>
+                )}
               {/* Título */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -642,11 +642,10 @@ export const AnunciosPagina: React.FC<{
                         key={nivel.id}
                         type="button"
                         onClick={() => establecerurgencia(nivel.id as anunciourgencia)}
-                        className={`min-h-10 rounded-lg border px-3 py-2 text-center font-medium text-xs transition-colors cursor-pointer ${
-                          esseleccionado
-                            ? `${nivel.color} ring-2 ring-slate-900 shadow-sm`
-                            : 'border-slate-200 text-slate-500 hover:bg-slate-50'
-                        }`}
+                        className={`min-h-10 rounded-lg border px-3 py-2 text-center font-medium text-xs transition-colors cursor-pointer ${esseleccionado
+                          ? `${nivel.color} ring-2 ring-slate-900 shadow-sm`
+                          : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                          }`}
                       >
                         <span>{nivel.label}</span>
                       </button>
@@ -824,11 +823,10 @@ export const AnunciosPagina: React.FC<{
                           <div
                             key={p.id}
                             onClick={() => alternarusuarioid(p.id)}
-                            className={`flex items-center justify-between p-2.5 text-xs cursor-pointer transition-colors ${
-                              esseleccionado
-                                ? 'bg-amber-50/70 hover:bg-amber-100/60'
-                                : 'hover:bg-slate-50'
-                            }`}
+                            className={`flex items-center justify-between p-2.5 text-xs cursor-pointer transition-colors ${esseleccionado
+                              ? 'bg-amber-50/70 hover:bg-amber-100/60'
+                              : 'hover:bg-slate-50'
+                              }`}
                           >
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="shrink-0 text-slate-700">
@@ -925,11 +923,10 @@ export const AnunciosPagina: React.FC<{
                           <div
                             key={t.id}
                             onClick={() => alternarusuarioid(t.id)}
-                            className={`flex items-center justify-between p-2.5 text-xs cursor-pointer transition-colors ${
-                              esseleccionado
-                                ? 'bg-blue-50/70 hover:bg-blue-100/60'
-                                : 'hover:bg-slate-50'
-                            }`}
+                            className={`flex items-center justify-between p-2.5 text-xs cursor-pointer transition-colors ${esseleccionado
+                              ? 'bg-blue-50/70 hover:bg-blue-100/60'
+                              : 'hover:bg-slate-50'
+                              }`}
                           >
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="shrink-0 text-slate-700">
@@ -1013,11 +1010,10 @@ export const AnunciosPagina: React.FC<{
                           <div
                             key={s.id}
                             onClick={() => alternarusuarioid(s.id)}
-                            className={`flex items-center justify-between p-2.5 text-xs cursor-pointer transition-colors ${
-                              esseleccionado
-                                ? 'bg-emerald-50/70 hover:bg-emerald-100/60'
-                                : 'hover:bg-slate-50'
-                            }`}
+                            className={`flex items-center justify-between p-2.5 text-xs cursor-pointer transition-colors ${esseleccionado
+                              ? 'bg-emerald-50/70 hover:bg-emerald-100/60'
+                              : 'hover:bg-slate-50'
+                              }`}
                           >
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="shrink-0 text-slate-700">

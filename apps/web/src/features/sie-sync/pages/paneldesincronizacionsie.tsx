@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { BookOpenCheck, Download, ExternalLink, FileCheck2, Loader2, ShieldCheck } from 'lucide-react';
+import { BookOpenCheck, Download, ExternalLink, FileCheck2, GraduationCap, Loader2, ShieldCheck } from 'lucide-react';
 import { Boton } from '../../../components/ui/boton';
 import type { gestionasistentesie } from '../application/gestionasistentesie';
 
@@ -61,7 +61,7 @@ export function Paneldesincronizacionsie({ gestion }: { gestion: gestionasistent
           className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800"
         >
           <Download className="h-4 w-4" aria-hidden="true" />
-          Descargar plugin Chrome (.zip)
+          Descargar plugin Chrome (.zip) · con Respaldo de Notas
         </a>
         <a
           href="/sie-demo/index.html"
@@ -70,8 +70,12 @@ export function Paneldesincronizacionsie({ gestion }: { gestion: gestionasistent
           className="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-white px-4 py-2 text-xs font-semibold text-amber-950 shadow-2xs transition-colors hover:bg-amber-100/70"
         >
           <ExternalLink className="h-4 w-4" aria-hidden="true" />
-          Abrir réplica SIE de demostración
+          Abrir réplica SIE de demostración (con 6to Secundaria)
         </a>
+      </div>
+      <div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-100/60 px-3 py-1.5 text-xs text-amber-900">
+        <GraduationCap className="h-4 w-4 shrink-0 text-amber-700" />
+        <span><strong>6to de Secundaria habilitado:</strong> El plugin genera automáticamente copias de seguridad de notas en Excel/JSON para proteger las actas de bachilleres ante caídas del portal SIE.</span>
       </div>
     </header>
 
@@ -146,15 +150,89 @@ export function Paneldesincronizacionsie({ gestion }: { gestion: gestionasistent
         {preparar.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileCheck2 className="h-4 w-4" />} Revisar notas listas
       </Boton>
       {preparar.isError && <p role="alert" className="mt-3 text-sm text-rose-700">{preparar.error instanceof Error ? preparar.error.message : 'No se pudieron preparar las notas.'}</p>}
-      {preparar.data && <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4" aria-live="polite">
-        <h3 className="font-semibold text-slate-900">{preparar.data.course.name} · {preparar.data.subject.name}</h3>
-        <p className="mt-1 text-sm text-slate-600">{preparar.data.period.name} · {preparar.data.grades.length} calificaciones listas</p>
-        {preparar.data.grades.length === 0 ? <p className="mt-3 text-sm text-slate-700">No hay notas publicadas en esta selección.</p> :
-          <div className="mt-4 max-h-80 overflow-auto rounded-lg border border-slate-200 bg-white"><table className="w-full min-w-[520px] text-left text-sm">
-            <thead className="sticky top-0 bg-slate-100 text-xs uppercase text-slate-600"><tr><th className="px-3 py-2">Estudiante</th><th className="px-3 py-2">RUDE</th><th className="px-3 py-2 text-right">Nota</th></tr></thead>
-            <tbody className="divide-y divide-slate-100">{preparar.data.grades.map((n) => <tr key={n.gradeId}><td className="px-3 py-2 text-slate-900">{n.lastName}, {n.firstName}</td><td className="px-3 py-2 font-mono text-slate-700">{n.rude}</td><td className="px-3 py-2 text-right font-semibold tabular-nums text-slate-900">{n.value}</td></tr>)}</tbody>
-          </table></div>}
-      </div>}
+      {preparar.data && (
+        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4" aria-live="polite">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
+            <div>
+              <h3 className="font-semibold text-slate-900">
+                {preparar.data.course.name} · {preparar.data.subject.name}
+              </h3>
+              <p className="mt-0.5 text-xs text-slate-600">
+                {preparar.data.period.name} · {preparar.data.grades.length} calificaciones listas
+              </p>
+            </div>
+            {preparar.data.grades.length > 0 && (
+              <Boton
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const data = preparar.data!;
+                  const lines = [
+                    'COPIA DE SEGURIDAD DE CALIFICACIONES - SISTEMA SIGCE',
+                    `Institución:;Unidad Educativa Comunidad Cristiana B`,
+                    `Curso:;${data.course.name}`,
+                    `Materia:;${data.subject.name} (${data.subject.code})`,
+                    `Trimestre:;${data.period.name}`,
+                    `Fecha de Respaldo:;${new Date().toLocaleString('es-BO')}`,
+                    `Huella SIGCE:;${data.fingerprint}`,
+                    `Total Estudiantes:;${data.grades.length}`,
+                    '',
+                    'Nro;Código RUDE;Apellidos;Nombres;Materia;Trimestre;Calificación;Estado;Huella SIGCE',
+                  ];
+                  data.grades.forEach((g, idx) => {
+                    const estado = g.value >= 51 ? 'Aprobado' : 'En Desarrollo';
+                    lines.push(
+                      `${idx + 1};${g.rude};"${g.lastName.replace(/"/g, '""')}";"${g.firstName.replace(/"/g, '""')}";"${data.subject.name}";${data.period.number};${g.value};${estado};${data.fingerprint}`,
+                    );
+                  });
+                  const blob = new Blob(['\uFEFF' + lines.join('\r\n')], {
+                    type: 'text/csv;charset=utf-8',
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `copia_seguridad_${data.course.name.replace(/[^a-zA-Z0-9_-]/g, '_')}_${data.subject.code}_T${data.period.number}_${Date.now()}.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="gap-1.5 text-xs bg-white text-slate-800 border-slate-300 hover:bg-slate-50"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Descargar Copia de Seguridad (Excel)
+              </Boton>
+            )}
+          </div>
+          {preparar.data.grades.length === 0 ? (
+            <p className="mt-3 text-sm text-slate-700">No hay notas publicadas en esta selección.</p>
+          ) : (
+            <div className="mt-4 max-h-80 overflow-auto rounded-lg border border-slate-200 bg-white">
+              <table className="w-full min-w-[520px] text-left text-sm">
+                <thead className="sticky top-0 bg-slate-100 text-xs uppercase text-slate-600">
+                  <tr>
+                    <th className="px-3 py-2">Estudiante</th>
+                    <th className="px-3 py-2">RUDE</th>
+                    <th className="px-3 py-2 text-right">Nota</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {preparar.data.grades.map((n) => (
+                    <tr key={n.gradeId}>
+                      <td className="px-3 py-2 text-slate-900">
+                        {n.lastName}, {n.firstName}
+                      </td>
+                      <td className="px-3 py-2 font-mono text-slate-700">{n.rude}</td>
+                      <td className="px-3 py-2 text-right font-semibold tabular-nums text-slate-900">
+                        {n.value}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </section>
     <p className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm leading-6 text-slate-700">En la tabla abierta del SIE, abre el complemento de Chrome. El registro de SIGCE distingue las filas rellenadas de las que la responsable confirmó después de guardarlas.</p>
   </main>;

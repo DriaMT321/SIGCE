@@ -661,10 +661,10 @@ export const AsignacionesPagina = ({
 
                     <span
                       className={`text-[11px] font-mono ${vencimientoinformacion.overdue
-                          ? 'text-rose-600 dark:text-rose-400 font-semibold'
-                          : vencimientoinformacion.urgent
-                            ? 'text-amber-600 dark:text-amber-400 font-medium'
-                            : 'text-slate-500 dark:text-slate-400'
+                        ? 'text-rose-600 dark:text-rose-400 font-semibold'
+                        : vencimientoinformacion.urgent
+                          ? 'text-amber-600 dark:text-amber-400 font-medium'
+                          : 'text-slate-500 dark:text-slate-400'
                         }`}
                     >
                       {vencimientoinformacion.text}
@@ -783,8 +783,8 @@ export const AsignacionesPagina = ({
                           title={escompletado ? 'Reabrir actividad' : 'Marcar como finalizada'}
                           aria-label={`${escompletado ? 'Reabrir' : 'Finalizar'} actividad ${elemento.title}`}
                           className={`p-1.5 rounded-md transition-colors ${escompletado
-                              ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40'
-                              : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40'
+                            : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
                             }`}
                         >
                           <CheckCircle2 className="w-4 h-4" />
@@ -809,10 +809,10 @@ export const AsignacionesPagina = ({
                     {!puedecrear && (
                       <span
                         className={`px-2 py-0.5 rounded text-[11px] font-medium ${tieneNotaIndividual
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80'
-                            : elemento.status === 'FINALIZADO'
-                              ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                              : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80'
+                          : elemento.status === 'FINALIZADO'
+                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                            : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400'
                           }`}
                       >
                         {tieneNotaIndividual ? 'Finalizada' : (elemento.status === 'FINALIZADO' ? 'Concluida' : 'Pendiente')}
@@ -907,8 +907,8 @@ export const AsignacionesPagina = ({
                                   </p>
                                   <span
                                     className={`text-[10px] font-medium px-1.5 py-0.2 rounded ${tieneCalificacion
-                                        ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60'
+                                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                                       }`}
                                   >
                                     {tieneCalificacion ? 'Finalizado' : 'Pendiente'}

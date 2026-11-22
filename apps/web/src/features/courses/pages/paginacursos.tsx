@@ -256,11 +256,10 @@ export const CursosPagina = ({
               onClick={() =>
                 establecernivelfiltro(pestana.id as 'ALL' | 'INICIAL' | 'PRIMARIA' | 'SECUNDARIA')
               }
-              className={`px-3.5 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-                nivelfiltro === pestana.id
+              className={`px-3.5 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${nivelfiltro === pestana.id
                   ? 'bg-white text-slate-900 font-semibold shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               {pestana.label}
             </button>
@@ -358,13 +357,12 @@ export const CursosPagina = ({
 
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full ${
-                        escompleto
+                      className={`h-full rounded-full ${escompleto
                           ? 'bg-rose-500'
                           : porcentaje > 85
                             ? 'bg-amber-500'
                             : 'bg-emerald-500'
-                      }`}
+                        }`}
                       style={{ width: `${porcentaje}%` }}
                     />
                   </div>

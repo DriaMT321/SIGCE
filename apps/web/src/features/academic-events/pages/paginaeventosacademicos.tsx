@@ -725,11 +725,10 @@ export function PaginaEventosAcademicos({
                 key={item.id}
                 type="button"
                 onClick={() => establecerFiltroAudiencia(item.id as AudienciaEvento)}
-                className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                  activo
+                className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${activo
                     ? 'bg-brand-700 text-white shadow-xs font-bold ring-2 ring-brand-700/20'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80'
-                }`}
+                  }`}
               >
                 {item.icon && <item.icon className="w-3.5 h-3.5" />}
                 <span>{item.label}</span>
@@ -762,11 +761,10 @@ export function PaginaEventosAcademicos({
                     establecerDiaSeleccionado(fechaEspecificaFiltro);
                   }
                 }}
-                className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                  activo
+                className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${activo
                     ? 'bg-slate-900 text-white shadow-xs font-bold ring-2 ring-slate-900/20'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80'
-                }`}
+                  }`}
               >
                 {item.label}
               </button>
@@ -1259,16 +1257,14 @@ export function PaginaEventosAcademicos({
                               return (
                                 <div
                                   key={tarea.id}
-                                  className={`flex items-center gap-1 truncate rounded-md border px-1.5 py-0.5 text-[10px] font-semibold leading-tight shadow-2xs ${
-                                    esExamen
+                                  className={`flex items-center gap-1 truncate rounded-md border px-1.5 py-0.5 text-[10px] font-semibold leading-tight shadow-2xs ${esExamen
                                       ? 'bg-amber-50 text-amber-800 border-amber-200'
                                       : 'bg-brand-50 text-brand-800 border-brand-200'
-                                  }`}
+                                    }`}
                                 >
                                   <span
-                                    className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                                      esExamen ? 'bg-amber-600' : 'bg-brand-600'
-                                    }`}
+                                    className={`h-1.5 w-1.5 shrink-0 rounded-full ${esExamen ? 'bg-amber-600' : 'bg-brand-600'
+                                      }`}
                                   />
                                   <span className="truncate">
                                     {esExamen ? 'Examen: ' : 'Tarea: '}
@@ -1417,21 +1413,19 @@ export function PaginaEventosAcademicos({
                       return (
                         <li
                           key={`asig-${asig.id}`}
-                          className={`rounded-2xl border bg-white p-4 shadow-2xs border-l-4 transition-all hover:shadow-xs ${
-                            esExamen
+                          className={`rounded-2xl border bg-white p-4 shadow-2xs border-l-4 transition-all hover:shadow-xs ${esExamen
                               ? 'border-purple-200/90 border-l-purple-600'
                               : 'border-blue-200/90 border-l-blue-600'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="space-y-1 min-w-0">
                               <div className="flex items-center gap-1.5 flex-wrap">
                                 <span
-                                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${
-                                    esExamen
+                                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${esExamen
                                       ? 'bg-purple-50 text-purple-700 border-purple-200'
                                       : 'bg-blue-50 text-blue-700 border-blue-200'
-                                  }`}
+                                    }`}
                                 >
                                   {esExamen ? (
                                     <FileCheck2 className="h-3 w-3 text-purple-600" />

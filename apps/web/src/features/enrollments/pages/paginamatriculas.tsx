@@ -256,10 +256,10 @@ export function InscripcionesPagina({
             {(estudiantesconsulta.isError ||
               cursosconsulta.isError ||
               gestionesconsulta.isError) && (
-              <p role="alert" className="text-sm text-rose-700">
-                No se pudieron cargar los datos necesarios para registrar la matrícula.
-              </p>
-            )}
+                <p role="alert" className="text-sm text-rose-700">
+                  No se pudieron cargar los datos necesarios para registrar la matrícula.
+                </p>
+              )}
             {crearmutacion.isError && (
               <p role="alert" className="text-sm text-rose-700">
                 {crearmutacion.error.message || 'No se pudo registrar la matrícula.'}

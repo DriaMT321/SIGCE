@@ -795,10 +795,10 @@ export const EstudiantesPagina = ({
                                 </p>
                                 <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                                   {estudiante.parents[0].relationship === 'FATHER' ||
-                                  estudiante.parents[0].relationship === 'PADRE'
+                                    estudiante.parents[0].relationship === 'PADRE'
                                     ? 'Padre'
                                     : estudiante.parents[0].relationship === 'MOTHER' ||
-                                        estudiante.parents[0].relationship === 'MADRE'
+                                      estudiante.parents[0].relationship === 'MADRE'
                                       ? 'Madre'
                                       : estudiante.parents[0].relationship === 'GUARDIAN'
                                         ? 'Apoderado'
@@ -814,11 +814,10 @@ export const EstudiantesPagina = ({
 
                           <td className="px-3 py-3.5">
                             <span
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                                estudiante.isActive
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${estudiante.isActive
                                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                   : 'bg-slate-100 text-slate-600 border border-slate-200'
-                              }`}
+                                }`}
                             >
                               <span
                                 className={`w-1.5 h-1.5 rounded-full ${estudiante.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}

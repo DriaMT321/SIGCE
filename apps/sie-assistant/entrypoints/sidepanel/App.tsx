@@ -18,6 +18,17 @@ import type {
   SavedMessage,
   SummaryEntry,
 } from '../../src/types';
+import {
+  type GradeBackup,
+  createGradeBackupFromPlan,
+  deleteGradeBackup,
+  downloadBackupCsv,
+  downloadBackupJson,
+  is6toSecundaria,
+  listGradeBackups,
+  restorePlanFromBackup,
+  saveGradeBackup,
+} from '../../src/backup';
 
 const localApi = 'http://localhost:3000/api/v1';
 const deployedApi = 'https://api.sigce.lat/api/v1';
@@ -27,6 +38,18 @@ const demoPlan: GradePlan = {
   subject: { id: 'demo-subject', name: 'Matemática', code: 'MAT' },
   period: { number: 1, name: 'Primer trimestre' },
   fingerprint: 'DEMO_DATOS_FICTICIOS',
+  grades: [
+    { gradeId: 'demo-1', studentId: 'demo-1', rude: 'DEMO-0001', firstName: 'Ana', lastName: 'Pérez López', value: 85 },
+    { gradeId: 'demo-2', studentId: 'demo-2', rude: 'DEMO-0002', firstName: 'Luis', lastName: 'Rojas Vargas', value: 78 },
+    { gradeId: 'demo-3', studentId: 'demo-3', rude: 'DEMO-0003', firstName: 'María', lastName: 'Mamani Quispe', value: 91 },
+  ],
+};
+
+const demoPlan6to: GradePlan = {
+  course: { id: 'demo-6sec', name: 'Secundaria - Sexto A' },
+  subject: { id: 'demo-subject', name: 'Matemática', code: 'MAT' },
+  period: { number: 1, name: 'Primer trimestre' },
+  fingerprint: 'DEMO_6TO_SECUNDARIA_BACHILLERATO',
   grades: [
     { gradeId: 'demo-1', studentId: 'demo-1', rude: 'DEMO-0001', firstName: 'Ana', lastName: 'Pérez López', value: 85 },
     { gradeId: 'demo-2', studentId: 'demo-2', rude: 'DEMO-0002', firstName: 'Luis', lastName: 'Rojas Vargas', value: 78 },
@@ -110,6 +133,55 @@ function IconSearch({ size = 15 }: { size?: number }) {
   );
 }
 
+function IconDownload({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  );
+}
+
+function IconFileText({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+    </svg>
+  );
+}
+
+function IconGraduationCap({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+      <path d="M6 12v5c3 3 9 3 12 0v-5" />
+    </svg>
+  );
+}
+
+function IconHistory({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+      <polyline points="12 7 12 12 15 15" />
+    </svg>
+  );
+}
+
+function IconTrash({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+  );
+}
+
 export function App() {
   const [tabId, setTabId] = useState<number | null>(null);
   const [portalUrl, setPortalUrl] = useState('');
@@ -127,6 +199,9 @@ export function App() {
   const [courseOptions, setCourseOptions] = useState<CourseOptions | null>(null);
   const [filters, setFilters] = useState<PlanFilters>({ academicYearId: '', courseId: '', subjectId: '', periodNumber: 0 });
   const [plan, setPlan] = useState<GradePlan | null>(null);
+  const [lastBackup, setLastBackup] = useState<GradeBackup | null>(null);
+  const [savedBackups, setSavedBackups] = useState<GradeBackup[]>([]);
+  const [showBackupsModal, setShowBackupsModal] = useState(false);
   const [index, setIndex] = useState(0);
   const [inspection, setInspection] = useState<PortalResponse | null>(null);
   const [fillResult, setFillResult] = useState<PortalResponse | null>(null);
@@ -148,6 +223,11 @@ export function App() {
     [baseOptions, filters.academicYearId],
   );
   const periods = useMemo(() => (courseOptions?.periods ?? []).filter((period) => period.isClosed), [courseOptions]);
+  const selectedCourse = useMemo(
+    () => courses.find((course) => course.id === filters.courseId),
+    [courses, filters.courseId],
+  );
+  const es6toSecundariaSeleccionado = selectedCourse ? is6toSecundaria(selectedCourse.name) : false;
 
   const activeStep: 1 | 2 | 3 = plan ? 3 : workReady && (demo || Boolean(session)) ? 2 : 1;
 
@@ -187,6 +267,12 @@ export function App() {
       if (saved?.accessToken && [localApi, deployedApi].includes(saved.apiBase)) {
         setSession(saved);
         setApiBase(saved.apiBase);
+      }
+    });
+    void listGradeBackups().then((backups) => {
+      setSavedBackups(backups);
+      if (backups.length > 0) {
+        setLastBackup(backups[0] || null);
       }
     });
   }, []);
@@ -290,6 +376,31 @@ export function App() {
     setReadyToast(true);
   }
 
+  async function savePlanBackup(targetPlan: GradePlan) {
+    const userLabel = session?.user ? `${session.user.firstName} ${session.user.lastName}` : (demo ? 'Demostración SIE' : undefined);
+    const backup = createGradeBackupFromPlan(targetPlan, userLabel, demo ? 'DEMO' : 'SIGCE_PLAN');
+    await saveGradeBackup(backup);
+    setLastBackup(backup);
+    const updated = await listGradeBackups();
+    setSavedBackups(updated);
+    return backup;
+  }
+
+  function handleRestoreBackup(b: GradeBackup) {
+    const restored = restorePlanFromBackup(b);
+    resetRun(restored);
+    setLastBackup(b);
+    setShowBackupsModal(false);
+  }
+
+  async function handleDeleteBackup(id: string) {
+    const updated = await deleteGradeBackup(id);
+    setSavedBackups(updated);
+    if (lastBackup?.id === id) {
+      setLastBackup(updated[0] || null);
+    }
+  }
+
   function resetRun(nextPlan: GradePlan) {
     setPlan(nextPlan);
     setIndex(0);
@@ -307,8 +418,15 @@ export function App() {
       if (!filters.academicYearId || !filters.courseId || !filters.subjectId || !filters.periodNumber) {
         throw new Error('Selecciona gestión, curso, materia y trimestre cerrado.');
       }
-      resetRun(await loadGrades(session, filters));
+      const loaded = await loadGrades(session, filters);
+      resetRun(loaded);
+      await savePlanBackup(loaded);
     });
+  }
+
+  async function activateDemoPlan(targetDemoPlan = demoPlan) {
+    resetRun(targetDemoPlan);
+    await savePlanBackup(targetDemoPlan);
   }
 
   async function inspect() {
@@ -403,20 +521,31 @@ export function App() {
             </div>
           </div>
 
-          {!demo && !reference && session && (
-            <div className="user-chip" title={`${session.user.firstName} ${session.user.lastName}`}>
-              <span>{session.user.firstName}</span>
-              <button
-                type="button"
-                className="icon-btn-dark"
-                onClick={() => void signOut()}
-                title="Cerrar sesión"
-                aria-label="Cerrar sesión"
-              >
-                <IconLogOut />
-              </button>
-            </div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              type="button"
+              className="icon-btn-dark"
+              onClick={() => setShowBackupsModal(true)}
+              title={`Copias de seguridad (${savedBackups.length} respaldos guardados)`}
+              aria-label="Ver copias de seguridad de notas"
+            >
+              <IconHistory size={13} />
+            </button>
+            {!demo && !reference && session && (
+              <div className="user-chip" title={`${session.user.firstName} ${session.user.lastName}`}>
+                <span>{session.user.firstName}</span>
+                <button
+                  type="button"
+                  className="icon-btn-dark"
+                  onClick={() => void signOut()}
+                  title="Cerrar sesión"
+                  aria-label="Cerrar sesión"
+                >
+                  <IconLogOut />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Estado de la pestaña en vivo */}
@@ -679,11 +808,20 @@ export function App() {
 
           {demo ? (
             <>
-              <p>Se prepararán las 3 calificaciones ficticias para practicar el recorrido guiado.</p>
+              <p>Se prepararán calificaciones ficticias para practicar el recorrido guiado en la réplica del SIE.</p>
               <div className="action-stack">
-                <button type="button" className="btn primary full" onClick={() => resetRun(demoPlan)}>
+                <button type="button" className="btn primary full" onClick={() => void activateDemoPlan(demoPlan)}>
                   <IconSparkles />
-                  <span>Cargar notas de demostración</span>
+                  <span>Cargar notas demo (Primaria 2do B)</span>
+                </button>
+                <button
+                  type="button"
+                  className="btn outline full"
+                  style={{ borderColor: '#d97706', color: '#92400e', background: '#fffbeb' }}
+                  onClick={() => void activateDemoPlan(demoPlan6to)}
+                >
+                  <IconGraduationCap size={16} />
+                  <span>Cargar demo 6to de Secundaria (Bachilleres)</span>
                 </button>
               </div>
             </>
@@ -743,6 +881,18 @@ export function App() {
                 </select>
               </label>
 
+              {es6toSecundariaSeleccionado && (
+                <div className="banner-6to">
+                  <div className="banner-6to-header">
+                    <IconGraduationCap size={16} />
+                    <span>Habilitación SIE · 6to de Secundaria (Bachillerato)</span>
+                  </div>
+                  <p>
+                    Curso prioritario de bachilleres detectado. Al preparar las notas se generará automáticamente una <strong>copia de seguridad de resguardo</strong> en este navegador para prevenir pérdida de calificaciones ante caídas o lentitud del portal ministerial.
+                  </p>
+                </div>
+              )}
+
               <label className="field">
                 Materia
                 <select
@@ -768,6 +918,17 @@ export function App() {
                 {busy ? <IconRefresh className="spin" /> : <IconArrowRight />}
                 <span>{busy ? 'Cargando notas...' : 'Preparar notas cerradas'}</span>
               </button>
+
+              <div className="backup-quick-row">
+                <button
+                  type="button"
+                  className="btn ghost-link"
+                  onClick={() => setShowBackupsModal(true)}
+                >
+                  <IconHistory size={13} />
+                  <span>Historial de copias de seguridad ({savedBackups.length})</span>
+                </button>
+              </div>
             </div>
           )}
         </section>
@@ -835,6 +996,62 @@ export function App() {
               </span>
             </div>
           )}
+
+          {/* TARJETA DE COPIA DE SEGURIDAD DE NOTAS */}
+          <div className="backup-card">
+            <div className="backup-card-header">
+              <div className="backup-card-title">
+                <IconShieldCheck size={18} />
+                <div>
+                  <strong>Copia de Seguridad de Notas</strong>
+                  <span className="backup-card-sub">
+                    {lastBackup?.timestampFormatted ? `Respaldo activo: ${lastBackup.timestampFormatted}` : 'Respaldo generado'} · {plan.grades.length} notas
+                  </span>
+                </div>
+              </div>
+              {is6toSecundaria(plan.course.name) && (
+                <span className="badge-6to-pill">
+                  <IconGraduationCap size={12} />
+                  6to Sec. Bachilleres
+                </span>
+              )}
+            </div>
+
+            <p className="backup-card-help">
+              Si el portal SIE falla o se cierra durante el llenado, tus notas están resguardadas en el navegador. Puedes descargarlas para tener constancia física o digital:
+            </p>
+
+            <div className="backup-card-actions">
+              <button
+                type="button"
+                className="btn outline sm"
+                onClick={() => lastBackup && downloadBackupCsv(lastBackup)}
+                disabled={!lastBackup}
+                title="Descargar tabla compatible con Excel con todas las notas y RUDEs"
+              >
+                <IconFileText size={14} />
+                <span>Descargar Excel (CSV)</span>
+              </button>
+              <button
+                type="button"
+                className="btn outline sm"
+                onClick={() => lastBackup && downloadBackupJson(lastBackup)}
+                disabled={!lastBackup}
+                title="Descargar archivo JSON con huella criptográfica de integridad SIGCE"
+              >
+                <IconDownload size={14} />
+                <span>Descargar JSON</span>
+              </button>
+              <button
+                type="button"
+                className="btn ghost-link sm"
+                onClick={() => setShowBackupsModal(true)}
+              >
+                <IconHistory size={14} />
+                <span>Historial ({savedBackups.length})</span>
+              </button>
+            </div>
+          </div>
         </section>
       )}
 
@@ -903,6 +1120,23 @@ export function App() {
                 <IconAlert />
                 <span>Reemplazar nota tras revisarla</span>
               </button>
+            )}
+
+            {lastBackup && (fillResult?.status === 'ERROR' || fillResult?.status === 'CONFLICT') && (
+              <div className="backup-emergency-pill">
+                <IconShieldCheck size={14} />
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  ¿Falla el portal SIE? Tu copia de seguridad está a salvo:
+                </span>
+                <button
+                  type="button"
+                  className="btn ghost-link"
+                  style={{ textDecoration: 'underline', padding: 0, fontWeight: 700 }}
+                  onClick={() => downloadBackupCsv(lastBackup)}
+                >
+                  Descargar CSV
+                </button>
+              </div>
             )}
 
             {fillResult?.status === 'FILLED' && (
@@ -1039,6 +1273,114 @@ export function App() {
           <IconAlert size={16} />
           <span>{error}</span>
         </p>
+      )}
+
+      {/* MODAL DE HISTORIAL DE COPIAS DE SEGURIDAD */}
+      {showBackupsModal && (
+        <div className="modal-backdrop" onClick={() => setShowBackupsModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">
+                <IconShieldCheck size={20} />
+                <div>
+                  <h3>Copias de Seguridad de Calificaciones</h3>
+                  <p>Respaldos automáticos ante caídas o fallos del portal SIE</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn ghost-link"
+                style={{ fontSize: '18px', padding: '0 8px' }}
+                onClick={() => setShowBackupsModal(false)}
+                aria-label="Cerrar modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {savedBackups.length === 0 ? (
+                <div className="modal-empty">
+                  <IconAlert size={24} />
+                  <p>No hay copias de seguridad guardadas todavía.</p>
+                  <span>Se crean automáticamente cada vez que preparas las notas de un curso.</span>
+                </div>
+              ) : (
+                <div className="backup-list">
+                  {savedBackups.map((b) => (
+                    <div key={b.id} className="backup-item">
+                      <div className="backup-item-header">
+                        <div>
+                          <div className="backup-item-title-row">
+                            <span className="backup-item-course">{b.courseName}</span>
+                            {b.isSeniorYear && (
+                              <span className="badge-6to-pill mini">
+                                <IconGraduationCap size={11} />
+                                6to Sec
+                              </span>
+                            )}
+                          </div>
+                          <span className="backup-item-subject">
+                            {b.subjectName} · {b.periodName} · {b.totalStudents} estudiantes
+                          </span>
+                        </div>
+                        <span className="backup-item-date">{b.timestampFormatted}</span>
+                      </div>
+
+                      <div className="backup-item-actions">
+                        <button
+                          type="button"
+                          className="btn outline mini"
+                          onClick={() => downloadBackupCsv(b)}
+                          title="Descargar en formato Excel (CSV con BOM UTF-8)"
+                        >
+                          <IconFileText size={12} />
+                          Excel (CSV)
+                        </button>
+                        <button
+                          type="button"
+                          className="btn outline mini"
+                          onClick={() => downloadBackupJson(b)}
+                          title="Descargar archivo JSON con huella criptográfica de integridad"
+                        >
+                          <IconDownload size={12} />
+                          JSON
+                        </button>
+                        <button
+                          type="button"
+                          className="btn primary mini"
+                          onClick={() => handleRestoreBackup(b)}
+                          title="Cargar estas notas como el lote activo para completar en el SIE"
+                        >
+                          Restaurar lote
+                        </button>
+                        <button
+                          type="button"
+                          className="btn danger mini"
+                          style={{ padding: '3px 6px' }}
+                          onClick={() => void handleDeleteBackup(b.id)}
+                          title="Eliminar este respaldo"
+                        >
+                          <IconTrash size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn full"
+                onClick={() => setShowBackupsModal(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <footer>SIGCE rellena campos visibles · Tú revisas y decides qué guardar.</footer>

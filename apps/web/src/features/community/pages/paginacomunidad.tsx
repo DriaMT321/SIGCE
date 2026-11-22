@@ -485,11 +485,10 @@ export function ComunidadPagina({
           <button
             type="button"
             onClick={() => setFiltroRda('todos')}
-            className={`rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
-              filtroRda === 'todos'
+            className={`rounded-xl border p-3.5 text-left transition-all cursor-pointer ${filtroRda === 'todos'
                 ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
                 : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-900'
-            }`}
+              }`}
           >
             <p className={`text-xs font-medium ${filtroRda === 'todos' ? 'text-slate-300' : 'text-slate-500'}`}>
               Total Plantel Docente
@@ -499,11 +498,10 @@ export function ComunidadPagina({
           <button
             type="button"
             onClick={() => setFiltroRda('con-rda')}
-            className={`rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
-              filtroRda === 'con-rda'
+            className={`rounded-xl border p-3.5 text-left transition-all cursor-pointer ${filtroRda === 'con-rda'
                 ? 'border-brand-700 bg-brand-700 text-white shadow-xs'
                 : 'border-brand-100 bg-brand-50/60 hover:bg-brand-50 text-brand-950'
-            }`}
+              }`}
           >
             <div className="flex items-center justify-between">
               <p className={`text-xs font-medium ${filtroRda === 'con-rda' ? 'text-brand-100' : 'text-brand-900'}`}>
@@ -518,11 +516,10 @@ export function ComunidadPagina({
           <button
             type="button"
             onClick={() => setFiltroRda('sin-rda')}
-            className={`rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
-              filtroRda === 'sin-rda'
+            className={`rounded-xl border p-3.5 text-left transition-all cursor-pointer ${filtroRda === 'sin-rda'
                 ? 'border-amber-600 bg-amber-600 text-white shadow-xs'
                 : 'border-amber-100 bg-amber-50/60 hover:bg-amber-50 text-amber-950'
-            }`}
+              }`}
           >
             <div className="flex items-center justify-between">
               <p className={`text-xs font-medium ${filtroRda === 'sin-rda' ? 'text-amber-100' : 'text-amber-900'}`}>
@@ -1282,8 +1279,8 @@ export function ComunidadPagina({
                 type="button"
                 onClick={() => setPestanaEdicionDocente('datos')}
                 className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${pestanaEdicionDocente === 'datos'
-                    ? 'border-brand-700 text-brand-700'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-brand-700 text-brand-700'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
                 1. Datos Generales y Foto
@@ -1292,8 +1289,8 @@ export function ComunidadPagina({
                 type="button"
                 onClick={() => setPestanaEdicionDocente('requisitos')}
                 className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${pestanaEdicionDocente === 'requisitos'
-                    ? 'border-brand-700 text-brand-700'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-brand-700 text-brand-700'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
                 2. Requisitos Magisterio (RDA, TPN, Escalafón, Boleta, Antigüedad)
@@ -1305,8 +1302,8 @@ export function ComunidadPagina({
                 type="button"
                 onClick={() => setPestanaEdicionDocente('materias')}
                 className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${pestanaEdicionDocente === 'materias'
-                    ? 'border-brand-700 text-brand-700'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-brand-700 text-brand-700'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
                 3. Materias Asignadas ({ediciondocente.teacherAssignments.length})

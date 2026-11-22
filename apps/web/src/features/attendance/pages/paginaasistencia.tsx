@@ -633,11 +633,10 @@ export const AsistenciaPagina = ({
             <button
               type="button"
               onClick={() => establecermodovista('matriz')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                modovista === 'matriz'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${modovista === 'matriz'
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <FileSpreadsheet className="w-3.5 h-3.5" />
               Matriz Excel
@@ -645,11 +644,10 @@ export const AsistenciaPagina = ({
             <button
               type="button"
               onClick={() => establecermodovista('individual')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                modovista === 'individual'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${modovista === 'individual'
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <User className="w-3.5 h-3.5" />
               Informe Alumno
@@ -657,11 +655,10 @@ export const AsistenciaPagina = ({
             <button
               type="button"
               onClick={() => establecermodovista('lista')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                modovista === 'lista'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${modovista === 'lista'
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <ListFilter className="w-3.5 h-3.5" />
               Partes Diarios
@@ -669,11 +666,10 @@ export const AsistenciaPagina = ({
             <button
               type="button"
               onClick={() => establecermodovista('justificaciones')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                modovista === 'justificaciones'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${modovista === 'justificaciones'
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <FileCheck className="w-3.5 h-3.5" />
               Justificaciones
@@ -932,13 +928,12 @@ export const AsistenciaPagina = ({
                           <td className="py-2 px-3 text-center font-mono font-bold">
                             {p + t + j + a > 0 ? (
                               <span
-                                className={`px-1.5 py-0.5 rounded text-[11px] font-bold ${
-                                  (p + t + j) / (p + t + j + a) >= 0.9
+                                className={`px-1.5 py-0.5 rounded text-[11px] font-bold ${(p + t + j) / (p + t + j + a) >= 0.9
                                     ? 'bg-emerald-100 text-emerald-800'
                                     : (p + t + j) / (p + t + j + a) >= 0.8
                                       ? 'bg-amber-100 text-amber-800'
                                       : 'bg-rose-100 text-rose-800'
-                                }`}
+                                  }`}
                               >
                                 {(((p + t + j) / (p + t + j + a)) * 100).toFixed(0)}%
                               </span>
@@ -1430,44 +1425,40 @@ export const AsistenciaPagina = ({
                 <button
                   type="button"
                   onClick={() => establecerfiltroEstadoJustif('ALL')}
-                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${
-                    filtroEstadoJustif === 'ALL'
+                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${filtroEstadoJustif === 'ALL'
                       ? 'bg-white text-slate-900 shadow-2xs font-semibold'
                       : 'text-slate-600 hover:text-slate-900'
-                  }`}
+                    }`}
                 >
                   Todas ({totalJustif})
                 </button>
                 <button
                   type="button"
                   onClick={() => establecerfiltroEstadoJustif('PENDING_REVIEW')}
-                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${
-                    filtroEstadoJustif === 'PENDING_REVIEW'
+                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${filtroEstadoJustif === 'PENDING_REVIEW'
                       ? 'bg-white text-blue-900 shadow-2xs font-semibold'
                       : 'text-slate-600 hover:text-slate-900'
-                  }`}
+                    }`}
                 >
                   Por Revisar ({pendientesRevisionCount})
                 </button>
                 <button
                   type="button"
                   onClick={() => establecerfiltroEstadoJustif('PENDING_SUBMISSION')}
-                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${
-                    filtroEstadoJustif === 'PENDING_SUBMISSION'
+                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${filtroEstadoJustif === 'PENDING_SUBMISSION'
                       ? 'bg-white text-amber-900 shadow-2xs font-semibold'
                       : 'text-slate-600 hover:text-slate-900'
-                  }`}
+                    }`}
                 >
                   Sin Justificar ({pendientesSubmisionCount})
                 </button>
                 <button
                   type="button"
                   onClick={() => establecerfiltroEstadoJustif('APPROVED')}
-                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${
-                    filtroEstadoJustif === 'APPROVED'
+                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${filtroEstadoJustif === 'APPROVED'
                       ? 'bg-white text-emerald-900 shadow-2xs font-semibold'
                       : 'text-slate-600 hover:text-slate-900'
-                  }`}
+                    }`}
                 >
                   Aprobadas ({aprobadasCount})
                 </button>
@@ -1639,27 +1630,27 @@ export const AsistenciaPagina = ({
                               {/* Re-review or details button if already resolved */}
                               {(j.justificationStatus === 'APPROVED' ||
                                 j.justificationStatus === 'REJECTED') && (
-                                <Boton
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    if (esDireccion) {
-                                      establecerjustificacionParaRevisar(j);
-                                      establecernotaRevision(j.reviewNotes || '');
-                                    } else if (j.attachmentName) {
-                                      establecerdocumentoParaVer({
-                                        nombre: j.attachmentName,
-                                        url: j.attachmentUrl,
-                                        motivo: j.parentReason,
-                                        alumno: j.studentName,
-                                      });
-                                    }
-                                  }}
-                                  className="h-7 text-xs text-slate-500 hover:text-slate-800"
-                                >
-                                  {esDireccion ? 'Ver / Reconsiderar' : 'Ver Detalles'}
-                                </Boton>
-                              )}
+                                  <Boton
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      if (esDireccion) {
+                                        establecerjustificacionParaRevisar(j);
+                                        establecernotaRevision(j.reviewNotes || '');
+                                      } else if (j.attachmentName) {
+                                        establecerdocumentoParaVer({
+                                          nombre: j.attachmentName,
+                                          url: j.attachmentUrl,
+                                          motivo: j.parentReason,
+                                          alumno: j.studentName,
+                                        });
+                                      }
+                                    }}
+                                    className="h-7 text-xs text-slate-500 hover:text-slate-800"
+                                  >
+                                    {esDireccion ? 'Ver / Reconsiderar' : 'Ver Detalles'}
+                                  </Boton>
+                                )}
                             </div>
                           </td>
                         </tr>

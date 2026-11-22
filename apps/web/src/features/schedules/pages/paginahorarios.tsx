@@ -345,11 +345,11 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
   const docentesporespecialidad = React.useMemo(
     () => materiaelegida
       ? docentes.filter((docente) => {
-          const especialidad = normalizarespecialidad(docente.specialty);
-          const materia = normalizarespecialidad(materiaelegida.name);
-          return Boolean(especialidad && materia) &&
-            (especialidad === materia || materia.includes(especialidad) || especialidad.includes(materia));
-        })
+        const especialidad = normalizarespecialidad(docente.specialty);
+        const materia = normalizarespecialidad(materiaelegida.name);
+        return Boolean(especialidad && materia) &&
+          (especialidad === materia || materia.includes(especialidad) || especialidad.includes(materia));
+      })
       : [],
     [docentes, materiaelegida],
   );
@@ -673,11 +673,10 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                               establecerasignacioncargasemanal('');
                             }
                           }}
-                          className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                            activo
-                              ? 'bg-slate-900 text-white shadow-xs'
-                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                          }`}
+                          className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${activo
+                            ? 'bg-slate-900 text-white shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                            }`}
                         >
                           {nivel.label}
                         </button>
@@ -828,11 +827,10 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                                 establecerbusquedadocente('');
                                 establecermostrardropdowndocente(false);
                               }}
-                              className={`w-full px-3 py-2.5 text-left flex items-center justify-between gap-2 text-xs transition-colors ${
-                                activo
-                                  ? 'bg-slate-900 text-white'
-                                  : 'hover:bg-slate-50 text-slate-800'
-                              }`}
+                              className={`w-full px-3 py-2.5 text-left flex items-center justify-between gap-2 text-xs transition-colors ${activo
+                                ? 'bg-slate-900 text-white'
+                                : 'hover:bg-slate-50 text-slate-800'
+                                }`}
                             >
                               <div className="flex items-center gap-2 min-w-0">
                                 <User className={`w-3.5 h-3.5 shrink-0 ${activo ? 'text-brand-300' : 'text-slate-400'}`} />
@@ -1062,11 +1060,10 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                             <td
                               key={dia.key}
                               onClick={() => manejarabrirbloque(dia.key, Number(periodo.index))}
-                              className={`py-3 px-3 text-center border-r border-slate-200 last:border-r-0 bg-slate-50/30 transition-colors ${
-                                puedegestionar && vistamodo === 'course'
-                                  ? 'cursor-pointer hover:bg-slate-100/90 group'
-                                  : ''
-                              }`}
+                              className={`py-3 px-3 text-center border-r border-slate-200 last:border-r-0 bg-slate-50/30 transition-colors ${puedegestionar && vistamodo === 'course'
+                                ? 'cursor-pointer hover:bg-slate-100/90 group'
+                                : ''
+                                }`}
                             >
                               {puedegestionar && vistamodo === 'course' ? (
                                 <div className="text-slate-300 group-hover:text-slate-600 flex items-center justify-center gap-1 text-xs font-medium">
@@ -1094,16 +1091,14 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                             onClick={() =>
                               manejarabrirbloque(dia.key, Number(periodo.index), sesion)
                             }
-                            className={`p-2 border-r border-slate-200 last:border-r-0 align-top transition-all ${
-                              puedegestionar && vistamodo === 'course'
-                                ? 'cursor-pointer hover:opacity-95'
-                                : ''
-                            }`}
+                            className={`p-2 border-r border-slate-200 last:border-r-0 align-top transition-all ${puedegestionar && vistamodo === 'course'
+                              ? 'cursor-pointer hover:opacity-95'
+                              : ''
+                              }`}
                           >
                             <div
-                              className={`p-2 rounded-lg border ${color.bg} ${color.border} min-h-[64px] relative group shadow-2xs ${
-                                esInicioBloque ? 'border-b-dashed' : esFinBloque ? 'border-t-dashed' : ''
-                              }`}
+                              className={`p-2 rounded-lg border ${color.bg} ${color.border} min-h-[64px] relative group shadow-2xs ${esInicioBloque ? 'border-b-dashed' : esFinBloque ? 'border-t-dashed' : ''
+                                }`}
                             >
                               <div className="flex items-center justify-between gap-1 mb-1">
                                 <span

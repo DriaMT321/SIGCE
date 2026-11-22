@@ -517,11 +517,10 @@ export function EditorRequisitosMagisterio({
         <button
           type="button"
           onClick={() => setTabActiva('rda')}
-          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${
-            tabActiva === 'rda'
+          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${tabActiva === 'rda'
               ? 'bg-white text-brand-700 border-brand-700 shadow-2xs'
               : 'text-slate-600 border-transparent hover:text-slate-900 hover:bg-slate-100'
-          }`}
+            }`}
         >
           <FileText className="w-3.5 h-3.5" />
           <span>1. RDA</span>
@@ -533,11 +532,10 @@ export function EditorRequisitosMagisterio({
         <button
           type="button"
           onClick={() => setTabActiva('titulo')}
-          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${
-            tabActiva === 'titulo'
+          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${tabActiva === 'titulo'
               ? 'bg-white text-brand-700 border-brand-700 shadow-2xs'
               : 'text-slate-600 border-transparent hover:text-slate-900 hover:bg-slate-100'
-          }`}
+            }`}
         >
           <GraduationCap className="w-3.5 h-3.5" />
           <span>2. Título Provisión Nacional</span>
@@ -549,11 +547,10 @@ export function EditorRequisitosMagisterio({
         <button
           type="button"
           onClick={() => setTabActiva('escalafon')}
-          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${
-            tabActiva === 'escalafon'
+          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${tabActiva === 'escalafon'
               ? 'bg-white text-brand-700 border-brand-700 shadow-2xs'
               : 'text-slate-600 border-transparent hover:text-slate-900 hover:bg-slate-100'
-          }`}
+            }`}
         >
           <Award className="w-3.5 h-3.5" />
           <span>3. Resolución Escalafón</span>
@@ -565,11 +562,10 @@ export function EditorRequisitosMagisterio({
         <button
           type="button"
           onClick={() => setTabActiva('boleta')}
-          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${
-            tabActiva === 'boleta'
+          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${tabActiva === 'boleta'
               ? 'bg-white text-brand-700 border-brand-700 shadow-2xs'
               : 'text-slate-600 border-transparent hover:text-slate-900 hover:bg-slate-100'
-          }`}
+            }`}
         >
           <CreditCard className="w-3.5 h-3.5" />
           <span>4. Boleta Mecanizada</span>
@@ -581,11 +577,10 @@ export function EditorRequisitosMagisterio({
         <button
           type="button"
           onClick={() => setTabActiva('antiguedad')}
-          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${
-            tabActiva === 'antiguedad'
+          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${tabActiva === 'antiguedad'
               ? 'bg-white text-brand-700 border-brand-700 shadow-2xs'
               : 'text-slate-600 border-transparent hover:text-slate-900 hover:bg-slate-100'
-          }`}
+            }`}
         >
           <Building2 className="w-3.5 h-3.5" />
           <span>5. Titular por Antigüedad</span>
@@ -1188,11 +1183,10 @@ export function ModalDetalleLegajoDocente({
           <div className="flex flex-col items-end gap-1">
             <span className="text-xs font-semibold text-slate-600">Estado del Legajo:</span>
             <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
-                totalCompletados >= 4
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${totalCompletados >= 4
                   ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
                   : 'bg-amber-50 text-amber-800 border-amber-300'
-              }`}
+                }`}
             >
               <CheckCircle2 className="w-4 h-4" /> {totalCompletados}/5 Requisitos Registrados
             </span>

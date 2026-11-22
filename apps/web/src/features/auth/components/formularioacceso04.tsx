@@ -88,19 +88,17 @@ export function Sesion04Formulario({
                 type="button"
                 onClick={() => onrolcambio(opcion.value)}
                 aria-pressed={esseleccionado}
-                className={`flex min-h-[64px] items-start gap-2.5 rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
-                  esseleccionado
+                className={`flex min-h-[64px] items-start gap-2.5 rounded-xl border p-2.5 text-left transition-all cursor-pointer ${esseleccionado
                     ? 'border-brand-700 bg-brand-50/80 text-brand-950 ring-2 ring-brand-700/20 shadow-xs'
                     : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50/80'
-                }`}
+                  }`}
               >
                 <div
                   aria-hidden="true"
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors ${
-                    esseleccionado
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors ${esseleccionado
                       ? 'border-brand-200 bg-white text-brand-700 shadow-2xs'
                       : 'border-slate-200 bg-slate-50 text-slate-500'
-                  }`}
+                    }`}
                 >
                   <RolIcono role={opcion.value} className="w-4 h-4" />
                 </div>
