@@ -493,11 +493,11 @@ export const InformesPagina: React.FC<{ queries: informeconsultas }> = ({ querie
             onClick={() => estableceractivoinforme(id)}
             className={`flex items-center gap-2 rounded-xl border p-3 text-left text-xs font-semibold transition-all shadow-2xs ${
               activoinforme === id
-                ? 'border-indigo-600 bg-indigo-50 text-indigo-950 shadow-xs'
+                ? 'border-brand-700 bg-brand-50 text-brand-950 shadow-xs'
                 : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
             }`}
           >
-            <Icono className={`h-4 w-4 shrink-0 ${activoinforme === id ? 'text-indigo-600' : 'text-slate-400'}`} aria-hidden="true" />
+            <Icono className={`h-4 w-4 shrink-0 ${activoinforme === id ? 'text-brand-700' : 'text-slate-400'}`} aria-hidden="true" />
             <span className="truncate">{etiqueta}</span>
           </button>
         ))}

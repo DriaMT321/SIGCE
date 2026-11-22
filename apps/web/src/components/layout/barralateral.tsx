@@ -180,7 +180,7 @@ export const Barralateral: React.FC = () => {
   return (
     <aside
       aria-label="Barra lateral"
-      className="w-60 lg:w-64 bg-[#090e1a] text-slate-300 flex flex-col flex-shrink-0 select-none border-r border-slate-800/80 shadow-xl"
+      className="w-60 lg:w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 select-none border-r border-slate-800/80 shadow-xl"
     >
       {/* Brand Header */}
       <div className="h-16 flex items-center px-4 border-b border-white/10 gap-3 bg-gradient-to-b from-white/[0.03] to-transparent">
@@ -190,12 +190,12 @@ export const Barralateral: React.FC = () => {
             alt="Logo Colegio Comunidad Cristiana"
             className="h-9 w-auto object-contain shrink-0 drop-shadow-md"
           />
-          <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-[#090e1a]" />
+          <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-slate-900" />
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="text-base font-extrabold text-white tracking-tight">SIGCE</span>
-            <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/15 border border-indigo-500/30 px-1 rounded">
+            <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-1 rounded">
               2026
             </span>
           </div>
@@ -227,7 +227,7 @@ export const Barralateral: React.FC = () => {
                     className={({ isActive: estaactivo }) =>
                       `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
                         estaactivo
-                          ? 'bg-indigo-600/20 text-white font-semibold border-l-2 border-indigo-500 shadow-2xs'
+                          ? 'bg-brand-900/40 text-white font-semibold border-l-2 border-brand-500 shadow-2xs'
                           : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
                       }`
                     }
@@ -245,7 +245,7 @@ export const Barralateral: React.FC = () => {
       {/* User Profile Footer */}
       <div className="p-3 border-t border-white/10 bg-white/[0.02]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-700 to-amber-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
             {iniciales}
           </div>
           <div className="min-w-0 flex-1">

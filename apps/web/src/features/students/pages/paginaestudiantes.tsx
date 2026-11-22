@@ -305,7 +305,7 @@ export const EstudiantesPagina = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-800 border border-brand-200">
               Padrón RUDE · Gestión 2026
             </span>
             <span className="text-xs text-slate-400">·</span>
@@ -690,7 +690,7 @@ export const EstudiantesPagina = ({
       <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
         {estudiantesconsulta.isLoading ? (
           <div className="flex items-center justify-center p-16 text-slate-500 gap-3">
-            <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
+            <Loader2 className="w-5 h-5 animate-spin text-brand-700" />
             <span className="text-sm font-medium">Cargando nómina de estudiantes...</span>
           </div>
         ) : estudiantesconsulta.isError ? (
@@ -738,7 +738,7 @@ export const EstudiantesPagina = ({
                         <tr key={estudiante.id} className="hover:bg-slate-50 transition-colors">
                           <td className="py-3.5 pl-5 pr-3">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0">
+                              <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-100 text-brand-800 flex items-center justify-center font-bold text-xs shrink-0">
                                 {iniciales}
                               </div>
                               <div>
@@ -778,7 +778,7 @@ export const EstudiantesPagina = ({
 
                           <td className="px-3 py-3.5">
                             {estudiante.enrollments?.[0]?.course ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs font-medium">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-100 text-xs font-medium">
                                 {cursoetiqueta(estudiante.enrollments[0].course.name)}
                               </span>
                             ) : (

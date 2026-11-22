@@ -416,7 +416,7 @@ export function ComunidadPagina({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-800 border border-brand-200">
               {modo === 'teachers' ? 'Planta Docente · Magisterio Ley 070' : 'Comunidad de Padres y Tutores'}
             </span>
             <span className="text-xs text-slate-400">·</span>
@@ -450,10 +450,10 @@ export function ComunidadPagina({
         if (!miDoc) return null;
         const rdaDoc = miDoc.rdaNumber || (miDoc.documents as any)?.rda?.numeroRda;
         return (
-          <div className="rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-50/90 via-white to-indigo-50/50 p-4 shadow-xs">
+          <div className="rounded-xl border border-brand-200 bg-gradient-to-r from-brand-50/80 via-white to-amber-50/30 p-4 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-brand-700 text-white flex items-center justify-center font-bold text-sm shadow-xs">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
@@ -470,7 +470,7 @@ export function ComunidadPagina({
               <button
                 type="button"
                 onClick={() => setDocenteParaVerLegajo(miDoc)}
-                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-xs font-semibold shadow-xs transition-colors cursor-pointer shrink-0"
+                className="inline-flex items-center gap-2 rounded-xl bg-brand-700 hover:bg-brand-800 text-white px-4 py-2 text-xs font-semibold shadow-xs transition-colors cursor-pointer shrink-0"
               >
                 <FileText className="w-4 h-4" />
                 <span>Ver Mi Legajo y Documentos RDA</span>
@@ -501,15 +501,15 @@ export function ComunidadPagina({
             onClick={() => setFiltroRda('con-rda')}
             className={`rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
               filtroRda === 'con-rda'
-                ? 'border-indigo-600 bg-indigo-600 text-white shadow-xs'
-                : 'border-indigo-100 bg-indigo-50/60 hover:bg-indigo-50 text-indigo-950'
+                ? 'border-brand-700 bg-brand-700 text-white shadow-xs'
+                : 'border-brand-100 bg-brand-50/60 hover:bg-brand-50 text-brand-950'
             }`}
           >
             <div className="flex items-center justify-between">
-              <p className={`text-xs font-medium ${filtroRda === 'con-rda' ? 'text-indigo-100' : 'text-indigo-900'}`}>
+              <p className={`text-xs font-medium ${filtroRda === 'con-rda' ? 'text-brand-100' : 'text-brand-900'}`}>
                 Con RDA Registrado
               </p>
-              <ShieldCheck className={`w-4 h-4 ${filtroRda === 'con-rda' ? 'text-indigo-200' : 'text-indigo-600'}`} />
+              <ShieldCheck className={`w-4 h-4 ${filtroRda === 'con-rda' ? 'text-brand-200' : 'text-brand-700'}`} />
             </div>
             <p className="text-xl font-bold mt-1">
               {(docentesconsulta.data?.data ?? []).filter((d) => Boolean(d.rdaNumber?.trim() || (d.documents as any)?.rda?.numeroRda?.trim())).length}
@@ -547,7 +547,7 @@ export function ComunidadPagina({
                 Complete los datos del docente, su número RDA y los documentos de respaldo del legajo profesional
               </p>
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-brand-50 text-brand-800 border border-brand-200">
               Legajo Digital Ley 070
             </span>
           </div>
@@ -591,7 +591,7 @@ export function ComunidadPagina({
             {/* SECCIÓN 1: FOTO CARNET Y DATOS PERSONALES */}
             <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-4">
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
-                <Camera className="w-4 h-4 text-indigo-600" />
+                <Camera className="w-4 h-4 text-brand-700" />
                 <span>Foto de Perfil y Datos Personales</span>
               </h3>
 
@@ -703,7 +703,7 @@ export function ComunidadPagina({
                   >
                     <select
                       {...docenteformulario.register('specialty')}
-                      className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                     >
                       <option value="">Selecciona una materia</option>
                       {materias.map((materia) => (
@@ -1282,7 +1282,7 @@ export function ComunidadPagina({
                 type="button"
                 onClick={() => setPestanaEdicionDocente('datos')}
                 className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${pestanaEdicionDocente === 'datos'
-                    ? 'border-indigo-600 text-indigo-600'
+                    ? 'border-brand-700 text-brand-700'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
@@ -1292,12 +1292,12 @@ export function ComunidadPagina({
                 type="button"
                 onClick={() => setPestanaEdicionDocente('requisitos')}
                 className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${pestanaEdicionDocente === 'requisitos'
-                    ? 'border-indigo-600 text-indigo-600'
+                    ? 'border-brand-700 text-brand-700'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
                 2. Requisitos Magisterio (RDA, TPN, Escalafón, Boleta, Antigüedad)
-                <span className="text-[10px] bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-mono">
+                <span className="text-[10px] bg-brand-50 text-brand-800 px-1.5 py-0.5 rounded font-mono">
                   5 requisitos
                 </span>
               </button>
@@ -1305,7 +1305,7 @@ export function ComunidadPagina({
                 type="button"
                 onClick={() => setPestanaEdicionDocente('materias')}
                 className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${pestanaEdicionDocente === 'materias'
-                    ? 'border-indigo-600 text-indigo-600'
+                    ? 'border-brand-700 text-brand-700'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
@@ -1494,7 +1494,7 @@ export function ComunidadPagina({
                   <button
                     type="button"
                     onClick={() => setPestanaEdicionDocente('requisitos')}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                    className="text-xs text-brand-700 hover:text-brand-800 font-medium"
                   >
                     Editar los 5 Requisitos del Magisterio →
                   </button>
@@ -1553,7 +1553,7 @@ export function ComunidadPagina({
                   <button
                     type="button"
                     onClick={() => setPestanaEdicionDocente('datos')}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                    className="text-xs text-brand-700 hover:text-brand-800 font-medium"
                   >
                     ← Volver a Datos Generales
                   </button>
@@ -2020,7 +2020,7 @@ function DocenteTabla({
                         className="w-9 h-9 rounded-lg object-cover border border-slate-200 shadow-2xs shrink-0"
                       />
                     ) : (
-                      <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-700 font-semibold text-xs flex items-center justify-center shrink-0 border border-indigo-100">
+                      <div className="w-9 h-9 rounded-lg bg-brand-50 text-brand-700 font-semibold text-xs flex items-center justify-center shrink-0 border border-brand-100">
                         {iniciales}
                       </div>
                     )}
@@ -2041,8 +2041,8 @@ function DocenteTabla({
                   <div className="space-y-1.5">
                     <div className="flex flex-wrap items-center gap-1.5">
                       {rdaNum ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs">
-                          <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 shadow-2xs">
+                          <ShieldCheck className="w-3.5 h-3.5 text-brand-600" />
                           RDA: {rdaNum}
                         </span>
                       ) : (
@@ -2072,9 +2072,9 @@ function DocenteTabla({
                       <button
                         type="button"
                         onClick={() => onverlegajo(elemento)}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-800 border border-brand-200 px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
                       >
-                        <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                        <FileText className="w-3.5 h-3.5 text-brand-700" />
                         <span>Ver Legajo RDA</span>
                       </button>
                     </div>
@@ -2133,7 +2133,7 @@ function DocenteTabla({
                     <button
                       type="button"
                       onClick={() => onverlegajo(elemento)}
-                      className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                      className="p-1.5 text-brand-700 hover:text-brand-900 hover:bg-brand-50 rounded-lg transition-colors cursor-pointer"
                       title="Ver Legajo Oficial (RDA, Título, Escalafón, Boleta, Titularidad)"
                     >
                       <FileText className="w-4 h-4" />

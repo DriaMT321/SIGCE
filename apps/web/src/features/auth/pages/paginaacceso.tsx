@@ -63,10 +63,10 @@ export const SesionPagina = () => {
   return (
     <div className="min-h-screen w-full bg-slate-50 text-slate-900 lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
       {/* SECCIÓN IZQUIERDA: HERO INSTITUCIONAL */}
-      <section className="relative overflow-hidden bg-[#090e1a] text-white p-8 sm:p-12 lg:p-16 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800/80 shadow-2xl">
-        {/* Glow amibental sutil */}
-        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-indigo-600/15 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 right-0 w-80 h-80 rounded-full bg-purple-600/10 blur-3xl pointer-events-none" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#1c0508] via-[#2d0910] to-[#0f172a] text-white p-8 sm:p-12 lg:p-16 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-white/10 shadow-2xl">
+        {/* Glow ambiental con los tonos institucionales (carmesí y oro/ámbar) */}
+        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-brand-600/20 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 right-0 w-80 h-80 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
 
         {/* Encabezado con Escudo y Gestión */}
         <div className="relative z-10 flex items-center justify-between gap-4">
@@ -77,16 +77,16 @@ export const SesionPagina = () => {
                 alt="Logo Colegio Comunidad Cristiana"
                 className="h-12 w-auto object-contain drop-shadow-md"
               />
-              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-[#090e1a]" />
+              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-[#1c0508]" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-xl font-black tracking-tight text-white">SIGCE</span>
-                <span className="text-[10px] font-bold text-indigo-300 bg-indigo-500/20 border border-indigo-500/30 px-1.5 py-0.2 rounded">
+                <span className="text-[10px] font-bold text-amber-300 bg-amber-500/20 border border-amber-500/30 px-1.5 py-0.2 rounded">
                   Oficial
                 </span>
               </div>
-              <p className="text-xs text-slate-400 font-medium">U.E. Comunidad Cristiana B</p>
+              <p className="text-xs text-slate-300 font-medium">U.E. Comunidad Cristiana B</p>
             </div>
           </div>
 
@@ -99,8 +99,8 @@ export const SesionPagina = () => {
 
         {/* Mensaje Central y Propósito Institucional */}
         <div className="relative z-10 my-10 max-w-xl lg:my-auto lg:py-12 space-y-5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold">
-            <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/15 border border-brand-500/30 text-amber-200 text-xs font-semibold">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
             <span>Sistema Integral Acreditado · Ley 070</span>
           </div>
 
@@ -108,23 +108,23 @@ export const SesionPagina = () => {
             Control académico, expediente docente y comunidad en tiempo real.
           </h2>
 
-          <p className="text-sm leading-relaxed text-slate-300 max-w-lg">
+          <p className="text-sm leading-relaxed text-slate-200 max-w-lg">
             Plataforma oficial para la centralización de notas trimestrales, asistencia biométrica,
             administración del legajo docente (RDA y Escalafón) y comunicación con las familias.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur-xs">
-              <p className="text-[11px] font-semibold text-indigo-300">Normativa SIE</p>
-              <p className="text-xs text-slate-300 mt-0.5">Compatible con Ministerio de Educación</p>
+            <div className="rounded-xl border border-white/10 bg-white/[0.05] p-3 backdrop-blur-xs">
+              <p className="text-[11px] font-semibold text-amber-300">Normativa SIE</p>
+              <p className="text-xs text-slate-200 mt-0.5">Compatible con Ministerio de Educación</p>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur-xs">
-              <p className="text-[11px] font-semibold text-purple-300">Expediente RDA</p>
-              <p className="text-xs text-slate-300 mt-0.5">Legajo docente digitalizado</p>
+            <div className="rounded-xl border border-white/10 bg-white/[0.05] p-3 backdrop-blur-xs">
+              <p className="text-[11px] font-semibold text-rose-300">Expediente RDA</p>
+              <p className="text-xs text-slate-200 mt-0.5">Legajo docente digitalizado</p>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur-xs">
-              <p className="text-[11px] font-semibold text-emerald-300">Seguimiento</p>
-              <p className="text-xs text-slate-300 mt-0.5">Acceso a notas y asistencia</p>
+            <div className="rounded-xl border border-white/10 bg-white/[0.05] p-3 backdrop-blur-xs">
+              <p className="text-[11px] font-semibold text-amber-300">Seguimiento</p>
+              <p className="text-xs text-slate-200 mt-0.5">Acceso a notas y asistencia</p>
             </div>
           </div>
         </div>
@@ -132,7 +132,7 @@ export const SesionPagina = () => {
         {/* Pie de la columna izquierda */}
         <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 border-t border-white/10 pt-4">
           <span>Estado Plurinacional de Bolivia</span>
-          <span className="font-mono text-[11px] text-slate-500">America/La_Paz (UTC-4)</span>
+          <span className="font-mono text-[11px] text-slate-400">America/La_Paz (UTC-4)</span>
         </div>
       </section>
 
@@ -148,7 +148,7 @@ export const SesionPagina = () => {
             }
             className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 cursor-pointer shadow-2xs"
           >
-            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-indigo-600" />
+            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-brand-700" />
             <span>
               {esinstitucional ? 'Modo Institucional' : 'Modo Ejecutivo'}
             </span>

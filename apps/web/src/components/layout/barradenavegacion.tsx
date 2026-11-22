@@ -69,7 +69,7 @@ export const Barranavegacion: React.FC = () => {
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
           <span className="font-bold text-slate-900 dark:text-slate-100">Gestión Escolar 2026</span>
           <span className="hidden sm:inline text-slate-300 dark:text-slate-700">·</span>
-          <span className="hidden sm:inline text-xs text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 px-2.5 py-0.5 rounded-full font-semibold">
+          <span className="hidden sm:inline text-xs text-brand-800 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800/60 px-2.5 py-0.5 rounded-full font-semibold">
             1er Trimestre
           </span>
         </div>

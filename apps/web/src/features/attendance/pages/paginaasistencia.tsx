@@ -1002,7 +1002,7 @@ export const AsistenciaPagina = ({
                             <div className="text-xs font-mono text-slate-400">RUDE: {est.rude}</div>
                           )}
                         </div>
-                        <span className="text-xs text-indigo-600 font-semibold">Seleccionar</span>
+                        <span className="text-xs text-brand-700 font-semibold">Seleccionar</span>
                       </button>
                     ))}
                   </div>
@@ -1044,16 +1044,16 @@ export const AsistenciaPagina = ({
 
             {/* Selected student pill */}
             {estudianteActualIndividual && (
-              <div className="flex items-center justify-between p-2.5 bg-indigo-50/80 rounded-lg border border-indigo-200">
+              <div className="flex items-center justify-between p-2.5 bg-brand-50/80 rounded-lg border border-brand-200">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-600 text-white font-mono">
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded bg-brand-700 text-white font-mono">
                     {estudianteActualIndividual.rude || 'RUDE'}
                   </span>
                   <span className="text-sm font-bold text-slate-900">
                     {estudianteActualIndividual.lastName} {estudianteActualIndividual.firstName}
                   </span>
                 </div>
-                <span className="text-xs font-mono font-semibold text-indigo-700">
+                <span className="text-xs font-mono font-semibold text-brand-800">
                   {metricasIndividual.total} partes registrados en el periodo
                 </span>
               </div>

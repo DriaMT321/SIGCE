@@ -535,7 +535,7 @@ export const CalificacionesPagina = ({
                   : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
-              <List className="w-3.5 h-3.5 text-indigo-600" />
+              <List className="w-3.5 h-3.5 text-brand-700" />
               Lista de Notas
             </button>
           </div>

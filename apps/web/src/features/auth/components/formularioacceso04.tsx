@@ -90,7 +90,7 @@ export function Sesion04Formulario({
                 aria-pressed={esseleccionado}
                 className={`flex min-h-[64px] items-start gap-2.5 rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
                   esseleccionado
-                    ? 'border-indigo-600 bg-indigo-50/80 text-indigo-950 ring-2 ring-indigo-500/20 shadow-xs'
+                    ? 'border-brand-700 bg-brand-50/80 text-brand-950 ring-2 ring-brand-700/20 shadow-xs'
                     : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50/80'
                 }`}
               >
@@ -98,7 +98,7 @@ export function Sesion04Formulario({
                   aria-hidden="true"
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors ${
                     esseleccionado
-                      ? 'border-indigo-200 bg-white text-indigo-600 shadow-2xs'
+                      ? 'border-brand-200 bg-white text-brand-700 shadow-2xs'
                       : 'border-slate-200 bg-slate-50 text-slate-500'
                   }`}
                 >
@@ -143,7 +143,7 @@ export function Sesion04Formulario({
                 type="text"
                 autoComplete="username"
                 placeholder={obteneridentificadorprovisional(rol)}
-                className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus-visible:border-indigo-600 focus-visible:ring-2 focus-visible:ring-indigo-500 sm:text-sm"
+                className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus-visible:border-brand-700 focus-visible:ring-2 focus-visible:ring-brand-700/20 sm:text-sm"
                 aria-invalid={Boolean(errores.identifier)}
                 aria-describedby={errores.identifier ? 'error-identificador' : undefined}
               />
@@ -171,7 +171,7 @@ export function Sesion04Formulario({
                   type="tel"
                   autoComplete="tel"
                   placeholder="Ingrese su número de teléfono"
-                  className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus-visible:border-indigo-600 focus-visible:ring-2 focus-visible:ring-indigo-500 sm:text-sm"
+                  className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus-visible:border-brand-700 focus-visible:ring-2 focus-visible:ring-brand-700/20 sm:text-sm"
                   aria-invalid={Boolean(errores.secondaryIdentifier)}
                   aria-describedby={
                     errores.secondaryIdentifier ? 'error-identificador-secundario' : undefined
@@ -204,7 +204,7 @@ export function Sesion04Formulario({
                 type="password"
                 autoComplete="current-password"
                 placeholder="••••••••••••"
-                className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus-visible:border-indigo-600 focus-visible:ring-2 focus-visible:ring-indigo-500 sm:text-sm"
+                className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus-visible:border-brand-700 focus-visible:ring-2 focus-visible:ring-brand-700/20 sm:text-sm"
                 aria-invalid={Boolean(errores.secret)}
                 aria-describedby={errores.secret ? 'error-clave' : undefined}
               />
@@ -220,7 +220,7 @@ export function Sesion04Formulario({
         <Boton
           type="submit"
           disabled={escarga}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-xs font-bold tracking-wide text-white shadow-lg shadow-indigo-600/25 transition-all hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:ring-indigo-500 disabled:cursor-wait disabled:opacity-70 sm:text-sm cursor-pointer"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 text-xs font-bold tracking-wide text-white shadow-lg shadow-brand-700/20 transition-all hover:bg-brand-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:ring-brand-700 disabled:cursor-wait disabled:opacity-70 sm:text-sm cursor-pointer"
         >
           {escarga ? (
             <>
@@ -239,7 +239,7 @@ export function Sesion04Formulario({
           <button
             type="button"
             onClick={onactivarestudiante}
-            className="w-full rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors cursor-pointer"
+            className="w-full rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-brand-700 hover:text-brand-900 hover:underline transition-colors cursor-pointer"
           >
             Activar mi cuenta estudiantil con código
           </button>

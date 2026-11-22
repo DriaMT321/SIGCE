@@ -375,7 +375,7 @@ export function SubidorDocumentoFoto({
           ) : (
             <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
               <div className="flex items-center gap-2 overflow-hidden">
-                <FileText className="w-5 h-5 text-indigo-600 shrink-0" />
+                <FileText className="w-5 h-5 text-brand-700 shrink-0" />
                 <span className="text-xs font-medium text-slate-700 truncate">
                   {nombreArchivo || 'Documento adjunto'}
                 </span>
@@ -385,7 +385,7 @@ export function SubidorDocumentoFoto({
                   <button
                     type="button"
                     onClick={() => void descargarParaRevision()}
-                    className="rounded px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+                    className="rounded px-2 py-1 text-xs font-medium text-brand-800 hover:bg-brand-50"
                     title="Descargar el PDF para revisar su contenido"
                   >
                     Descargar para revisar
@@ -419,10 +419,10 @@ export function SubidorDocumentoFoto({
           type="button"
           disabled={cargando}
           onClick={() => inputRef.current?.click()}
-          className="w-full flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-slate-300 bg-white/60 p-4 text-center hover:bg-white hover:border-indigo-400 transition-colors cursor-pointer"
+          className="w-full flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-slate-300 bg-white/60 p-4 text-center hover:bg-white hover:border-brand-400 transition-colors cursor-pointer"
         >
           <Camera className="w-5 h-5 text-slate-400" />
-          <span className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
+          <span className="text-xs font-medium text-brand-700 hover:text-brand-800">
             {cargando ? 'Procesando archivo...' : 'Subir foto o documento escaneado'}
           </span>
           <span className="text-[10px] text-slate-400">PDF, JPG, PNG o WebP · máximo 8 MB</span>
@@ -491,9 +491,9 @@ export function EditorRequisitosMagisterio({
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
       {/* Cabecera descriptiva institucional */}
-      <div className="bg-gradient-to-r from-slate-900 to-indigo-950 px-4 py-3 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div className="bg-gradient-to-r from-slate-900 via-brand-950 to-slate-900 px-4 py-3 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-white/10 text-indigo-300">
+          <div className="p-1.5 rounded-lg bg-white/10 text-amber-300">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
@@ -519,7 +519,7 @@ export function EditorRequisitosMagisterio({
           onClick={() => setTabActiva('rda')}
           className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${
             tabActiva === 'rda'
-              ? 'bg-white text-indigo-700 border-indigo-600 shadow-2xs'
+              ? 'bg-white text-brand-700 border-brand-700 shadow-2xs'
               : 'text-slate-600 border-transparent hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -535,7 +535,7 @@ export function EditorRequisitosMagisterio({
           onClick={() => setTabActiva('titulo')}
           className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${
             tabActiva === 'titulo'
-              ? 'bg-white text-indigo-700 border-indigo-600 shadow-2xs'
+              ? 'bg-white text-brand-700 border-brand-700 shadow-2xs'
               : 'text-slate-600 border-transparent hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -551,7 +551,7 @@ export function EditorRequisitosMagisterio({
           onClick={() => setTabActiva('escalafon')}
           className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${
             tabActiva === 'escalafon'
-              ? 'bg-white text-indigo-700 border-indigo-600 shadow-2xs'
+              ? 'bg-white text-brand-700 border-brand-700 shadow-2xs'
               : 'text-slate-600 border-transparent hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -567,7 +567,7 @@ export function EditorRequisitosMagisterio({
           onClick={() => setTabActiva('boleta')}
           className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${
             tabActiva === 'boleta'
-              ? 'bg-white text-indigo-700 border-indigo-600 shadow-2xs'
+              ? 'bg-white text-brand-700 border-brand-700 shadow-2xs'
               : 'text-slate-600 border-transparent hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -583,7 +583,7 @@ export function EditorRequisitosMagisterio({
           onClick={() => setTabActiva('antiguedad')}
           className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 cursor-pointer ${
             tabActiva === 'antiguedad'
-              ? 'bg-white text-indigo-700 border-indigo-600 shadow-2xs'
+              ? 'bg-white text-brand-700 border-brand-700 shadow-2xs'
               : 'text-slate-600 border-transparent hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -647,7 +647,7 @@ export function EditorRequisitosMagisterio({
                   <select
                     value={valores.rda.categoriaEscalafon}
                     onChange={(e) => actualizarRda('categoriaEscalafon', e.target.value)}
-                    className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                   >
                     {CATEGORIAS_ESCALAFON.map((cat) => (
                       <option key={cat} value={cat}>
@@ -741,7 +741,7 @@ export function EditorRequisitosMagisterio({
                     id="chk-tiene-titulo"
                     checked={valores.tituloProvisionNacional.tieneTitulo}
                     onChange={(e) => actualizarTitulo('tieneTitulo', e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    className="h-4 w-4 rounded border-slate-300 text-brand-700 focus:ring-brand-700"
                   />
                   <label htmlFor="chk-tiene-titulo" className="text-xs font-semibold text-slate-800">
                     Docente cuenta con Título en Provisión Nacional acreditado
@@ -864,7 +864,7 @@ export function EditorRequisitosMagisterio({
                   <select
                     value={valores.resolucionEscalafon.categoriaIngreso}
                     onChange={(e) => actualizarEscalafon('categoriaIngreso', e.target.value)}
-                    className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                   >
                     {CATEGORIAS_ESCALAFON.map((cat) => (
                       <option key={cat} value={cat}>
@@ -881,10 +881,10 @@ export function EditorRequisitosMagisterio({
         {/* PESTAÑA 4: BOLETA MECANIZADA */}
         {tabActiva === 'boleta' && (
           <div className="space-y-4">
-            <div className="rounded-lg bg-purple-50/70 p-3 text-xs text-purple-950 border border-purple-100 flex items-start gap-2.5">
-              <CreditCard className="w-4 h-4 text-purple-700 shrink-0 mt-0.5" />
+            <div className="rounded-lg bg-amber-50/70 p-3 text-xs text-amber-950 border border-amber-200 flex items-start gap-2.5">
+              <CreditCard className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
               <div>
-                <strong className="font-semibold text-purple-950">4. Boleta de Pago Mecanizada (Maestros en Ejercicio):</strong>{' '}
+                <strong className="font-semibold text-amber-950">4. Boleta de Pago Mecanizada (Maestros en Ejercicio):</strong>{' '}
                 Prueba oficial emitida por el Ministerio de Economía y Finanzas Públicas para docentes en ejercicio activo
                 del sistema fiscal o convenio. Certifica ítem, RDA, categoría y bonos del magisterio.
               </div>
@@ -916,7 +916,7 @@ export function EditorRequisitosMagisterio({
                     id="chk-aplica-boleta"
                     checked={valores.boletaPago.aplicaBoleta}
                     onChange={(e) => actualizarBoleta('aplicaBoleta', e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    className="h-4 w-4 rounded border-slate-300 text-brand-700 focus:ring-brand-700"
                   />
                   <label htmlFor="chk-aplica-boleta" className="text-xs font-semibold text-slate-800">
                     Docente cuenta con Boleta Mecanizada en ejercicio fiscal/convenio
@@ -990,7 +990,7 @@ export function EditorRequisitosMagisterio({
                 id="chk-titular-antiguedad"
                 checked={valores.titularPorAntiguedad.esTitularPorAntiguedad}
                 onChange={(e) => actualizarAntiguedad('esTitularPorAntiguedad', e.target.checked)}
-                className="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                className="h-5 w-5 rounded border-slate-300 text-brand-700 focus:ring-brand-700"
               />
             </div>
 
@@ -1111,10 +1111,10 @@ export function ModalDetalleLegajoDocente({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs overflow-y-auto">
       <div className="w-full max-w-4xl max-h-[92vh] flex flex-col rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden my-auto">
         {/* Cabecera del modal */}
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 px-6 py-4 text-white flex items-center justify-between shrink-0">
+        <div className="bg-gradient-to-r from-slate-900 via-brand-950 to-slate-900 px-6 py-4 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
-              <ShieldCheck className="w-6 h-6 text-indigo-300" />
+              <ShieldCheck className="w-6 h-6 text-amber-300" />
             </div>
             <div>
               <h2 className="text-base font-bold text-white tracking-wide">
@@ -1151,10 +1151,10 @@ export function ModalDetalleLegajoDocente({
               <img
                 src={reqs.fotoPerfil}
                 alt={docente.firstName}
-                className="w-14 h-14 rounded-full object-cover border-2 border-indigo-500 shadow-sm"
+                className="w-14 h-14 rounded-full object-cover border-2 border-brand-600 shadow-sm"
               />
             ) : (
-              <div className="w-14 h-14 rounded-full bg-indigo-100 text-indigo-700 font-bold text-lg flex items-center justify-center border-2 border-indigo-200">
+              <div className="w-14 h-14 rounded-full bg-brand-100 text-brand-800 font-bold text-lg flex items-center justify-center border-2 border-brand-200">
                 {docente.firstName[0]}
                 {docente.lastName[0]}
               </div>
@@ -1164,7 +1164,7 @@ export function ModalDetalleLegajoDocente({
                 <h3 className="text-lg font-bold text-slate-900">
                   {docente.firstName} {docente.lastName}
                 </h3>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-800 border border-brand-200">
                   {docente.specialty}
                 </span>
               </div>
@@ -1271,7 +1271,7 @@ export function ModalDetalleLegajoDocente({
                           setErrorDescargaRda('No se pudo descargar el respaldo del RDA.');
                         });
                     }}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-semibold text-brand-700 hover:text-brand-900 flex items-center gap-1 cursor-pointer"
                   >
                     <FileText className="w-3.5 h-3.5" /> Descargar PDF para revisar
                   </button>
@@ -1279,7 +1279,7 @@ export function ModalDetalleLegajoDocente({
                   <button
                     type="button"
                     onClick={() => onVerImagenCompleta(reqs.rda.archivoUrl!, 'Registro Docente Administrativo (RDA)')}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-semibold text-brand-700 hover:text-brand-900 flex items-center gap-1 cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5" /> Ver imagen completa
                   </button>
@@ -1350,7 +1350,7 @@ export function ModalDetalleLegajoDocente({
                   <button
                     type="button"
                     onClick={() => onVerImagenCompleta(reqs.tituloProvisionNacional.archivoUrl!, 'Título en Provisión Nacional')}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-semibold text-brand-700 hover:text-brand-900 flex items-center gap-1 cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5" /> Ver imagen completa
                   </button>
@@ -1416,7 +1416,7 @@ export function ModalDetalleLegajoDocente({
                   <button
                     type="button"
                     onClick={() => onVerImagenCompleta(reqs.resolucionEscalafon.archivoUrl!, 'Resolución de Escalafón')}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-semibold text-brand-700 hover:text-brand-900 flex items-center gap-1 cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5" /> Ver imagen completa
                   </button>
@@ -1429,7 +1429,7 @@ export function ModalDetalleLegajoDocente({
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
             <div className="flex items-start justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-purple-100 text-purple-800">
+                <div className="p-1.5 rounded-lg bg-amber-100 text-amber-800">
                   <CreditCard className="w-4 h-4" />
                 </div>
                 <div>
@@ -1461,7 +1461,7 @@ export function ModalDetalleLegajoDocente({
               </div>
               <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
                 <span className="text-slate-500 block">Estado Fiscal:</span>
-                <span className="font-semibold text-purple-800">{reqs.boletaPago.aplicaBoleta ? 'En Ejercicio Activo' : 'No Aplica'}</span>
+                <span className="font-semibold text-amber-800">{reqs.boletaPago.aplicaBoleta ? 'En Ejercicio Activo' : 'No Aplica'}</span>
               </div>
               <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 sm:col-span-2">
                 <span className="text-slate-500 block">Distrito / Entidad Fiscal:</span>
@@ -1482,7 +1482,7 @@ export function ModalDetalleLegajoDocente({
                   <button
                     type="button"
                     onClick={() => onVerImagenCompleta(reqs.boletaPago.archivoUrl!, 'Boleta de Pago Mecanizada')}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-semibold text-brand-700 hover:text-brand-900 flex items-center gap-1 cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5" /> Ver imagen completa
                   </button>
@@ -1508,7 +1508,7 @@ export function ModalDetalleLegajoDocente({
                 </div>
               </div>
               {reqs.titularPorAntiguedad.esTitularPorAntiguedad ? (
-                <span className="text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">
+                <span className="text-xs font-medium text-brand-800 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-md">
                   Condición Aplica
                 </span>
               ) : (
@@ -1565,7 +1565,7 @@ export function ModalDetalleLegajoDocente({
                         'Resolución de Titular por Antigüedad',
                       )
                     }
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-semibold text-brand-700 hover:text-brand-900 flex items-center gap-1 cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5" /> Ver imagen completa
                   </button>

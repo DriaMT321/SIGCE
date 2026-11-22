@@ -26,7 +26,7 @@ interface metricatarjetapropiedades {
   icon: LucideIcon;
   link: string;
   linkLabel: string;
-  tone?: 'indigo' | 'emerald' | 'amber' | 'purple';
+  tone?: 'brand' | 'indigo' | 'emerald' | 'amber' | 'purple' | 'orange';
 }
 
 function FiltroGrafico({
@@ -68,14 +68,14 @@ const filtrosturno = [
 ];
 
 const toneStyles: Record<
-  'indigo' | 'emerald' | 'amber' | 'purple',
+  'brand' | 'emerald' | 'amber' | 'orange' | 'indigo' | 'purple',
   { iconBg: string; iconColor: string; accentBorder: string; linkColor: string }
 > = {
-  indigo: {
-    iconBg: 'bg-indigo-50 border-indigo-100',
-    iconColor: 'text-indigo-600',
-    accentBorder: 'hover:border-indigo-300',
-    linkColor: 'text-indigo-600 hover:text-indigo-700',
+  brand: {
+    iconBg: 'bg-brand-50 border-brand-100',
+    iconColor: 'text-brand-700',
+    accentBorder: 'hover:border-brand-300',
+    linkColor: 'text-brand-700 hover:text-brand-800',
   },
   emerald: {
     iconBg: 'bg-emerald-50 border-emerald-100',
@@ -89,11 +89,23 @@ const toneStyles: Record<
     accentBorder: 'hover:border-amber-300',
     linkColor: 'text-amber-700 hover:text-amber-800',
   },
+  orange: {
+    iconBg: 'bg-orange-50 border-orange-100',
+    iconColor: 'text-orange-600',
+    accentBorder: 'hover:border-orange-300',
+    linkColor: 'text-orange-700 hover:text-orange-800',
+  },
+  indigo: {
+    iconBg: 'bg-brand-50 border-brand-100',
+    iconColor: 'text-brand-700',
+    accentBorder: 'hover:border-brand-300',
+    linkColor: 'text-brand-700 hover:text-brand-800',
+  },
   purple: {
-    iconBg: 'bg-purple-50 border-purple-100',
-    iconColor: 'text-purple-600',
-    accentBorder: 'hover:border-purple-300',
-    linkColor: 'text-purple-600 hover:text-purple-700',
+    iconBg: 'bg-orange-50 border-orange-100',
+    iconColor: 'text-orange-600',
+    accentBorder: 'hover:border-orange-300',
+    linkColor: 'text-orange-700 hover:text-orange-800',
   },
 };
 
@@ -104,7 +116,7 @@ const MetricaTarjeta: React.FC<metricatarjetapropiedades> = ({
   icon: Icono,
   link: enlace,
   linkLabel: enlaceetiqueta,
-  tone = 'indigo',
+  tone = 'brand',
 }) => {
   const currentTone = toneStyles[tone];
   return (
@@ -312,7 +324,7 @@ export const TableroResumenPagina: React.FC<{
           {['ADMINISTRATIVE', 'SECRETARY'].includes(rol ?? '') && (
             <Link to="/dashboard/sie-sync">
               <Boton variant="outline" size="sm" className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50 shadow-2xs">
-                <RefreshCw className="h-4 w-4 text-indigo-600" /> Sincronización SIE
+                <RefreshCw className="h-4 w-4 text-brand-700" /> Sincronización SIE
               </Boton>
             </Link>
           )}
@@ -331,7 +343,7 @@ export const TableroResumenPagina: React.FC<{
           icon={Users}
           link="/dashboard/students"
           linkLabel="Ver lista"
-          tone="indigo"
+          tone="brand"
         />
         <MetricaTarjeta
           title="Cursos habilitados"
@@ -345,7 +357,7 @@ export const TableroResumenPagina: React.FC<{
           icon={GraduationCap}
           link="/dashboard/courses"
           linkLabel="Ver cursos"
-          tone="emerald"
+          tone="amber"
         />
         <MetricaTarjeta
           title="Docentes en Magisterio"
@@ -359,7 +371,7 @@ export const TableroResumenPagina: React.FC<{
           icon={BookOpen}
           link="/dashboard/teachers"
           linkLabel="Ver docentes"
-          tone="amber"
+          tone="orange"
         />
         <MetricaTarjeta
           title="Actividades y evaluaciones"
@@ -372,7 +384,7 @@ export const TableroResumenPagina: React.FC<{
           icon={ClipboardList}
           link="/dashboard/assignments"
           linkLabel="Ver actividades"
-          tone="purple"
+          tone="emerald"
         />
       </div>
 

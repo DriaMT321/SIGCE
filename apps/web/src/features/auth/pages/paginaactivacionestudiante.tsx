@@ -63,7 +63,7 @@ export function EstudianteActivacionPagina() {
   return (
     <main className="relative flex min-h-screen items-center justify-center bg-[#090e1a] px-4 py-10 overflow-hidden">
       {/* Ambient background glows */}
-      <div className="absolute top-0 -left-20 h-96 w-96 rounded-full bg-indigo-600/15 blur-3xl pointer-events-none" />
+      <div className="absolute top-0 -left-20 h-96 w-96 rounded-full bg-brand-600/15 blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 -right-20 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
 
       <section

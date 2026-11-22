@@ -197,7 +197,7 @@ export const AuditoriaPagina: React.FC<{ queries: consultasauditoria }> = ({ que
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/80 pb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-800 border border-brand-200">
               Pistas de Auditoría y Trazabilidad
             </span>
             <span className="text-xs text-slate-400">·</span>

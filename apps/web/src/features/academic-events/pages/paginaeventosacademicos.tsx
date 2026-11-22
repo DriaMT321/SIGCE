@@ -84,20 +84,20 @@ const configportipo: Record<tipoeventoacademico, TipoEventoConfig> = {
   REUNION: {
     label: 'Reunión Institucional',
     badge: 'Reunión',
-    dotColor: 'bg-indigo-500',
-    bgLight: 'bg-indigo-50',
-    textColor: 'text-indigo-800',
-    borderColor: 'border-indigo-200',
-    accentBar: 'border-l-indigo-500',
+    dotColor: 'bg-brand-600',
+    bgLight: 'bg-brand-50',
+    textColor: 'text-brand-800',
+    borderColor: 'border-brand-200',
+    accentBar: 'border-l-brand-600',
   },
   ACTO_ESCOLAR: {
     label: 'Acto Cívico / Cultural',
     badge: 'Acto Cívico',
-    dotColor: 'bg-violet-500',
-    bgLight: 'bg-violet-50',
-    textColor: 'text-violet-800',
-    borderColor: 'border-violet-200',
-    accentBar: 'border-l-violet-500',
+    dotColor: 'bg-amber-500',
+    bgLight: 'bg-amber-50',
+    textColor: 'text-amber-800',
+    borderColor: 'border-amber-200',
+    accentBar: 'border-l-amber-500',
   },
   SUSPENSION_CLASES: {
     label: 'Suspensión de Clases',
@@ -613,14 +613,14 @@ export function PaginaEventosAcademicos({
   return (
     <main className="mx-auto max-w-[1550px] space-y-6 pb-12 animate-in fade-in duration-300">
       {/* 1. HERO HEADER ESTÉTICO */}
-      <header className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 text-white shadow-xl">
-        <div className="absolute right-0 top-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
-        <div className="absolute left-1/3 bottom-0 -mb-10 h-40 w-40 rounded-full bg-purple-500/10 blur-2xl pointer-events-none" />
+      <header className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-r from-slate-900 via-brand-950 to-slate-900 p-6 text-white shadow-xl">
+        <div className="absolute right-0 top-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-brand-600/15 blur-3xl pointer-events-none" />
+        <div className="absolute left-1/3 bottom-0 -mb-10 h-40 w-40 rounded-full bg-amber-500/10 blur-2xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-semibold text-indigo-300 border border-indigo-500/30">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-500/20 px-3 py-1 text-xs font-semibold text-amber-300 border border-brand-500/30">
                 <CalendarRange className="h-3.5 w-3.5" />
                 Gestión Escolar 2026
               </span>
@@ -641,7 +641,7 @@ export function PaginaEventosAcademicos({
             {puedeprogramar && (
               <Boton
                 onClick={abrirNuevo}
-                className="h-10 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-lg shadow-indigo-600/30 gap-2 rounded-xl transition-all cursor-pointer"
+                className="h-10 px-4 bg-brand-700 hover:bg-brand-800 text-white font-semibold shadow-lg shadow-brand-700/25 gap-2 rounded-xl transition-all cursor-pointer"
               >
                 <CalendarPlus className="h-4 w-4" />
                 <span>Programar Actividad</span>
@@ -661,17 +661,17 @@ export function PaginaEventosAcademicos({
           {puedeverTareas ? (
             <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
               <p className="text-[11px] font-medium text-slate-400">Tareas y Exámenes</p>
-              <p className="text-lg font-bold text-indigo-300 mt-0.5">{asignaciones.length}</p>
+              <p className="text-lg font-bold text-amber-300 mt-0.5">{asignaciones.length}</p>
             </div>
           ) : (
             <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
               <p className="text-[11px] font-medium text-slate-400">Próximos eventos</p>
-              <p className="text-lg font-bold text-indigo-300 mt-0.5">{proximoseventos}</p>
+              <p className="text-lg font-bold text-amber-300 mt-0.5">{proximoseventos}</p>
             </div>
           )}
           <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
             <p className="text-[11px] font-medium text-slate-400">Institucionales</p>
-            <p className="text-lg font-bold text-purple-300 mt-0.5">{eventosinstitucionales}</p>
+            <p className="text-lg font-bold text-rose-300 mt-0.5">{eventosinstitucionales}</p>
           </div>
           <div className="rounded-xl bg-white/5 p-3 backdrop-blur-xs border border-white/5">
             <p className="text-[11px] font-medium text-slate-400">Por curso</p>
@@ -710,7 +710,7 @@ export function PaginaEventosAcademicos({
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center gap-1.5 mr-1">
-            <Users className="w-4 h-4 text-indigo-600" />
+            <Users className="w-4 h-4 text-brand-700" />
             <span>Audiencia:</span>
           </span>
           {[
@@ -727,7 +727,7 @@ export function PaginaEventosAcademicos({
                 onClick={() => establecerFiltroAudiencia(item.id as AudienciaEvento)}
                 className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
                   activo
-                    ? 'bg-indigo-600 text-white shadow-xs font-bold ring-2 ring-indigo-500/20'
+                    ? 'bg-brand-700 text-white shadow-xs font-bold ring-2 ring-brand-700/20'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80'
                 }`}
               >
@@ -774,9 +774,9 @@ export function PaginaEventosAcademicos({
           })}
 
           {filtroPlazo === 'FECHA_ESPECIFICA' && (
-            <div className="flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 rounded-xl px-2.5 py-1 text-xs text-indigo-950 animate-in fade-in">
-              <CalendarDays className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-              <label htmlFor="input-fecha-especifica" className="text-[11px] font-bold text-indigo-900">
+            <div className="flex items-center gap-1.5 bg-brand-50 border border-brand-200 rounded-xl px-2.5 py-1 text-xs text-brand-950 animate-in fade-in">
+              <CalendarDays className="w-3.5 h-3.5 text-brand-700 shrink-0" />
+              <label htmlFor="input-fecha-especifica" className="text-[11px] font-bold text-brand-900">
                 Día:
               </label>
               <input
@@ -793,7 +793,7 @@ export function PaginaEventosAcademicos({
                     establecerMesVisible({ anio: y, mes: m - 1 });
                   }
                 }}
-                className="h-7 rounded-lg border border-indigo-300 bg-white px-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                className="h-7 rounded-lg border border-brand-300 bg-white px-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-brand-700 cursor-pointer"
               />
             </div>
           )}
@@ -826,7 +826,7 @@ export function PaginaEventosAcademicos({
               type="button"
               onClick={() => establecerFiltroTipo(tipo)}
               className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${activo
-                ? `${cfg.bgLight} ${cfg.textColor} border ${cfg.borderColor} ring-2 ring-indigo-500/20 shadow-xs font-bold`
+                ? `${cfg.bgLight} ${cfg.textColor} border ${cfg.borderColor} ring-2 ring-brand-700/20 shadow-xs font-bold`
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                 }`}
             >
@@ -847,13 +847,13 @@ export function PaginaEventosAcademicos({
               type="button"
               onClick={() => establecerFiltroTipo('TAREAS')}
               className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${filtroTipo === 'TAREAS'
-                ? 'bg-blue-600 text-white shadow-xs font-bold ring-2 ring-blue-500/30'
-                : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-50'
+                ? 'bg-brand-700 text-white shadow-xs font-bold ring-2 ring-brand-700/30'
+                : 'bg-white text-brand-800 border border-brand-200 hover:bg-brand-50'
                 }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
               <span>Tareas asignadas</span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${filtroTipo === 'TAREAS' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${filtroTipo === 'TAREAS' ? 'bg-white/20 text-white' : 'bg-brand-100 text-brand-800'
                 }`}>
                 {conteoPorTipo.TAREAS ?? 0}
               </span>
@@ -863,13 +863,13 @@ export function PaginaEventosAcademicos({
               type="button"
               onClick={() => establecerFiltroTipo('EXAMENES')}
               className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer ${filtroTipo === 'EXAMENES'
-                ? 'bg-purple-700 text-white shadow-xs font-bold ring-2 ring-purple-500/30'
-                : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-50'
+                ? 'bg-amber-600 text-white shadow-xs font-bold ring-2 ring-amber-500/30'
+                : 'bg-white text-amber-800 border border-amber-200 hover:bg-amber-50'
                 }`}
             >
               <FileCheck2 className="w-3.5 h-3.5" />
               <span>Exámenes y Evaluaciones</span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${filtroTipo === 'EXAMENES' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${filtroTipo === 'EXAMENES' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
                 }`}>
                 {conteoPorTipo.EXAMENES ?? 0}
               </span>
@@ -890,7 +890,7 @@ export function PaginaEventosAcademicos({
             {/* Cabecera del modal */}
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-6 py-4">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-800">
                   <CalendarPlus className="h-5 w-5" />
                 </div>
                 <div>
@@ -925,7 +925,7 @@ export function PaginaEventosAcademicos({
 
                 <CampoFormulario etiqueta="Tipo de Evento *" error={formulario.formState.errors.type?.message}>
                   <select
-                    className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700"
                     {...formulario.register('type')}
                   >
                     {tiposevento.map((tipo) => (
@@ -938,7 +938,7 @@ export function PaginaEventosAcademicos({
 
                 <CampoFormulario etiqueta="Alcance por Curso" error={formulario.formState.errors.courseId?.message}>
                   <select
-                    className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700"
                     disabled={cursosconsulta.isLoading}
                     {...formulario.register('courseId')}
                   >
@@ -957,7 +957,7 @@ export function PaginaEventosAcademicos({
 
                 <CampoFormulario etiqueta="Audiencia Destinataria *" error={formulario.formState.errors.audience?.message}>
                   <select
-                    className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700"
                     {...formulario.register('audience')}
                   >
                     <option value="TODOS">Toda la Comunidad Educativa (General)</option>
@@ -981,7 +981,7 @@ export function PaginaEventosAcademicos({
                 <input
                   id="check-todo-dia"
                   type="checkbox"
-                  className="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                  className="h-5 w-5 rounded border-slate-300 text-brand-700 focus:ring-brand-700 cursor-pointer"
                   {...formulario.register('allDay')}
                 />
               </div>
@@ -1035,7 +1035,7 @@ export function PaginaEventosAcademicos({
                 {eventoEditado ? (
                   <CampoFormulario etiqueta="Estado de la Actividad">
                     <select
-                      className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700"
                       {...formulario.register('status')}
                     >
                       <option value="PROGRAMADO">Programado</option>
@@ -1045,7 +1045,7 @@ export function PaginaEventosAcademicos({
                   </CampoFormulario>
                 ) : (
                   <div className="flex items-center text-xs text-slate-500 pt-5">
-                    <span className="inline-flex items-center gap-1.5 text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-200">
+                    <span className="inline-flex items-center gap-1.5 text-brand-800 bg-brand-50 px-2.5 py-1.5 rounded-lg border border-brand-200">
                       <Sparkles className="h-3.5 w-3.5" />
                       Quedará en estado &quot;Programado&quot; al guardar
                     </span>
@@ -1058,7 +1058,7 @@ export function PaginaEventosAcademicos({
                   rows={3}
                   maxLength={2000}
                   placeholder="Detalles sobre materiales requeridos, vestimenta, puntualidad, destinatarios, etc."
-                  className="w-full resize-y rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="w-full resize-y rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700"
                   {...formulario.register('description')}
                 />
               </CampoFormulario>
@@ -1082,7 +1082,7 @@ export function PaginaEventosAcademicos({
                 <Boton
                   type="submit"
                   disabled={mutacionguardar.isPending || (esdocente && (cursosconsulta.data?.length ?? 0) === 0)}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold cursor-pointer shadow-md shadow-indigo-600/20"
+                  className="bg-brand-700 hover:bg-brand-800 text-white font-semibold cursor-pointer shadow-md shadow-brand-700/20"
                 >
                   {mutacionguardar.isPending ? (
                     <>
@@ -1107,13 +1107,13 @@ export function PaginaEventosAcademicos({
         {/* Barra superior del calendario */}
         <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between bg-slate-50/50">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-2xs">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 border border-brand-100 shadow-2xs">
               <CalendarDays className="h-6 w-6" aria-hidden="true" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold capitalize text-slate-900 tracking-tight">{nombreMes}</h2>
-                <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-bold text-indigo-700 border border-indigo-100 font-mono">
+                <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700 border border-brand-100 font-mono">
                   {mesvisible.anio}
                 </span>
               </div>
@@ -1166,7 +1166,7 @@ export function PaginaEventosAcademicos({
           </div>
         ) : eventosconsulta.isLoading ? (
           <div className="p-8 text-center text-slate-500">
-            <RefreshCw className="h-8 w-8 animate-spin text-indigo-600 mx-auto mb-3" />
+            <RefreshCw className="h-8 w-8 animate-spin text-brand-700 mx-auto mb-3" />
             <p className="text-sm font-medium text-slate-700">Cargando cronograma académico...</p>
           </div>
         ) : (
@@ -1181,7 +1181,7 @@ export function PaginaEventosAcademicos({
                     return (
                       <div
                         key={dia}
-                        className={`py-2.5 text-[11px] font-bold uppercase tracking-wider ${esFin ? 'text-indigo-400 bg-indigo-50/20' : 'text-slate-600'
+                        className={`py-2.5 text-[11px] font-bold uppercase tracking-wider ${esFin ? 'text-brand-600 bg-brand-50/30' : 'text-slate-600'
                           }`}
                       >
                         {dia}
@@ -1212,7 +1212,7 @@ export function PaginaEventosAcademicos({
                             ? 'bg-slate-50/25'
                             : 'bg-white'
                           } ${seleccionado
-                            ? 'ring-2 ring-inset ring-indigo-600 bg-indigo-50/40 z-10 shadow-xs'
+                            ? 'ring-2 ring-inset ring-brand-700 bg-brand-50/40 z-10 shadow-xs'
                             : 'hover:bg-slate-50/90'
                           }`}
                       >
@@ -1220,11 +1220,11 @@ export function PaginaEventosAcademicos({
                         <div className="flex items-center justify-between w-full">
                           <span
                             className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full text-xs font-bold transition-transform ${eshoy
-                              ? 'bg-indigo-600 text-white shadow-xs scale-105'
+                              ? 'bg-brand-700 text-white shadow-xs scale-105'
                               : seleccionado
                                 ? 'bg-slate-900 text-white font-extrabold'
                                 : celda.esMesActual
-                                  ? 'text-slate-800 group-hover:text-indigo-600'
+                                  ? 'text-slate-800 group-hover:text-brand-700'
                                   : 'text-slate-400'
                               }`}
                           >
@@ -1261,13 +1261,13 @@ export function PaginaEventosAcademicos({
                                   key={tarea.id}
                                   className={`flex items-center gap-1 truncate rounded-md border px-1.5 py-0.5 text-[10px] font-semibold leading-tight shadow-2xs ${
                                     esExamen
-                                      ? 'bg-purple-50 text-purple-800 border-purple-200'
-                                      : 'bg-blue-50 text-blue-800 border-blue-200'
+                                      ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                      : 'bg-brand-50 text-brand-800 border-brand-200'
                                   }`}
                                 >
                                   <span
                                     className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                                      esExamen ? 'bg-purple-600' : 'bg-blue-600'
+                                      esExamen ? 'bg-amber-600' : 'bg-brand-600'
                                     }`}
                                   />
                                   <span className="truncate">
@@ -1279,7 +1279,7 @@ export function PaginaEventosAcademicos({
                             })}
 
                           {totalCelda > 2 && (
-                            <span className="block text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded px-1 text-center">
+                            <span className="block text-[10px] font-semibold text-brand-800 bg-brand-50 border border-brand-200 rounded px-1 text-center">
                               +{totalCelda - 2} más
                             </span>
                           )}
@@ -1288,7 +1288,7 @@ export function PaginaEventosAcademicos({
                         {/* Indicador compacto en móvil */}
                         {totalCelda > 0 && (
                           <div className="mt-1 flex items-center justify-center gap-1 sm:hidden">
-                            <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-brand-700" />
                             <span className="text-[10px] font-bold text-slate-700">{totalCelda}</span>
                           </div>
                         )}
@@ -1324,8 +1324,8 @@ export function PaginaEventosAcademicos({
                 <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs mb-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex flex-col items-center justify-center w-12 h-13 rounded-xl bg-gradient-to-b from-indigo-50 to-indigo-100 border border-indigo-200 text-indigo-900 shadow-2xs">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+                      <div className="flex flex-col items-center justify-center w-12 h-13 rounded-xl bg-gradient-to-b from-brand-50 to-amber-50 border border-brand-200 text-brand-950 shadow-2xs">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-brand-700">
                           {nombreMes.slice(0, 3)}
                         </span>
                         <span className="text-xl font-extrabold leading-tight">
@@ -1334,7 +1334,7 @@ export function PaginaEventosAcademicos({
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <p className="text-xs font-bold uppercase tracking-wide text-indigo-700">
+                          <p className="text-xs font-bold uppercase tracking-wide text-brand-800">
                             {diaSemanaTexto}
                           </p>
                           {diaseleccionado === hoy && (
@@ -1354,7 +1354,7 @@ export function PaginaEventosAcademicos({
                       <button
                         type="button"
                         onClick={abrirNuevo}
-                        className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-brand-50 text-brand-800 hover:bg-brand-100 border border-brand-200 transition-colors cursor-pointer"
                         title="Programar para esta fecha"
                       >
                         <Plus className="h-3.5 w-3.5" />
@@ -1376,7 +1376,7 @@ export function PaginaEventosAcademicos({
                         establecerFiltroAudiencia('TODOS');
                         establecerFiltroPlazo('MES');
                       }}
-                      className="text-[11px] text-indigo-600 hover:underline cursor-pointer"
+                      className="text-[11px] text-brand-700 hover:underline cursor-pointer"
                     >
                       Restablecer filtros
                     </button>
@@ -1386,8 +1386,8 @@ export function PaginaEventosAcademicos({
                 {/* Lista de eventos y asignaciones del día */}
                 {eventosdeldia.length === 0 && asignacionesdeldia.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
-                      <CalendarDays className="h-6 w-6 text-indigo-400" />
+                    <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center mx-auto mb-3">
+                      <CalendarDays className="h-6 w-6 text-brand-400" />
                     </div>
                     <p className="text-sm font-bold text-slate-800">Sin actividades programadas</p>
                     <p className="mt-1 text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
@@ -1445,7 +1445,7 @@ export function PaginaEventosAcademicos({
                                   Entrega
                                 </span>
 
-                                <span className="rounded-full bg-indigo-50 border border-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
+                                <span className="rounded-full bg-brand-50 border border-brand-200 px-2 py-0.5 text-[10px] font-bold text-brand-800">
                                   Estudiantes
                                 </span>
                               </div>
@@ -1471,7 +1471,7 @@ export function PaginaEventosAcademicos({
                             {asig.subject && (
                               <div className="flex items-center gap-2">
                                 <BookOpen className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                                <span className="font-medium text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded text-[11px] border border-indigo-100">
+                                <span className="font-medium text-brand-800 bg-brand-50 px-1.5 py-0.5 rounded text-[11px] border border-brand-200">
                                   {asig.subject.name}
                                 </span>
                                 {asig.course && (
@@ -1559,7 +1559,7 @@ export function PaginaEventosAcademicos({
                                 <button
                                   type="button"
                                   onClick={() => abrirEdicion(evento)}
-                                  className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                                  className="p-1 rounded-lg text-slate-400 hover:text-brand-700 hover:bg-brand-50 transition-colors cursor-pointer"
                                   title={`Editar ${evento.title}`}
                                   aria-label={`Editar ${evento.title}`}
                                 >
@@ -1590,7 +1590,7 @@ export function PaginaEventosAcademicos({
                               {evento.targetCourse ? (
                                 <>
                                   <GraduationCap className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                                  <span className="font-medium text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded text-[11px] border border-indigo-100">
+                                  <span className="font-medium text-brand-800 bg-brand-50 px-1.5 py-0.5 rounded text-[11px] border border-brand-200">
                                     {evento.targetCourse.name}
                                   </span>
                                 </>

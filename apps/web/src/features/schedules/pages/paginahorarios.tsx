@@ -84,7 +84,7 @@ const constantemateriacolores: Record<string, { bg: string; text: string; border
   MAT: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
   LC: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
   LO: { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
-  LEX: { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
+  LEX: { bg: 'bg-brand-50', text: 'text-brand-800', border: 'border-brand-200' },
   CSO: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
   CNA: { bg: 'bg-lime-50', text: 'text-lime-700', border: 'border-lime-200' },
   BIO: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
@@ -524,7 +524,7 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-800 border border-brand-200">
               Distribución de Periodos Pedagógicos
             </span>
             <span className="text-xs text-slate-400">·</span>
@@ -552,7 +552,7 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                   establecerautomaticoerror(null);
                   estableceresautomaticomodalabrir(true);
                 }}
-                className="gap-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs h-9 px-3"
+                className="gap-1.5 text-xs bg-brand-700 hover:bg-brand-800 text-white shadow-2xs h-9 px-3"
               >
                 <Sparkles className="w-4 h-4 text-amber-300" />
                 Generar Automático
@@ -761,7 +761,7 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                       }}
                       className={`px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
                         seleccionado
-                          ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 shadow-2xs'
+                          ? 'bg-brand-50 text-brand-800 font-bold border border-brand-200 shadow-2xs'
                           : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
                       }`}
                     >
@@ -835,7 +835,7 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                               }`}
                             >
                               <div className="flex items-center gap-2 min-w-0">
-                                <User className={`w-3.5 h-3.5 shrink-0 ${activo ? 'text-indigo-300' : 'text-slate-400'}`} />
+                                <User className={`w-3.5 h-3.5 shrink-0 ${activo ? 'text-brand-300' : 'text-slate-400'}`} />
                                 <div className="truncate">
                                   <span className="font-semibold">{t.lastName} {t.firstName}</span>
                                   <span className={`ml-2 text-[11px] ${activo ? 'text-slate-300' : 'text-slate-500'}`}>
@@ -845,7 +845,7 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                               </div>
                               {esPropio && (
                                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase shrink-0 ${
-                                  activo ? 'bg-indigo-500 text-white' : 'bg-indigo-100 text-indigo-700'
+                                  activo ? 'bg-brand-700 text-white' : 'bg-brand-100 text-brand-800'
                                 }`}>
                                   Tú
                                 </span>
@@ -861,12 +861,12 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
 
               {docenteSeleccionado && (
                 <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-medium shadow-2xs">
-                    <User className="w-3.5 h-3.5 text-indigo-600" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-50 border border-brand-200 text-brand-900 text-xs font-medium shadow-2xs">
+                    <User className="w-3.5 h-3.5 text-brand-700" />
                     <span className="font-bold">{docenteSeleccionado.lastName} {docenteSeleccionado.firstName}</span>
-                    <span className="text-indigo-600/70">· {docenteSeleccionado.specialty}</span>
+                    <span className="text-brand-700/70">· {docenteSeleccionado.specialty}</span>
                     {docenteSeleccionado.userId === usuarioActual?.id && (
-                      <span className="ml-1 px-1.5 py-0.5 rounded bg-indigo-600 text-white text-[10px] font-bold">
+                      <span className="ml-1 px-1.5 py-0.5 rounded bg-brand-700 text-white text-[10px] font-bold">
                         Mi Horario
                       </span>
                     )}
@@ -1121,7 +1121,7 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                                 {sesion.subject?.name}
                               </div>
                               {esInicioBloque && (
-                                <div className="mt-1 font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-indigo-50 border border-indigo-200 text-indigo-700">
+                                <div className="mt-1 font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-brand-50 border border-brand-200 text-brand-800">
                                   Bloque continuo (1/2) · {periodo.start} - {horarioperiodos.find((p) => p.index === pIndex + 1)?.end || '09:00'}
                                 </div>
                               )}
@@ -1380,7 +1380,7 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
           <div className="bg-white rounded-2xl border border-slate-200 max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between p-5 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <div className="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-700">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
@@ -1448,7 +1448,7 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                 <div className="text-center py-2">
                   <p className="text-sm font-semibold text-slate-800">
                     Curso destino:{' '}
-                    <span className="text-indigo-600 font-bold">{activocurso?.name}</span>
+                    <span className="text-brand-700 font-bold">{activocurso?.name}</span>
                   </p>
                   <p className="text-xs text-slate-500 mt-1">
                     Se reemplazará la malla actual con {diarioperiodocantidad} períodos pedagógicos
@@ -1481,7 +1481,7 @@ export const HorariosPagina: React.FC<horariospaginapropiedades> = ({
                     type="button"
                     disabled={generarautomaticomutacion.isPending || !seleccionadocursoid}
                     onClick={() => generarautomaticomutacion.mutate(seleccionadocursoid)}
-                    className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="gap-2 bg-brand-700 hover:bg-brand-800 text-white"
                   >
                     {generarautomaticomutacion.isPending ? (
                       <>

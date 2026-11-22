@@ -220,7 +220,7 @@ export function InscripcionesPagina({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-800 border border-brand-200">
               Inscripción y Asignación de Plazas
             </span>
             <span className="text-xs text-slate-400">·</span>
@@ -267,10 +267,10 @@ export function InscripcionesPagina({
             )}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {estudianteSeleccionado ? (
-                <div className="sm:col-span-2 flex items-center justify-between p-3 rounded-lg bg-indigo-50/80 border border-indigo-200">
+                <div className="sm:col-span-2 flex items-center justify-between p-3 rounded-lg bg-brand-50/80 border border-brand-200">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-600 text-white font-mono">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-brand-700 text-white font-mono">
                         {estudianteSeleccionado.rude || 'RUDE'}
                       </span>
                       <span className="text-sm font-bold text-slate-900">
@@ -278,7 +278,7 @@ export function InscripcionesPagina({
                       </span>
                     </div>
                     {inscripciones.find((ins) => ins.student.id === estudianteSeleccionado.id) && (
-                      <p className="text-xs text-indigo-700 mt-1">
+                      <p className="text-xs text-brand-800 mt-1">
                         Curso asignado sugerido:{' '}
                         <strong>
                           {cursoetiqueta(
@@ -294,7 +294,7 @@ export function InscripcionesPagina({
                       establecerEstudianteSeleccionado(null);
                       formulario.setValue('studentId', '');
                     }}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline ml-2 cursor-pointer"
+                    className="text-xs font-semibold text-brand-700 hover:text-brand-900 underline ml-2 cursor-pointer"
                   >
                     Cambiar
                   </button>
