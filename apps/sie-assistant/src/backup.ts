@@ -147,7 +147,8 @@ export async function deleteGradeBackup(id: string): Promise<GradeBackup[]> {
  */
 export function buildBackupJson(backup: GradeBackup): string {
   const exportData = {
-    titulo: 'COPIA DE SEGURIDAD DE CALIFICACIONES - SIGCE',
+    titulo: 'COPIA DE SEGURIDAD PREVENTIVA DE CALIFICACIONES - SIGCE',
+    finalidad: 'Medida preventiva obligatoria antes de interactuar con el portal SIE',
     institucion: 'Unidad Educativa Comunidad Cristiana B',
     generadoEn: backup.createdAt,
     fechaFormateada: backup.timestampFormatted,
@@ -189,7 +190,8 @@ export function buildBackupJson(backup: GradeBackup): string {
  */
 export function buildBackupCsv(backup: GradeBackup): string {
   const lines: string[] = [];
-  lines.push('COPIA DE SEGURIDAD DE CALIFICACIONES - SISTEMA SIGCE');
+  lines.push('COPIA DE SEGURIDAD PREVENTIVA DE CALIFICACIONES - SISTEMA SIGCE');
+  lines.push('Medida Preventiva:;Resguardo automático de notas previo a actuar en el portal ministerial SIE');
   lines.push(`Institución:;Unidad Educativa Comunidad Cristiana B`);
   lines.push(`Curso:;${backup.courseName}${backup.isSeniorYear ? ' (6to de Secundaria - Bachillerato)' : ''}`);
   lines.push(`Materia:;${backup.subjectName} (${backup.subjectCode})`);
@@ -221,7 +223,7 @@ export function downloadBackupJson(backup: GradeBackup): void {
   const json = buildBackupJson(backup);
   const safeCourse = backup.courseName.replace(/[^a-zA-Z0-9_-]/g, '_');
   const safeSubject = backup.subjectCode || backup.subjectName.replace(/[^a-zA-Z0-9_-]/g, '_');
-  const filename = `copia_seguridad_notas_${safeCourse}_${safeSubject}_T${backup.periodNumber}_${Date.now()}.json`;
+  const filename = `copia_seguridad_preventiva_${safeCourse}_${safeSubject}_T${backup.periodNumber}_${Date.now()}.json`;
   triggerFileDownload(json, filename, 'application/json;charset=utf-8');
 }
 
@@ -232,7 +234,7 @@ export function downloadBackupCsv(backup: GradeBackup): void {
   const csv = buildBackupCsv(backup);
   const safeCourse = backup.courseName.replace(/[^a-zA-Z0-9_-]/g, '_');
   const safeSubject = backup.subjectCode || backup.subjectName.replace(/[^a-zA-Z0-9_-]/g, '_');
-  const filename = `copia_seguridad_notas_${safeCourse}_${safeSubject}_T${backup.periodNumber}_${Date.now()}.csv`;
+  const filename = `copia_seguridad_preventiva_${safeCourse}_${safeSubject}_T${backup.periodNumber}_${Date.now()}.csv`;
   triggerFileDownload(csv, filename, 'text/csv;charset=utf-8');
 }
 

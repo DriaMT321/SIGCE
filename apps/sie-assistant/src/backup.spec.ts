@@ -115,7 +115,7 @@ describe('Copia de Seguridad de Calificaciones (SIE Assistant Backup)', () => {
 
       // Verificamos que inicie con BOM (\uFEFF)
       expect(csv.charCodeAt(0)).toBe(0xfeff);
-      expect(csv).toContain('COPIA DE SEGURIDAD DE CALIFICACIONES');
+      expect(csv).toContain('COPIA DE SEGURIDAD PREVENTIVA DE CALIFICACIONES');
       expect(csv).toContain('6º de Secundaria A');
       expect(csv).toContain('807300012026;"Mamani Flores";"Carlos"');
       expect(csv).toContain('85;Aprobado;HASH_6TO_SECUNDARIA_2026');

@@ -61,7 +61,7 @@ export function Paneldesincronizacionsie({ gestion }: { gestion: gestionasistent
           className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800"
         >
           <Download className="h-4 w-4" aria-hidden="true" />
-          Descargar plugin Chrome (.zip) · con Respaldo de Notas
+          Descargar plugin Chrome (.zip) · con Respaldo Preventivo Universal
         </a>
         <a
           href="/sie-demo/index.html"
@@ -70,12 +70,12 @@ export function Paneldesincronizacionsie({ gestion }: { gestion: gestionasistent
           className="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-white px-4 py-2 text-xs font-semibold text-amber-950 shadow-2xs transition-colors hover:bg-amber-100/70"
         >
           <ExternalLink className="h-4 w-4" aria-hidden="true" />
-          Abrir réplica SIE de demostración (con 6to Secundaria)
+          Abrir réplica SIE de demostración
         </a>
       </div>
       <div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-100/60 px-3 py-1.5 text-xs text-amber-900">
-        <GraduationCap className="h-4 w-4 shrink-0 text-amber-700" />
-        <span><strong>6to de Secundaria habilitado:</strong> El plugin genera automáticamente copias de seguridad de notas en Excel/JSON para proteger las actas de bachilleres ante caídas del portal SIE.</span>
+        <ShieldCheck className="h-4 w-4 shrink-0 text-amber-800" />
+        <span><strong>Medida Preventiva Institucional (Todos los Cursos):</strong> El plugin genera automáticamente una copia de seguridad oficial en Excel/JSON antes de que el asistente actúe en el SIE, protegiendo las notas de Inicial, Primaria y Secundaria (incluyendo 6to de Secundaria) ante cualquier fallo o caída del portal.</span>
       </div>
     </header>
 

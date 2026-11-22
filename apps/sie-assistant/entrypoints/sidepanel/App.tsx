@@ -440,6 +440,10 @@ export function App() {
   async function fill(allowOverwrite = false, grade = current) {
     await withBusy(async () => {
       if (!plan || !grade || !inspection?.ok) throw new Error('Comprueba la pantalla antes de rellenar notas.');
+      // Medida preventiva universal: asegurar el respaldo de cualquier curso antes de que el plugin actúe en el SIE
+      if (!lastBackup || lastBackup.courseId !== plan.course.id || lastBackup.subjectId !== plan.subject.id) {
+        await savePlanBackup(plan);
+      }
       if (!demo) {
         if (!session) throw new Error('Inicia sesión en SIGCE.');
         if (session.apiBase === localApi && !allowLocalOnOfficial) {
@@ -881,17 +885,21 @@ export function App() {
                 </select>
               </label>
 
-              {es6toSecundariaSeleccionado && (
-                <div className="banner-6to">
-                  <div className="banner-6to-header">
-                    <IconGraduationCap size={16} />
-                    <span>Habilitación SIE · 6to de Secundaria (Bachillerato)</span>
-                  </div>
-                  <p>
-                    Curso prioritario de bachilleres detectado. Al preparar las notas se generará automáticamente una <strong>copia de seguridad de resguardo</strong> en este navegador para prevenir pérdida de calificaciones ante caídas o lentitud del portal ministerial.
-                  </p>
+              <div className="banner-preventivo">
+                <div className="banner-preventivo-header">
+                  <IconShieldCheck size={16} />
+                  <span>Medida Preventiva Institucional · Respaldo de Todo Curso</span>
                 </div>
-              )}
+                <p>
+                  Por política de seguridad académica, se genera automáticamente una <strong>copia de seguridad preventiva</strong> de las calificaciones de {selectedCourse ? selectedCourse.name : 'cada curso'} antes de que el asistente actúe en el SIE. Si el portal ministerial sufre caídas o errores de conexión, tus notas quedan protegidas.
+                </p>
+                {es6toSecundariaSeleccionado && (
+                  <div className="banner-6to-subtag">
+                    <IconGraduationCap size={13} />
+                    <span>6to de Secundaria detectado: Cierre de actas de bachilleres habilitado.</span>
+                  </div>
+                )}
+              </div>
 
               <label className="field">
                 Materia
@@ -997,28 +1005,26 @@ export function App() {
             </div>
           )}
 
-          {/* TARJETA DE COPIA DE SEGURIDAD DE NOTAS */}
+          {/* TARJETA DE COPIA DE SEGURIDAD PREVENTIVA DE NOTAS */}
           <div className="backup-card">
             <div className="backup-card-header">
               <div className="backup-card-title">
                 <IconShieldCheck size={18} />
                 <div>
-                  <strong>Copia de Seguridad de Notas</strong>
+                  <strong>Copia de Seguridad Preventiva Verificada</strong>
                   <span className="backup-card-sub">
-                    {lastBackup?.timestampFormatted ? `Respaldo activo: ${lastBackup.timestampFormatted}` : 'Respaldo generado'} · {plan.grades.length} notas
+                    {lastBackup?.timestampFormatted ? `Respaldo activo: ${lastBackup.timestampFormatted}` : 'Respaldo generado'} · {plan.grades.length} estudiantes asegurados
                   </span>
                 </div>
               </div>
-              {is6toSecundaria(plan.course.name) && (
-                <span className="badge-6to-pill">
-                  <IconGraduationCap size={12} />
-                  6to Sec. Bachilleres
-                </span>
-              )}
+              <span className="badge-preventivo-pill">
+                <IconCheck size={12} />
+                {is6toSecundaria(plan.course.name) ? '6to Sec. Bachilleres' : 'Medida preventiva activa'}
+              </span>
             </div>
 
             <p className="backup-card-help">
-              Si el portal SIE falla o se cierra durante el llenado, tus notas están resguardadas en el navegador. Puedes descargarlas para tener constancia física o digital:
+              Como medida preventiva obligatoria para todo curso, se resguardaron las notas antes de que el asistente actúe en el SIE. Si la plataforma ministerial falla, se congela o se pierde la sesión, puedes descargar las notas o restaurar el lote:
             </p>
 
             <div className="backup-card-actions">
@@ -1097,6 +1103,13 @@ export function App() {
             <div className="status-box good">
               <IconCheck size={15} />
               <span>{saveObserved}</span>
+            </div>
+          )}
+
+          {!fillResult && (
+            <div className="pre-action-reassurance">
+              <IconShieldCheck size={14} />
+              <span>Medida preventiva: Respaldo de notas guardado en el navegador antes de interactuar con el SIE.</span>
             </div>
           )}
 

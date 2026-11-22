@@ -890,7 +890,77 @@ footer {
   line-height: 1.4;
 }
 
-/* Copia de Seguridad y 6to de Secundaria */
+/* Copia de Seguridad Preventiva General y 6to de Secundaria */
+.banner-preventivo {
+  margin: 10px 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  animation: fadeSlideUp 200ms ease;
+}
+
+.banner-preventivo-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #047857;
+  margin-bottom: 4px;
+}
+
+.banner-preventivo p {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #065f46;
+}
+
+.banner-6to-subtag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-preventivo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  letter-spacing: 0.02em;
+}
+
+.pre-action-reassurance {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  font-size: 11.5px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  animation: fadeSlideUp 150ms ease;
+}
+
 .banner-6to {
   margin: 10px 0;
   padding: 12px 14px;
