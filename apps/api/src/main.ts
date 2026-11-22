@@ -1,16 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { json, urlencoded } from 'express';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { moduloaplicacion } from './aplicacion.module';
 import { interceptorregistrosolicitudes } from './common/interceptors/registro.interceptor';
 import { filtrotodaslasexcepciones } from './common/filters/todaslasexcepciones.filter';
 
 async function iniciarAplicacion() {
   const registrador = new Logger('Bootstrap');
-  const app = await NestFactory.create(moduloaplicacion);
-  app.use(json({ limit: '15mb' }));
-  app.use(urlencoded({ extended: true, limit: '15mb' }));
+  const app = await NestFactory.create<NestExpressApplication>(moduloaplicacion);
+  app.useBodyParser('json', { limit: '15mb' });
+  app.useBodyParser('urlencoded', { extended: true, limit: '15mb' });
 
   const servicioConfiguracion = app.get(ConfigService);
   const puerto = servicioConfiguracion.get<number>('port', 3000);
