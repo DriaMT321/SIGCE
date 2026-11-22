@@ -145,7 +145,7 @@ export class repositoriotrasladoprisma implements repositoriotraslados {
         where: { enrollmentId: datos.enrollmentId },
         include: {
           subject: { select: { id: true, name: true } },
-          period: { select: { id: true, name: true, order: true } },
+          period: { select: { id: true, name: true, number: true } },
         },
       });
 
@@ -162,9 +162,9 @@ export class repositoriotrasladoprisma implements repositoriotraslados {
             thirdTrimester: null,
             average: null,
           };
-          if (g.period?.order === 1) actual.firstTrimester = g.value;
-          if (g.period?.order === 2) actual.secondTrimester = g.value;
-          if (g.period?.order === 3) actual.thirdTrimester = g.value;
+          if (g.period?.number === 1) actual.firstTrimester = g.value;
+          if (g.period?.number === 2) actual.secondTrimester = g.value;
+          if (g.period?.number === 3) actual.thirdTrimester = g.value;
           porMateria.set(subId, actual);
         }
         gradesSnapshot = Array.from(porMateria.values());
@@ -334,7 +334,7 @@ export class repositoriotrasladoprisma implements repositoriotraslados {
           entity: 'StudentTransfer',
           entityId: actualizado.id,
           studentIds: [actualizado.studentId],
-          oldValue: { phase: actual.phase, status: actual.status },
+          previousValue: { phase: actual.phase, status: actual.status },
           newValue: { phase: actualizado.phase, status: actualizado.status },
           ipAddress: auditoria.ipAddress,
           correlationId: this.contextocorrelacion.obteneractual(),
