@@ -131,5 +131,6 @@ test('normaliza y conserva los datos del perfil docente para su endpoint dedicad
     specialty: 'Matemática',
     phone: undefined,
     itemNumber: undefined,
+    rdaNumber: undefined,
   });
 });

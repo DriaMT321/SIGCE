@@ -92,4 +92,9 @@ entender-el-proyecto-sin-cambiar-c-digo.json
 apps/web/public/*.apk
 *.docx
 
+# Skills & agent artifacts
+.agents/
+.claude/
+agent/
+
 /scratch/*

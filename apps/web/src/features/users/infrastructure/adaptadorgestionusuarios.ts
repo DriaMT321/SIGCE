@@ -17,6 +17,7 @@ const puerto: puertogestionusuario = {
         specialty: entrada.specialty,
         phone: entrada.phone,
         itemNumber: entrada.itemNumber,
+        rdaNumber: entrada.rdaNumber,
       });
       return;
     }

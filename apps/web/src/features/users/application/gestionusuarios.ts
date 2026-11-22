@@ -23,6 +23,7 @@ export interface crearadministradousuarioentrada {
   phone?: string;
   specialty?: string;
   itemNumber?: string;
+  rdaNumber?: string;
   address?: string;
   occupation?: string;
 }
@@ -40,6 +41,7 @@ export type crearusuariopersistencia =
       specialty: string;
       phone?: string;
       itemNumber?: string;
+      rdaNumber?: string;
     })
   | (datosusuarioaplicacion & {
       role: 'PARENT';
@@ -99,6 +101,7 @@ export class gestionusuario {
         specialty: this.requerirtexto(entrada.specialty, 'La especialidad es obligatoria.'),
         phone: this.opcionaltexto(entrada.phone),
         itemNumber: this.opcionaltexto(entrada.itemNumber),
+        rdaNumber: this.opcionaltexto(entrada.rdaNumber),
       });
     }
     if (entrada.role === 'PARENT') {

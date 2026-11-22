@@ -41,6 +41,7 @@ const usuarioformularioesquema = z
     phone: z.string().optional(),
     specialty: z.string().optional(),
     itemNumber: z.string().optional(),
+    rdaNumber: z.string().optional(),
     address: z.string().optional(),
     occupation: z.string().optional(),
   })
@@ -130,6 +131,7 @@ export const UsuariosPagina = ({
       phone: '',
       specialty: '',
       itemNumber: '',
+      rdaNumber: '',
       address: '',
       occupation: '',
     },
@@ -553,6 +555,16 @@ export const UsuariosPagina = ({
                 {/* Campos Específicos para Docentes */}
                 {seleccionadorol === 'TEACHER' && (
                   <>
+                    <Campo
+                      label="Número RDA (Registro Docente)"
+                      error={formulario.formState.errors.rdaNumber?.message}
+                    >
+                      <Entrada
+                        {...formulario.register('rdaNumber')}
+                        placeholder="Ej. 10482915"
+                        className="text-xs rounded-xl font-mono"
+                      />
+                    </Campo>
                     <Campo
                       label="Especialidad o Área *"
                       error={formulario.formState.errors.specialty?.message}
