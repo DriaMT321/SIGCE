@@ -1,3 +1,10 @@
+import type {
+  SolicitudTrasladoEstudiantil,
+  dtocreartraslado,
+  dtoactualizarfasetraslado,
+  dtofiltrosstraslados,
+} from '@academic/shared-types';
+
 export type inscripcionestado = 'ACTIVE' | 'INACTIVE' | 'TRANSFERRED' | 'GRADUATED' | 'WITHDRAWN';
 
 export interface inscripcionregistro {
@@ -48,6 +55,10 @@ export interface puertogestioninscripcion {
     inscripcionids: string[],
     estado: inscripcionestado,
   ): Promise<{ updatedCount: number; unchangedCount: number }>;
+  listartraslados(filtros?: dtofiltrosstraslados): Promise<SolicitudTrasladoEstudiantil[]>;
+  obtenertraslado(id: string): Promise<SolicitudTrasladoEstudiantil>;
+  creartraslado(datos: dtocreartraslado): Promise<SolicitudTrasladoEstudiantil>;
+  actualizarfasetraslado(id: string, datos: dtoactualizarfasetraslado): Promise<SolicitudTrasladoEstudiantil>;
 }
 
 export class gestioninscripcion {
@@ -95,5 +106,21 @@ export class gestioninscripcion {
     const ids = [...new Set(inscripcionids.map((id) => id.trim()).filter(Boolean))];
     if (ids.length === 0) throw new Error('Selecciona al menos una matrícula.');
     return this.puerto.actualizarestadomultiple(ids, estado);
+  }
+
+  listartraslados(filtros?: dtofiltrosstraslados) {
+    return this.puerto.listartraslados(filtros);
+  }
+
+  obtenertraslado(id: string) {
+    return this.puerto.obtenertraslado(id);
+  }
+
+  creartraslado(datos: dtocreartraslado) {
+    return this.puerto.creartraslado(datos);
+  }
+
+  actualizarfasetraslado(id: string, datos: dtoactualizarfasetraslado) {
+    return this.puerto.actualizarfasetraslado(id, datos);
   }
 }

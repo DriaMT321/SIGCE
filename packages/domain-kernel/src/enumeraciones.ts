@@ -109,3 +109,41 @@ export const diadelasemana = {
   SABADO: 'SABADO',
 } as const;
 export type codigodiadelasemana = (typeof diadelasemana)[keyof typeof diadelasemana];
+
+// Traslados Estudiantiles (R.M. 0001 / Ley 070)
+export enum tipotraslado {
+  REGULAR = 'REGULAR',
+  EXCEPTIONAL = 'EXCEPTIONAL',
+}
+
+export enum direcciontraslado {
+  SALIENTE = 'SALIENTE',
+  ENTRANTE = 'ENTRANTE',
+}
+
+export enum causaltraslado {
+  DOMICILIO = 'DOMICILIO',
+  LABORAL = 'LABORAL',
+  SALUD = 'SALUD',
+  ECONOMICA = 'ECONOMICA',
+  VIOLENCIA = 'VIOLENCIA',
+  CAMBIO_GESTION = 'CAMBIO_GESTION',
+  OTRO = 'OTRO',
+}
+
+export enum fasetraslado {
+  CONFIRMAR_VACANCIA = 'CONFIRMAR_VACANCIA',
+  SOLICITAR_RETIRO = 'SOLICITAR_RETIRO',
+  AUTORIZACION_DISTRITAL = 'AUTORIZACION_DISTRITAL',
+  REGISTRO_SIE = 'REGISTRO_SIE',
+  COMPLETADO = 'COMPLETADO',
+}
+
+export enum estadotraslado {
+  EN_TRAMITE = 'EN_TRAMITE',
+  AUTORIZADO_DISTRITAL = 'AUTORIZADO_DISTRITAL',
+  REGISTRADO_SIE = 'REGISTRADO_SIE',
+  RECHAZADO = 'RECHAZADO',
+  CANCELADO = 'CANCELADO',
+}
+

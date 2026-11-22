@@ -4,7 +4,23 @@ import type { SelectHTMLAttributes } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
-import { ClipboardList, Loader2, Plus, Search, X } from 'lucide-react';
+import {
+  ClipboardList,
+  Loader2,
+  Plus,
+  Search,
+  X,
+  ArrowRightLeft,
+  FileText,
+  Clock,
+  AlertTriangle,
+  ShieldCheck,
+  Printer,
+  CheckCircle2,
+  School,
+  ExternalLink,
+  ChevronRight,
+} from 'lucide-react';
 import { Boton } from '../../../components/ui/boton';
 import type {
   gestioninscripcion,
@@ -12,6 +28,12 @@ import type {
   inscripcionestudianteopcion,
 } from '../application/gestionmatricula';
 import { cursoetiqueta } from '../../../lib/cursoetiqueta';
+import { ModalIniciarTraslado } from '../components/modaliniciartraslado';
+import { ModalDetalleTraslado } from '../components/modaldetalletraslado';
+import { FormularioTrasladoOficialModal } from '../components/formulariotrasladooficialmodal';
+import type { SolicitudTrasladoEstudiantil } from '@academic/shared-types';
+import { fasetraslado, estadotraslado } from '@academic/shared-types';
+
 
 const inscripcionformularioesquema = z.object({
   studentId: z.string().uuid('Selecciona un estudiante'),
@@ -78,10 +100,28 @@ export function InscripcionesPagina({
   const [estadoseleccionado, establecerestadoseleccionado] = useState<inscripcionestado>('ACTIVE');
   const [resultadomasivo, establecerresultadomasivo] = useState<string | null>(null);
 
+  // Estados de Traslados (R.M. 0001 / Ley 070)
+  const [pestanaActiva, setPestanaActiva] = useState<'matriculas' | 'traslados'>('matriculas');
+  const [mostrarModalIniciarTraslado, setMostrarModalIniciarTraslado] = useState(false);
+  const [trasladoSeleccionadoDetalle, setTrasladoSeleccionadoDetalle] = useState<SolicitudTrasladoEstudiantil | null>(null);
+  const [trasladoParaImprimir, setTrasladoParaImprimir] = useState<SolicitudTrasladoEstudiantil | null>(null);
+  const [estudianteParaTraslado, setEstudianteParaTraslado] = useState<{
+    studentId: string;
+    enrollmentId?: string;
+    courseName?: string;
+  } | undefined>(undefined);
+  const [filtroSentidoTraslado, setFiltroSentidoTraslado] = useState<'TODOS' | 'SALIENTE' | 'ENTRANTE'>('TODOS');
+  const [filtroModalidadTraslado, setFiltroModalidadTraslado] = useState<'TODAS' | 'REGULAR' | 'EXCEPTIONAL'>('TODAS');
+  const [busquedaTraslados, setBusquedaTraslados] = useState('');
+
   const puedegestionar = ['ADMINISTRATIVE', 'SECRETARY'].includes(actualrol ?? '');
   const inscripcionesconsulta = useQuery({
     queryKey: ['enrollments'],
     queryFn: () => gestion.listarinscripciones(),
+  });
+  const trasladosConsulta = useQuery({
+    queryKey: ['transfers'],
+    queryFn: () => gestion.listartraslados(),
   });
   const estudiantesconsulta = useQuery({
     queryKey: ['students'],
@@ -221,31 +261,90 @@ export function InscripcionesPagina({
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-800 border border-brand-200">
-              Inscripción y Asignación de Plazas
+              Inscripción y Normativa R.M. 0001/2026
             </span>
             <span className="text-xs text-slate-400">·</span>
             <span className="text-xs font-medium text-slate-500">Gestión Escolar 2026</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Registro de Matrículas e Inscripciones</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            {pestanaActiva === 'matriculas'
+              ? 'Registro de Matrículas e Inscripciones'
+              : 'Gestión de Traslados Estudiantiles (R.M. 0001/2026)'}
+          </h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            {inscripciones.length} matrículas asentadas · Asignación de curso, paralelo y estado académico.
+            {pestanaActiva === 'matriculas'
+              ? `${inscripciones.length} matrículas asentadas · Asignación de curso, paralelo y estado académico.`
+              : `${(trasladosConsulta.data ?? []).length} trámites de traslado registrados · Plazo legal SIE máximo de 5 días hábiles.`}
           </p>
         </div>
 
         {puedegestionar && (
-          <Boton
-            type="button"
-            onClick={() => establecermostrarformulario((anterior) => !anterior)}
-            className="h-10 bg-slate-900 hover:bg-slate-800 text-white gap-2 px-4 shadow-2xs text-sm font-medium transition-colors"
-          >
-            {mostrarformulario ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {mostrarformulario ? 'Cerrar formulario' : 'Registrar Matrícula'}
-          </Boton>
+          <div className="flex items-center gap-2">
+            {pestanaActiva === 'matriculas' ? (
+              <Boton
+                type="button"
+                onClick={() => establecermostrarformulario((anterior) => !anterior)}
+                className="h-10 bg-slate-900 hover:bg-slate-800 text-white gap-2 px-4 shadow-2xs text-sm font-medium transition-colors"
+              >
+                {mostrarformulario ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                {mostrarformulario ? 'Cerrar formulario' : 'Registrar Matrícula'}
+              </Boton>
+            ) : (
+              <>
+                <Boton
+                  type="button"
+                  onClick={() => {
+                    setEstudianteParaTraslado(undefined);
+                    setMostrarModalIniciarTraslado(true);
+                  }}
+                  className="h-10 bg-brand-700 hover:bg-brand-800 text-white gap-2 px-4 shadow-2xs text-sm font-medium transition-colors"
+                >
+                  <ArrowRightLeft className="w-4 h-4" />
+                  <span>Nuevo Trámite de Traslado</span>
+                </Boton>
+              </>
+            )}
+          </div>
         )}
       </div>
 
-      {/* Form - Simplified */}
-      {mostrarformulario && puedegestionar && (
+      {/* Pestañas de Navegación: Matrículas vs Traslados R.M. 0001 */}
+      <div className="flex items-center gap-2 border-b border-slate-200">
+        <button
+          type="button"
+          onClick={() => setPestanaActiva('matriculas')}
+          className={`px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
+            pestanaActiva === 'matriculas'
+              ? 'border-brand-700 text-brand-900 bg-brand-50/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <ClipboardList className="w-4 h-4" />
+          <span>Matrículas Activas ({inscripciones.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setPestanaActiva('traslados')}
+          className={`px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
+            pestanaActiva === 'traslados'
+              ? 'border-brand-700 text-brand-900 bg-brand-50/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <ArrowRightLeft className="w-4 h-4" />
+          <span>Gestión de Traslados (R.M. 0001/2026)</span>
+          {(trasladosConsulta.data ?? []).length > 0 && (
+            <span className="px-2 py-0.5 rounded-full bg-brand-700 text-white text-[11px] font-bold">
+              {(trasladosConsulta.data ?? []).length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {pestanaActiva === 'matriculas' && (
+        <>
+          {/* Form - Simplified */}
+          {mostrarformulario && puedegestionar && (
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h2 className="text-sm font-semibold text-slate-900 mb-4">Registrar Matrícula</h2>
 
@@ -579,26 +678,46 @@ export function InscripcionesPagina({
                         </td>
 
                         <td className="py-3 pl-3 pr-5 text-right">
-                          {puedegestionar && (
-                            <select
-                              value={elemento.status}
-                              disabled={actualizarmutacion.isPending}
-                              aria-label={`Cambiar estado de matrícula de ${elemento.student.firstName} ${elemento.student.lastName}`}
-                              onChange={(evento) =>
-                                actualizarmutacion.mutate({
-                                  id: elemento.id,
-                                  status: estadoesquema.parse(evento.target.value),
-                                })
-                              }
-                              className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-900"
-                            >
-                              <option value="ACTIVE">Activa</option>
-                              <option value="INACTIVE">Inactiva</option>
-                              <option value="TRANSFERRED">Trasladada</option>
-                              <option value="GRADUATED">Graduada</option>
-                              <option value="WITHDRAWN">Retirada</option>
-                            </select>
-                          )}
+                          <div className="flex items-center justify-end gap-1.5">
+                            {puedegestionar && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEstudianteParaTraslado({
+                                    studentId: elemento.student.id,
+                                    enrollmentId: elemento.id,
+                                    courseName: `${cursoetiqueta(elemento.course.name)} "${elemento.course.section}"`,
+                                  });
+                                  setMostrarModalIniciarTraslado(true);
+                                }}
+                                className="p-1.5 text-slate-500 hover:text-brand-800 hover:bg-brand-50 rounded-lg transition-colors cursor-pointer"
+                                title="Tramitar Traslado Estudiantil (R.M. 0001/2026)"
+                                aria-label={`Iniciar traslado de ${elemento.student.firstName} ${elemento.student.lastName}`}
+                              >
+                                <ArrowRightLeft className="w-4 h-4" />
+                              </button>
+                            )}
+                            {puedegestionar && (
+                              <select
+                                value={elemento.status}
+                                disabled={actualizarmutacion.isPending}
+                                aria-label={`Cambiar estado de matrícula de ${elemento.student.firstName} ${elemento.student.lastName}`}
+                                onChange={(evento) =>
+                                  actualizarmutacion.mutate({
+                                    id: elemento.id,
+                                    status: estadoesquema.parse(evento.target.value),
+                                  })
+                                }
+                                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-900"
+                              >
+                                <option value="ACTIVE">Activa</option>
+                                <option value="INACTIVE">Inactiva</option>
+                                <option value="TRANSFERRED">Trasladada</option>
+                                <option value="GRADUATED">Graduada</option>
+                                <option value="WITHDRAWN">Retirada</option>
+                              </select>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -609,6 +728,351 @@ export function InscripcionesPagina({
           </div>
         )}
       </div>
+      </>
+    )}
+
+      {/* PESTAÑA: GESTIÓN DE TRASLADOS ESTUDIANTILES (R.M. 0001/2026) */}
+      {pestanaActiva === 'traslados' && (() => {
+        const todosTraslados: SolicitudTrasladoEstudiantil[] = trasladosConsulta.data ?? [];
+        const trasladosFiltrados = todosTraslados.filter((t) => {
+          if (filtroSentidoTraslado !== 'TODOS' && t.direction !== filtroSentidoTraslado) return false;
+          if (filtroModalidadTraslado !== 'TODAS' && t.transferType !== filtroModalidadTraslado) return false;
+          if (!busquedaTraslados.trim()) return true;
+          const q = busquedaTraslados.toLowerCase().trim();
+          const nom = t.student ? `${t.student.firstName} ${t.student.lastName}`.toLowerCase() : '';
+          const rude = t.student?.rude?.toLowerCase() || '';
+          const orig = t.originSchool.toLowerCase();
+          const dest = t.destinationSchool.toLowerCase();
+          const res = (t.distritalResolution || '').toLowerCase();
+          return nom.includes(q) || rude.includes(q) || orig.includes(q) || dest.includes(q) || res.includes(q);
+        });
+
+        const salientesCount = todosTraslados.filter((t) => t.direction === 'SALIENTE').length;
+        const entrantesCount = todosTraslados.filter((t) => t.direction === 'ENTRANTE').length;
+        const excepcionalesCount = todosTraslados.filter((t) => t.transferType === 'EXCEPTIONAL').length;
+        const dentroPlazoCount = todosTraslados.filter((t) => {
+          if (t.status === estadotraslado.REGISTRADO_SIE) return true;
+          if (!t.sieSyncDeadline) return true;
+          return new Date(t.sieSyncDeadline) >= new Date();
+        }).length;
+
+        return (
+          <div className="space-y-5">
+            {/* Tarjetas Métricas de Traslado */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+                <p className="text-[11px] font-semibold text-slate-500 uppercase">Total Trámites</p>
+                <p className="text-xl font-bold text-slate-900 mt-1">{todosTraslados.length}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Gestión 2026</p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+                <p className="text-[11px] font-semibold text-slate-500 uppercase">Traslados Salientes</p>
+                <p className="text-xl font-bold text-slate-900 mt-1">{salientesCount}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Retiros hacia otra U.E.</p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+                <p className="text-[11px] font-semibold text-slate-500 uppercase">Traslados Entrantes</p>
+                <p className="text-xl font-bold text-slate-900 mt-1">{entrantesCount}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Recepción de otras U.E.</p>
+              </div>
+
+              <div className="rounded-xl border border-brand-200 bg-brand-50/50 p-3.5 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-semibold text-brand-900 uppercase">En Plazo Legal SIE</p>
+                  <Clock className="w-3.5 h-3.5 text-brand-700" />
+                </div>
+                <p className="text-xl font-bold text-brand-950 mt-1">{dentroPlazoCount}</p>
+                <p className="text-[10px] text-brand-800 mt-0.5">≤ 5 días hábiles normados</p>
+              </div>
+
+              <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3.5 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-semibold text-amber-900 uppercase">Excepcionales</p>
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
+                </div>
+                <p className="text-xl font-bold text-amber-950 mt-1">{excepcionalesCount}</p>
+                <p className="text-[10px] text-amber-800 mt-0.5">Por causales justificadas</p>
+              </div>
+            </div>
+
+            {/* Aviso Normativo y Garantía de Derechos (R.M. 0001 / Ley 070) */}
+            <div className="rounded-xl border border-brand-200 bg-gradient-to-r from-brand-50/80 via-white to-amber-50/40 p-4 shadow-2xs">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-brand-700 text-white rounded-lg shrink-0 mt-0.5 shadow-xs">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div className="space-y-1 text-xs text-slate-700">
+                  <h3 className="font-bold text-slate-900 text-sm">
+                    Marco Normativo de Traslados (Resolución Ministerial N° 0001/2026 y Ley 070)
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1 text-[11px]">
+                    <p>
+                      <strong>• Traslados Regulares:</strong> Se gestionan hasta el inicio del segundo trimestre; se ejecutan al finalizar el trimestre para que las notas queden asentadas.
+                    </p>
+                    <p>
+                      <strong>• Traslados Excepcionales:</strong> Proceden a mitad de trimestre únicamente con causal justificada (domicilio, laboral, salud, económica o protección ante violencia).
+                    </p>
+                    <p>
+                      <strong>• Plazo Perentorio SIE:</strong> Todo el trámite no debe superar los <strong>5 días hábiles</strong> para actualización del RUDE en el sistema.
+                    </p>
+                    <p className="text-brand-950 font-semibold">
+                      <strong>• Prohibición Legal:</strong> Queda terminantemente prohibido condicionar u obligar traslados por bajo rendimiento o medidas disciplinarias.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Barra de Filtros y Búsqueda */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+              <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2.5">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={busquedaTraslados}
+                    onChange={(e) => setBusquedaTraslados(e.target.value)}
+                    placeholder="Buscar por estudiante, RUDE, colegio origen/destino o resolución..."
+                    className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-slate-900"
+                  />
+                </div>
+
+                <select
+                  value={filtroSentidoTraslado}
+                  onChange={(e) => setFiltroSentidoTraslado(e.target.value as any)}
+                  className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700"
+                >
+                  <option value="TODOS">Todos los sentidos</option>
+                  <option value="SALIENTE">Salientes (Retiros)</option>
+                  <option value="ENTRANTE">Entrantes (Recepción)</option>
+                </select>
+
+                <select
+                  value={filtroModalidadTraslado}
+                  onChange={(e) => setFiltroModalidadTraslado(e.target.value as any)}
+                  className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700"
+                >
+                  <option value="TODAS">Todas las modalidades</option>
+                  <option value="REGULAR">Traslados Regulares</option>
+                  <option value="EXCEPTIONAL">Traslados Excepcionales</option>
+                </select>
+              </div>
+
+              {puedegestionar && (
+                <Boton
+                  type="button"
+                  onClick={() => {
+                    setEstudianteParaTraslado(undefined);
+                    setMostrarModalIniciarTraslado(true);
+                  }}
+                  className="bg-brand-700 hover:bg-brand-800 text-white font-medium text-xs gap-1.5 shadow-xs shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Nuevo Trámite de Traslado</span>
+                </Boton>
+              )}
+            </div>
+
+            {/* Tabla de Trámites de Traslado */}
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs sm:text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
+                      <th className="py-3 pl-5 pr-3">Estudiante (RUDE)</th>
+                      <th className="px-3 py-3">Sentido / Modalidad</th>
+                      <th className="px-3 py-3">Causal / Motivo</th>
+                      <th className="px-3 py-3">U.E. Origen → Destino</th>
+                      <th className="px-3 py-3">Fase del Trámite</th>
+                      <th className="px-3 py-3">Plazo Legal SIE</th>
+                      <th className="py-3 pl-3 pr-5 text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {trasladosFiltrados.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-16 text-center text-slate-500">
+                          <div className="flex flex-col items-center gap-2">
+                            <ArrowRightLeft className="w-8 h-8 text-slate-300" />
+                            <p className="font-medium text-slate-700">No hay trámites de traslado registrados</p>
+                            <p className="text-xs text-slate-400">
+                              Use el botón "Nuevo Trámite de Traslado" o el icono de traslado en la lista de matrículas.
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      trasladosFiltrados.map((t) => {
+                        const estaFinalizado =
+                          t.phase === fasetraslado.COMPLETADO || t.status === estadotraslado.REGISTRADO_SIE;
+                        const diasRestantes = (() => {
+                          if (!t.sieSyncDeadline) return null;
+                          const diff = new Date(t.sieSyncDeadline).getTime() - new Date().getTime();
+                          return Math.ceil(diff / (1000 * 60 * 60 * 24));
+                        })();
+
+                        return (
+                          <tr key={t.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="py-3 pl-5 pr-3">
+                              <p className="font-medium text-slate-900">
+                                {t.student ? `${t.student.lastName} ${t.student.firstName}` : 'Estudiante'}
+                              </p>
+                              <span className="text-[11px] font-mono text-slate-500">
+                                RUDE: {t.student?.rude || 'S/R'} · C.I.: {t.student?.ci || 'S/N'}
+                              </span>
+                            </td>
+
+                            <td className="px-3 py-3">
+                              <div className="space-y-1">
+                                <span
+                                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                    t.direction === 'SALIENTE'
+                                      ? 'bg-amber-100 text-amber-800'
+                                      : 'bg-indigo-100 text-indigo-800'
+                                  }`}
+                                >
+                                  {t.direction === 'SALIENTE' ? 'Saliente (Retiro)' : 'Entrante (Recepción)'}
+                                </span>
+                                <p className="text-[10px] text-slate-500 font-medium">
+                                  {t.transferType === 'REGULAR' ? 'Regular (T1/T2)' : 'Excepcional'}
+                                </p>
+                              </div>
+                            </td>
+
+                            <td className="px-3 py-3">
+                              <span className="font-semibold text-slate-900 text-xs block">
+                                {t.causal}
+                              </span>
+                              <span className="text-[11px] text-slate-500 line-clamp-1" title={t.causalDetails || ''}>
+                                {t.causalDetails || 'Causal regular'}
+                              </span>
+                            </td>
+
+                            <td className="px-3 py-3 text-xs">
+                              <p className="font-medium text-slate-800 line-clamp-1" title={t.originSchool}>
+                                De: {t.originSchool}
+                              </p>
+                              <p className="text-slate-600 line-clamp-1" title={t.destinationSchool}>
+                                A: {t.destinationSchool}
+                              </p>
+                            </td>
+
+                            <td className="px-3 py-3">
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold ${
+                                  estaFinalizado
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : t.phase === fasetraslado.REGISTRO_SIE
+                                    ? 'bg-brand-100 text-brand-900'
+                                    : 'bg-slate-100 text-slate-700'
+                                }`}
+                              >
+                                {estaFinalizado ? (
+                                  <>
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>Completado en SIE</span>
+                                  </>
+                                ) : (
+                                  <span>{t.phase.replace(/_/g, ' ')}</span>
+                                )}
+                              </span>
+                            </td>
+
+                            <td className="px-3 py-3">
+                              {estaFinalizado ? (
+                                <span className="text-[11px] text-emerald-700 font-semibold">
+                                  Folio: {t.sieFolioNumber || 'Sincronizado'}
+                                </span>
+                              ) : diasRestantes !== null ? (
+                                diasRestantes >= 0 ? (
+                                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-900 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
+                                    <Clock className="w-3 h-3 text-brand-700" />
+                                    <span>{diasRestantes}d hábiles</span>
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-800 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                                    <AlertTriangle className="w-3 h-3 text-rose-600" />
+                                    <span>Vencido</span>
+                                  </span>
+                                )
+                              ) : (
+                                <span className="text-[10px] text-slate-400">5 días hábiles</span>
+                              )}
+                            </td>
+
+                            <td className="py-3 pl-3 pr-5 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setTrasladoParaImprimir(t)}
+                                  className="p-1.5 text-slate-500 hover:text-brand-800 hover:bg-brand-50 rounded-lg transition-colors cursor-pointer"
+                                  title="Ver e Imprimir Formulario Oficial de Traslado"
+                                >
+                                  <Printer className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setTrasladoSeleccionadoDetalle(t)}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition-colors cursor-pointer"
+                                >
+                                  <span>Trámite</span>
+                                  <ChevronRight className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* MODALES DE TRASLADO */}
+      {mostrarModalIniciarTraslado && (
+        <ModalIniciarTraslado
+          gestion={gestion}
+          estudiantes={estudiantesconsulta.data ?? []}
+          cursos={cursosconsulta.data ?? []}
+          gestiones={gestionesconsulta.data ?? []}
+          estudianteInicial={estudianteParaTraslado}
+          onExito={() => {
+            setMostrarModalIniciarTraslado(false);
+            void clientedeconsultas.invalidateQueries({ queryKey: ['transfers'] });
+            void clientedeconsultas.invalidateQueries({ queryKey: ['enrollments'] });
+          }}
+          onCerrar={() => setMostrarModalIniciarTraslado(false)}
+        />
+      )}
+
+      {trasladoSeleccionadoDetalle && (
+        <ModalDetalleTraslado
+          traslado={trasladoSeleccionadoDetalle}
+          gestion={gestion}
+          puedeGestionar={puedegestionar}
+          onActualizado={() => {
+            void clientedeconsultas.invalidateQueries({ queryKey: ['transfers'] });
+            void clientedeconsultas.invalidateQueries({ queryKey: ['enrollments'] });
+            gestion.obtenertraslado(trasladoSeleccionadoDetalle.id).then((actualizado) => {
+              setTrasladoSeleccionadoDetalle(actualizado);
+            });
+          }}
+          onCerrar={() => setTrasladoSeleccionadoDetalle(null)}
+        />
+      )}
+
+      {trasladoParaImprimir && (
+        <FormularioTrasladoOficialModal
+          traslado={trasladoParaImprimir}
+          onCerrar={() => setTrasladoParaImprimir(null)}
+        />
+      )}
     </div>
   );
 }

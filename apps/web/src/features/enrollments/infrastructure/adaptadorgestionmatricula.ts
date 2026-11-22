@@ -30,6 +30,10 @@ const puerto: puertogestioninscripcion = {
   },
   actualizarestadomultiple: (inscripcionids, estado) =>
     academicoapi.actualizarestadomultipleinscripcion(inscripcionids, estado),
+  listartraslados: async (filtros) => academicoapi.listartraslados(filtros),
+  obtenertraslado: async (id) => academicoapi.obtenertraslado(id),
+  creartraslado: async (datos) => academicoapi.creartraslado(datos),
+  actualizarfasetraslado: async (id, datos) => academicoapi.actualizarfasetraslado(id, datos),
 };
 
 export const instanciagestioninscripciones = new gestioninscripcion(puerto);

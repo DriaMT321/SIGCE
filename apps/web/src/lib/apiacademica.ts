@@ -324,6 +324,22 @@ export const academicoapi = {
       })
       .parse(respuesta.data).data;
   },
+  async listartraslados(parametros?: any) {
+    const respuesta = await clienteapi.get('/enrollments/transfers', { params: parametros });
+    return (respuesta.data?.data ?? []) as any[];
+  },
+  async obtenertraslado(id: string) {
+    const respuesta = await clienteapi.get(`/enrollments/transfers/${id}`);
+    return (respuesta.data?.data ?? null) as any;
+  },
+  async creartraslado(datos: any) {
+    const respuesta = await clienteapi.post('/enrollments/transfers', datos);
+    return (respuesta.data?.data ?? null) as any;
+  },
+  async actualizarfasetraslado(id: string, datos: any) {
+    const respuesta = await clienteapi.patch(`/enrollments/transfers/${id}/phase`, datos);
+    return (respuesta.data?.data ?? null) as any;
+  },
   async listarcalificaciones(parametros?: {
     search?: string;
     studentId?: string;

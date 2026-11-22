@@ -306,6 +306,7 @@ model Student {
   documentReferences    StudentDocumentReference[]
   alerts                Alert[]
   assignmentSubmissions AssignmentSubmission[]
+  transfers             StudentTransfer[]
 
   @@index([rude])
   @@index([ci])
@@ -425,6 +426,7 @@ model AcademicYear {
   teacherSubjects  TeacherSubject[]
   schedules        ClassSchedule[]
   curriculumTopics CurriculumTopic[]
+  studentTransfers StudentTransfer[]
 
   @@index([year])
   @@index([isActive])
@@ -655,6 +657,56 @@ model Enrollment {
   @@index([courseId])
   @@index([academicYearId])
   @@map("enrollments")
+}
+
+// ==============================================================================
+// TRASLADOS ESTUDIANTILES (R.M. 0001 / LEY 070)
+// ==============================================================================
+
+model StudentTransfer {
+  id                    String    @id @default(uuid())
+  enrollmentId          String?   @map("enrollment_id")
+  studentId             String    @map("student_id")
+  academicYearId        String    @map("academic_year_id")
+  direction             String    @default("SALIENTE") @map("direction") // 'SALIENTE' | 'ENTRANTE'
+  transferType          String    @default("REGULAR") @map("transfer_type") // 'REGULAR' | 'EXCEPTIONAL'
+  causal                String    @map("causal") // 'DOMICILIO' | 'LABORAL' | 'SALUD' | 'ECONOMICA' | 'VIOLENCIA' | 'CAMBIO_GESTION' | 'OTRO'
+  causalDetails         String?   @map("causal_details")
+  originSchool          String    @map("origin_school")
+  originSieCode         String?   @map("origin_sie_code")
+  destinationSchool     String    @map("destination_school")
+  destinationSieCode    String?   @map("destination_sie_code")
+  destinationDistrict   String?   @map("destination_district")
+  destinationDepartment String?   @map("destination_department")
+  targetGradeCourse     String?   @map("target_grade_course")
+  currentTrimester      Int       @default(1) @map("current_trimester")
+  gradesSnapshot        Json?     @map("grades_snapshot")
+  phase                 String    @default("SOLICITAR_RETIRO") @map("phase") // 'CONFIRMAR_VACANCIA' | 'SOLICITAR_RETIRO' | 'AUTORIZACION_DISTRITAL' | 'REGISTRO_SIE' | 'COMPLETADO'
+  status                String    @default("EN_TRAMITE") @map("status") // 'EN_TRAMITE' | 'AUTORIZADO_DISTRITAL' | 'REGISTRADO_SIE' | 'RECHAZADO' | 'CANCELADO'
+  distritalResolution   String?   @map("distrital_resolution")
+  distritalApprovalDate DateTime? @map("distrital_approval_date")
+  sieSyncDeadline       DateTime? @map("sie_sync_deadline")
+  sieSyncCompletedAt    DateTime? @map("sie_sync_completed_at")
+  sieFolioNumber        String?   @map("sie_folio_number")
+  documentsChecklist    Json?     @map("documents_checklist")
+  antiCoercionCertified Boolean   @default(true) @map("anti_coercion_certified")
+  solicitanteNombre     String?   @map("solicitante_nombre")
+  solicitanteCi         String?   @map("solicitante_ci")
+  solicitanteParentesco String?   @map("solicitante_parentesco")
+  solicitanteTelefono   String?   @map("solicitante_telefono")
+  observations          String?   @map("observations")
+  createdByUserId       String?   @map("created_by_user_id")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([academicYearId])
+  @@index([status])
+  @@index([phase])
+  @@map("student_transfers")
 }
 
 // ==============================================================================
