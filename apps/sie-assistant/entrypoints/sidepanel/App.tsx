@@ -280,7 +280,7 @@ export function App() {
             await chrome.storage.local.set({ sigceSession: res.session });
             return res.session;
           }
-        } catch {}
+        } catch { }
 
         // 2. Ejecutar script en la pestaña para recuperar sesión viva por cookie o localStorage
         try {
@@ -296,14 +296,14 @@ export function App() {
                     return parsed;
                   }
                 }
-              } catch {}
+              } catch { }
 
               // B. Leer usuario de sessionStorage si existe
               let localUser = null;
               try {
                 const rawUser = sessionStorage.getItem('auth_user') || localStorage.getItem('auth_user');
                 if (rawUser) localUser = JSON.parse(rawUser);
-              } catch {}
+              } catch { }
 
               // C. Resolver URL de la API correspondiente a la pestaña
               const hostname = window.location.hostname;
@@ -344,11 +344,11 @@ export function App() {
                     };
                     try {
                       localStorage.setItem('sigce_extension_session', JSON.stringify(sessionData));
-                    } catch {}
+                    } catch { }
                     return sessionData;
                   }
                 }
-              } catch {}
+              } catch { }
 
               return null;
             },
@@ -359,9 +359,9 @@ export function App() {
             await chrome.storage.local.set({ sigceSession: tabSession });
             return tabSession;
           }
-        } catch {}
+        } catch { }
       }
-    } catch {}
+    } catch { }
     return null;
   }
 

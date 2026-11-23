@@ -30,14 +30,14 @@ export default defineContentScript({
             return parsed;
           }
         }
-      } catch {}
+      } catch { }
 
       // 2. Verificar si hay usuario en sessionStorage/localStorage (estándar en sigce.lat)
       let usuarioGuardado: any = null;
       try {
         const rawUser = sessionStorage.getItem('auth_user') || localStorage.getItem('auth_user');
         if (rawUser) usuarioGuardado = JSON.parse(rawUser);
-      } catch {}
+      } catch { }
 
       // 3. Si no hay token en localStorage pero el usuario ha iniciado sesión en la pestaña,
       // renovar el token usando las cookies HttpOnly de la página web
@@ -70,12 +70,12 @@ export default defineContentScript({
             };
             try {
               localStorage.setItem('sigce_extension_session', JSON.stringify(nuevaSesion));
-            } catch {}
+            } catch { }
             void chrome.storage.local.set({ sigceSession: nuevaSesion });
             return nuevaSesion;
           }
         }
-      } catch {}
+      } catch { }
 
       return null;
     }
@@ -101,7 +101,7 @@ export default defineContentScript({
           if (parsed?.accessToken) {
             void chrome.storage.local.set({ sigceSession: parsed });
           }
-        } catch {}
+        } catch { }
       }
     });
 
