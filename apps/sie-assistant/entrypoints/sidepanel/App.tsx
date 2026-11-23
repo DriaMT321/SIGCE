@@ -245,51 +245,121 @@ export function App() {
     try {
       const stored = await chrome.storage.local.get('sigceSession');
       const saved = stored.sigceSession as SigceSession | undefined;
-      if (saved?.accessToken) {
+      if (saved?.accessToken && saved?.user) {
         return saved;
       }
 
-      const sigceTabs = await chrome.tabs.query({
-        url: [
-          'https://sigce.lat/*',
-          'https://*.sigce.lat/*',
-          'http://localhost:5173/*',
-          'https://*.vercel.app/*',
-        ],
+      // Consultar todas las pestañas abiertas en Chrome sin restricciones de filtro
+      const allTabs = await chrome.tabs.query({});
+      const sigceTabs = allTabs.filter((tab) => {
+        if (!tab.id || !tab.url) return false;
+        try {
+          const u = new URL(tab.url);
+          const host = u.hostname.toLowerCase();
+          return (
+            host === 'sigce.lat' ||
+            host.endsWith('.sigce.lat') ||
+            host === 'localhost' ||
+            host === '127.0.0.1' ||
+            host.endsWith('.vercel.app')
+          );
+        } catch {
+          return false;
+        }
       });
 
       for (const tab of sigceTabs) {
         if (!tab.id) continue;
+
+        // 1. Intentar mensaje en tiempo de ejecución (si el content script está presente)
         try {
           const res = (await chrome.tabs.sendMessage(tab.id, {
             kind: 'SIGCE_GET_WEB_SESSION',
           })) as { ok?: boolean; session?: SigceSession };
-          if (res?.ok && res.session?.accessToken) {
+          if (res?.ok && res.session?.accessToken && res.session?.user) {
             await chrome.storage.local.set({ sigceSession: res.session });
             return res.session;
           }
-        } catch {
-          try {
-            const results = await chrome.scripting.executeScript({
-              target: { tabId: tab.id },
-              func: () => {
-                try {
-                  return localStorage.getItem('sigce_extension_session');
-                } catch {
-                  return null;
+        } catch {}
+
+        // 2. Ejecutar script en la pestaña para recuperar sesión viva por cookie o localStorage
+        try {
+          const results = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: async () => {
+              // A. Verificar si ya está en localStorage
+              try {
+                const raw = localStorage.getItem('sigce_extension_session');
+                if (raw) {
+                  const parsed = JSON.parse(raw);
+                  if (parsed && typeof parsed === 'object' && parsed.accessToken && parsed.user) {
+                    return parsed;
+                  }
                 }
-              },
-            });
-            const raw = results?.[0]?.result;
-            if (raw) {
-              const parsed = JSON.parse(raw) as SigceSession;
-              if (parsed?.accessToken) {
-                await chrome.storage.local.set({ sigceSession: parsed });
-                return parsed;
+              } catch {}
+
+              // B. Leer usuario de sessionStorage si existe
+              let localUser = null;
+              try {
+                const rawUser = sessionStorage.getItem('auth_user') || localStorage.getItem('auth_user');
+                if (rawUser) localUser = JSON.parse(rawUser);
+              } catch {}
+
+              // C. Resolver URL de la API correspondiente a la pestaña
+              const hostname = window.location.hostname;
+              let apiBase = 'https://api.sigce.lat/api/v1';
+              if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                apiBase = 'http://localhost:3000/api/v1';
+              } else if (window.location.protocol === 'https:' && !hostname.includes('sigce.lat')) {
+                const baseHost = hostname.replace(/^www\./, '');
+                apiBase = 'https://api.' + baseHost + '/api/v1';
               }
-            }
-          } catch {}
-        }
+
+              // D. Usar la cookie HttpOnly de la pestaña abierta para renovar el token Bearer
+              try {
+                const tabSessionId = sessionStorage.getItem('sigce_web_tab');
+                const headers: Record<string, string> = {
+                  'Content-Type': 'application/json',
+                  'X-SIGCE-Web': '1',
+                };
+                if (tabSessionId) headers['X-SIGCE-Tab'] = tabSessionId;
+
+                const res = await fetch(`${apiBase}/auth/web/refresh`, {
+                  method: 'POST',
+                  headers,
+                  credentials: 'include',
+                  body: '{}',
+                });
+
+                if (res.ok) {
+                  const data = await res.json();
+                  const accessToken = data?.data?.accessToken;
+                  const finalUser = data?.data?.user || localUser;
+                  if (accessToken && finalUser) {
+                    const sessionData = {
+                      accessToken,
+                      user: finalUser,
+                      apiBase,
+                      timestamp: Date.now(),
+                    };
+                    try {
+                      localStorage.setItem('sigce_extension_session', JSON.stringify(sessionData));
+                    } catch {}
+                    return sessionData;
+                  }
+                }
+              } catch {}
+
+              return null;
+            },
+          });
+
+          const tabSession = results?.[0]?.result as SigceSession | null;
+          if (tabSession?.accessToken && tabSession?.user) {
+            await chrome.storage.local.set({ sigceSession: tabSession });
+            return tabSession;
+          }
+        } catch {}
       }
     } catch {}
     return null;
@@ -297,6 +367,7 @@ export function App() {
 
   async function checkAndSyncSession(manual = false) {
     if (manual) setCheckingSession(true);
+    setError('');
     try {
       const found = await detectWebSession();
       if (found) {
@@ -304,7 +375,22 @@ export function App() {
         setApiBase(found.apiBase);
         if (manual) setReadyToast(true);
       } else if (manual) {
-        setError('No se detectó una sesión activa en sigce.lat. Inicia sesión en la plataforma web primero.');
+        const allTabs = await chrome.tabs.query({});
+        const hasSigceTab = allTabs.some((t) => {
+          if (!t.url) return false;
+          try {
+            const h = new URL(t.url).hostname.toLowerCase();
+            return h === 'sigce.lat' || h.endsWith('.sigce.lat') || h === 'localhost' || h === '127.0.0.1';
+          } catch {
+            return false;
+          }
+        });
+
+        if (!hasSigceTab) {
+          setError('No tienes ninguna pestaña de sigce.lat abierta en Chrome. Abre sigce.lat en una pestaña y asegúrate de iniciar sesión.');
+        } else {
+          setError('Se detectó la pestaña de sigce.lat, pero no tiene una sesión activa iniciada. Inicia sesión con tu cuenta de Dirección o Secretaría en esa pestaña y vuelve a pulsar aquí.');
+        }
       }
     } finally {
       if (manual) setCheckingSession(false);

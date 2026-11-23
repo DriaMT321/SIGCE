@@ -8,16 +8,9 @@ export default defineConfig({
     version: '1.0.0',
     minimum_chrome_version: '116',
     action: { default_title: 'Abrir asistente SIGCE' },
-    permissions: ['sidePanel', 'activeTab', 'storage', 'scripting', 'tabs'],
+    permissions: ['sidePanel', 'activeTab', 'storage', 'scripting', 'tabs', 'cookies'],
     host_permissions: [
-      'https://api.sigce.lat/*',
-      'http://localhost:3000/*',
-      'https://sigce.lat/*',
-      'https://*.sigce.lat/*',
-      'http://localhost:5173/*',
-      'https://academico.sie.gob.bo/*',
-      'http://localhost:4174/*',
-      'https://*.vercel.app/*',
+      '<all_urls>',
     ],
   },
 });

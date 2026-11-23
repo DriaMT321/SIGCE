@@ -7,7 +7,20 @@ export default defineContentScript({
   ],
   runAt: 'document_idle',
   main() {
-    function sincronizarSesion() {
+    function resolverApiBase(): string {
+      const hostname = window.location.hostname;
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'http://localhost:3000/api/v1';
+      }
+      if (window.location.protocol === 'https:' && !hostname.includes('sigce.lat')) {
+        const baseHost = hostname.replace(/^www\./, '');
+        return 'https://api.' + baseHost + '/api/v1';
+      }
+      return 'https://api.sigce.lat/api/v1';
+    }
+
+    async function sincronizarSesion(): Promise<any> {
+      // 1. Verificar si ya existe en localStorage
       try {
         const raw = localStorage.getItem('sigce_extension_session');
         if (raw) {
@@ -17,12 +30,58 @@ export default defineContentScript({
             return parsed;
           }
         }
-        void chrome.storage.local.remove('sigceSession');
       } catch {}
+
+      // 2. Verificar si hay usuario en sessionStorage/localStorage (estándar en sigce.lat)
+      let usuarioGuardado: any = null;
+      try {
+        const rawUser = sessionStorage.getItem('auth_user') || localStorage.getItem('auth_user');
+        if (rawUser) usuarioGuardado = JSON.parse(rawUser);
+      } catch {}
+
+      // 3. Si no hay token en localStorage pero el usuario ha iniciado sesión en la pestaña,
+      // renovar el token usando las cookies HttpOnly de la página web
+      const apiBase = resolverApiBase();
+      try {
+        const tabSessionId = sessionStorage.getItem('sigce_web_tab');
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'X-SIGCE-Web': '1',
+        };
+        if (tabSessionId) headers['X-SIGCE-Tab'] = tabSessionId;
+
+        const res = await fetch(`${apiBase}/auth/web/refresh`, {
+          method: 'POST',
+          headers,
+          credentials: 'include',
+          body: '{}',
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const accessToken = data?.data?.accessToken;
+          const user = data?.data?.user || usuarioGuardado;
+          if (accessToken && user) {
+            const nuevaSesion = {
+              accessToken,
+              user,
+              apiBase,
+              timestamp: Date.now(),
+            };
+            try {
+              localStorage.setItem('sigce_extension_session', JSON.stringify(nuevaSesion));
+            } catch {}
+            void chrome.storage.local.set({ sigceSession: nuevaSesion });
+            return nuevaSesion;
+          }
+        }
+      } catch {}
+
       return null;
     }
 
-    sincronizarSesion();
+    // Intentar sincronizar al cargar el script en la página
+    void sincronizarSesion();
 
     window.addEventListener('sigce:extension_session_updated', (event: unknown) => {
       const customEvent = event as { detail?: { accessToken?: string } };
@@ -36,8 +95,13 @@ export default defineContentScript({
     });
 
     window.addEventListener('storage', (event) => {
-      if (event.key === 'sigce_extension_session') {
-        sincronizarSesion();
+      if (event.key === 'sigce_extension_session' && event.newValue) {
+        try {
+          const parsed = JSON.parse(event.newValue);
+          if (parsed?.accessToken) {
+            void chrome.storage.local.set({ sigceSession: parsed });
+          }
+        } catch {}
       }
     });
 
@@ -45,9 +109,10 @@ export default defineContentScript({
       if (sender.id !== chrome.runtime.id || !raw || typeof raw !== 'object') return;
       const message = raw as { kind?: string };
       if (message.kind === 'SIGCE_GET_WEB_SESSION') {
-        const sesion = sincronizarSesion();
-        respond({ ok: Boolean(sesion), session: sesion });
-        return;
+        void sincronizarSesion().then((sesion) => {
+          respond({ ok: Boolean(sesion), session: sesion });
+        });
+        return true; // Asíncrono
       }
     });
   },
