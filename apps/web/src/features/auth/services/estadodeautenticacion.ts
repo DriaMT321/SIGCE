@@ -50,6 +50,61 @@ function leeralmacenadousuario(): autenticacionusuario | null {
   }
 }
 
+const claveidentificadorextension = 'sigce_extension_session';
+
+function resolverapibaseurl(): string {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'sigce.lat' || hostname.endsWith('.sigce.lat')) {
+      return 'https://api.sigce.lat/api/v1';
+    }
+    if (window.location.protocol === 'https:' && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      const baseHost = hostname.replace(/^www\./, '');
+      return 'https://api.' + baseHost + '/api/v1';
+    }
+  }
+  return 'http://localhost:3000/api/v1';
+}
+
+function emitireventosesion(tipo: string, detalle?: unknown): void {
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
+  try {
+    if (typeof CustomEvent !== 'undefined' && detalle !== undefined) {
+      window.dispatchEvent(new CustomEvent(tipo, { detail: detalle }));
+    } else if (typeof Event !== 'undefined') {
+      window.dispatchEvent(new Event(tipo));
+    }
+  } catch {}
+}
+
+function sincronizarextensionsesion(token: string, usuario: autenticacionusuario): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const sesion = {
+      accessToken: token,
+      user: {
+        id: usuario.id,
+        firstName: usuario.firstName,
+        lastName: usuario.lastName,
+        role: usuario.role,
+        email: usuario.email,
+      },
+      apiBase: resolverapibaseurl(),
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(claveidentificadorextension, JSON.stringify(sesion));
+    emitireventosesion('sigce:extension_session_updated', sesion);
+  } catch {}
+}
+
+function limpiarentornoextension(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(claveidentificadorextension);
+    emitireventosesion('sigce:extension_session_cleared');
+  } catch {}
+}
+
 function guardarsesionusuario(usuario: autenticacionusuario): void {
   if (typeof window !== 'undefined')
     sessionStorage.setItem('auth_user', JSON.stringify(usuario));
@@ -73,6 +128,7 @@ export const autenticacionestado = {
     accesotoken = token;
     actualusuario = usuario;
     guardarsesionusuario(usuario);
+    sincronizarextensionsesion(token, usuario);
   },
   limpiar() {
     sesiongeneracion += 1;
@@ -82,6 +138,7 @@ export const autenticacionestado = {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     limpiarsesionusuario();
+    limpiarentornoextension();
   },
   aplicarwebrespuesta(respuesta: unknown, esperadogeneracion = sesiongeneracion): boolean {
     if (esperadogeneracion !== sesiongeneracion) return false;
@@ -91,6 +148,7 @@ export const autenticacionestado = {
     accesotoken = analizado.data.data.accessToken;
     actualusuario = analizado.data.data.user;
     guardarsesionusuario(actualusuario);
+    sincronizarextensionsesion(accesotoken, actualusuario);
     return true;
   },
 };

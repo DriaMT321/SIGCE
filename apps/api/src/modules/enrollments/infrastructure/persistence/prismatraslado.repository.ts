@@ -26,7 +26,7 @@ export class repositoriotrasladoprisma implements repositoriotraslados {
     private readonly prisma: servicioprisma,
     @Inject(tokencontextocorrelacion)
     private readonly contextocorrelacion: contextoidentificadorcorrelacion,
-  ) {}
+  ) { }
 
   async buscartodos(filtros: dtofiltrosstraslados): Promise<{ items: SolicitudTrasladoEstudiantil[]; total: number }> {
     const where: any = {};

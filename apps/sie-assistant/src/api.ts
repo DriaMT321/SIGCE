@@ -19,24 +19,44 @@ function isHostedDemoOrigin(origin: string): boolean {
 }
 
 export function isDemoPortal(portalUrl: string): boolean {
-  const url = new URL(portalUrl);
-  if (url.origin === 'http://localhost:4174' && url.pathname === '/demo') return true;
-  return isHostedDemoOrigin(url.origin) && url.pathname.startsWith('/sie-demo');
+  try {
+    const url = new URL(portalUrl);
+    if (url.origin === 'http://localhost:4174' && url.pathname === '/demo') return true;
+    return isHostedDemoOrigin(url.origin) && url.pathname.startsWith('/sie-demo');
+  } catch {
+    return false;
+  }
 }
 
 export function isReferencePortal(portalUrl: string): boolean {
-  const url = new URL(portalUrl);
-  return url.origin === 'http://localhost:4174' && !isDemoPortal(portalUrl);
+  try {
+    const url = new URL(portalUrl);
+    return url.origin === 'http://localhost:4174' && !isDemoPortal(portalUrl);
+  } catch {
+    return false;
+  }
+}
+
+export function isSigceWeb(portalUrl: string): boolean {
+  try {
+    const url = new URL(portalUrl);
+    return isHostedDemoOrigin(url.origin) && !url.pathname.startsWith('/sie-demo');
+  } catch {
+    return false;
+  }
 }
 
 export function apiForPortal(portalUrl: string): string {
-  const url = new URL(portalUrl);
-  if (url.origin === 'http://localhost:4174' || (url.origin === 'http://localhost:5173' && url.pathname.startsWith('/sie-demo'))) {
-    return localApi;
-  }
-  if (url.origin === 'https://academico.sie.gob.bo') return officialApi;
-  if (isHostedDemoOrigin(url.origin) && url.pathname.startsWith('/sie-demo')) return officialApi;
-  throw new Error('Abre el SIE oficial o la réplica autorizada para usar el asistente.');
+  try {
+    const url = new URL(portalUrl);
+    if (url.origin === 'http://localhost:4174' || (url.origin === 'http://localhost:5173' && url.pathname.startsWith('/sie-demo'))) {
+      return localApi;
+    }
+    if (url.origin === 'https://academico.sie.gob.bo') return officialApi;
+    if (isHostedDemoOrigin(url.origin)) return officialApi;
+    if (url.origin === 'http://localhost:5173') return localApi;
+  } catch {}
+  throw new Error('Abre el SIE oficial (academico.sie.gob.bo) o la réplica autorizada para usar el asistente.');
 }
 
 async function jsonResponse<T>(response: Response): Promise<T> {
@@ -51,27 +71,6 @@ async function jsonResponse<T>(response: Response): Promise<T> {
   return payload as T;
 }
 
-export async function login(
-  apiBase: string,
-  role: 'ADMINISTRATIVE' | 'SECRETARY',
-  identifier: string,
-  secret: string,
-): Promise<SigceSession> {
-  const response = await fetch(`${apiBase}/auth/extension/role-login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-SIGCE-Extension': '1' },
-    body: JSON.stringify({ role, identifier: identifier.trim(), secret }),
-    credentials: 'omit',
-  });
-  const payload = await jsonResponse<{
-    data: { accessToken: string; user: SigceSession['user'] };
-  }>(response);
-  if (!['ADMINISTRATIVE', 'SECRETARY'].includes(payload.data.user.role)) {
-    throw new Error('Esta cuenta no tiene permiso para preparar calificaciones.');
-  }
-  return { ...payload.data, apiBase };
-}
-
 export async function request<T>(session: SigceSession, path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${session.apiBase}${path}`, {
     ...options,
@@ -82,7 +81,12 @@ export async function request<T>(session: SigceSession, path: string, options?: 
     },
     credentials: 'omit',
   });
-  if (response.status === 401) throw new Error('La sesión de SIGCE venció. Inicia sesión nuevamente.');
+  if (response.status === 401) {
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      void chrome.storage.local.remove('sigceSession');
+    }
+    throw new Error('La sesión de SIGCE venció. Inicia sesión nuevamente en sigce.lat.');
+  }
   return jsonResponse<T>(response);
 }
 

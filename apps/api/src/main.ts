@@ -25,7 +25,12 @@ async function iniciarAplicacion() {
   // Habilitar CORS para frontend web y móvil
   app.enableCors({
     origin: (origen, continuacion) => {
-      if (!origen || allowedOrigins.includes(origen) || origen === extensionOrigin)
+      if (
+        !origen ||
+        allowedOrigins.includes(origen) ||
+        origen === extensionOrigin ||
+        origen.startsWith('chrome-extension://')
+      )
         return continuacion(null, true);
       return continuacion(new Error('Origin is not allowed by CORS'));
     },

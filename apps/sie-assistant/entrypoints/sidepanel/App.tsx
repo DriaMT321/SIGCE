@@ -3,10 +3,10 @@ import {
   apiForPortal,
   isDemoPortal,
   isReferencePortal,
+  isSigceWeb,
   loadCourseOptions,
   loadGrades,
   loadOptions,
-  login,
   sendSummary,
 } from '../../src/api';
 import type { SigceSession } from '../../src/api';
@@ -182,6 +182,16 @@ function IconTrash({ size = 14 }: { size?: number }) {
   );
 }
 
+function IconExternalLink({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  );
+}
+
 export function App() {
   const [tabId, setTabId] = useState<number | null>(null);
   const [portalUrl, setPortalUrl] = useState('');
@@ -189,9 +199,7 @@ export function App() {
   const [apiBase, setApiBase] = useState(deployedApi);
   const [manualApiOverride, setManualApiOverride] = useState(false);
   const [allowLocalOnOfficial, setAllowLocalOnOfficial] = useState(false);
-  const [role, setRole] = useState<'ADMINISTRATIVE' | 'SECRETARY'>('ADMINISTRATIVE');
-  const [identifier, setIdentifier] = useState('');
-  const [secret, setSecret] = useState('');
+  const [checkingSession, setCheckingSession] = useState(false);
   const [session, setSession] = useState<SigceSession | null>(null);
   const [workReady, setWorkReady] = useState(false);
   const [readyToast, setReadyToast] = useState(false);
@@ -217,6 +225,7 @@ export function App() {
 
   const demo = portalUrl ? isDemoPortal(portalUrl) : false;
   const reference = portalUrl ? isReferencePortal(portalUrl) : false;
+  const sigceTab = portalUrl ? isSigceWeb(portalUrl) : false;
   const current = plan?.grades[index];
   const courses = useMemo(
     () => (baseOptions?.courses ?? []).filter((course) => course.academicYearId === filters.academicYearId),
@@ -228,8 +237,79 @@ export function App() {
     [courses, filters.courseId],
   );
   const es6toSecundariaSeleccionado = selectedCourse ? is6toSecundaria(selectedCourse.name) : false;
+  const isAuthorized = session ? ['ADMINISTRATIVE', 'SECRETARY'].includes(session.user.role) : false;
 
-  const activeStep: 1 | 2 | 3 = plan ? 3 : workReady && (demo || Boolean(session)) ? 2 : 1;
+  const activeStep: 1 | 2 | 3 = plan ? 3 : workReady && (demo || (Boolean(session) && isAuthorized)) ? 2 : 1;
+
+  async function detectWebSession(): Promise<SigceSession | null> {
+    try {
+      const stored = await chrome.storage.local.get('sigceSession');
+      const saved = stored.sigceSession as SigceSession | undefined;
+      if (saved?.accessToken) {
+        return saved;
+      }
+
+      const sigceTabs = await chrome.tabs.query({
+        url: [
+          'https://sigce.lat/*',
+          'https://*.sigce.lat/*',
+          'http://localhost:5173/*',
+          'https://*.vercel.app/*',
+        ],
+      });
+
+      for (const tab of sigceTabs) {
+        if (!tab.id) continue;
+        try {
+          const res = (await chrome.tabs.sendMessage(tab.id, {
+            kind: 'SIGCE_GET_WEB_SESSION',
+          })) as { ok?: boolean; session?: SigceSession };
+          if (res?.ok && res.session?.accessToken) {
+            await chrome.storage.local.set({ sigceSession: res.session });
+            return res.session;
+          }
+        } catch {
+          try {
+            const results = await chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              func: () => {
+                try {
+                  return localStorage.getItem('sigce_extension_session');
+                } catch {
+                  return null;
+                }
+              },
+            });
+            const raw = results?.[0]?.result;
+            if (raw) {
+              const parsed = JSON.parse(raw) as SigceSession;
+              if (parsed?.accessToken) {
+                await chrome.storage.local.set({ sigceSession: parsed });
+                return parsed;
+              }
+            }
+          } catch {}
+        }
+      }
+    } catch {}
+    return null;
+  }
+
+  async function checkAndSyncSession(manual = false) {
+    if (manual) setCheckingSession(true);
+    try {
+      const found = await detectWebSession();
+      if (found) {
+        setSession(found);
+        setApiBase(found.apiBase);
+        if (manual) setReadyToast(true);
+      } else if (manual) {
+        setError('No se detectó una sesión activa en sigce.lat. Inicia sesión en la plataforma web primero.');
+      }
+    } finally {
+      if (manual) setCheckingSession(false);
+    }
+  }
 
   async function refreshTab(): Promise<boolean> {
     setRefreshingTab(true);
@@ -262,19 +342,32 @@ export function App() {
 
   useEffect(() => {
     void refreshTab();
-    void chrome.storage.session.get('sigceSession').then((stored) => {
-      const saved = stored.sigceSession as SigceSession | undefined;
-      if (saved?.accessToken && [localApi, deployedApi].includes(saved.apiBase)) {
-        setSession(saved);
-        setApiBase(saved.apiBase);
+    void checkAndSyncSession();
+
+    const storageListener = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+      if (areaName === 'local' && changes.sigceSession) {
+        const next = changes.sigceSession.newValue as SigceSession | undefined;
+        if (next?.accessToken) {
+          setSession(next);
+          setApiBase(next.apiBase);
+        } else {
+          setSession(null);
+          setWorkReady(false);
+        }
       }
-    });
+    };
+    chrome.storage.onChanged.addListener(storageListener);
+
     void listGradeBackups().then((backups) => {
       setSavedBackups(backups);
       if (backups.length > 0) {
         setLastBackup(backups[0] || null);
       }
     });
+
+    return () => {
+      chrome.storage.onChanged.removeListener(storageListener);
+    };
   }, []);
 
   useEffect(() => {
@@ -340,18 +433,8 @@ export function App() {
     }
   }
 
-  async function signIn() {
-    await withBusy(async () => {
-      const next = await login(apiBase, role, identifier, secret);
-      setSession(next);
-      setSecret('');
-      setWorkReady(false);
-      await chrome.storage.session.set({ sigceSession: next });
-    });
-  }
-
   async function signOut() {
-    await chrome.storage.session.remove('sigceSession');
+    await chrome.storage.local.remove('sigceSession');
     setSession(null);
     setWorkReady(false);
     setReadyToast(false);
@@ -560,20 +643,24 @@ export function App() {
               <span className="portal-strip-text">
                 {portalError
                   ? 'Portal SIE no detectado'
-                  : demo
-                    ? 'Réplica de demostración'
-                    : reference
-                      ? 'Página de referencia'
-                      : 'Portal SIE oficial conectado'}
+                  : sigceTab
+                    ? 'Pestaña activa: SIGCE Web'
+                    : demo
+                      ? 'Réplica de demostración'
+                      : reference
+                        ? 'Página de referencia'
+                        : 'Portal SIE oficial conectado'}
               </span>
               <span className="portal-strip-sub">
                 {portalError
                   ? 'Abre el SIE en Chrome y actualiza'
-                  : demo
-                    ? 'Modo pruebas locales (sin guardar en SIGCE)'
-                    : reference
-                      ? 'Vista de solo lectura'
-                      : 'Listo para sincronizar con tu sesión'}
+                  : sigceTab
+                    ? 'Sesión vinculada · Abre la pestaña del SIE'
+                    : demo
+                      ? 'Modo pruebas locales (sin guardar en SIGCE)'
+                      : reference
+                        ? 'Vista de solo lectura'
+                        : 'Listo para sincronizar calificaciones'}
               </span>
             </div>
           </div>
@@ -638,72 +725,87 @@ export function App() {
         </section>
       )}
 
-      {/* PASO 1A: INICIAR SESIÓN EN SIGCE */}
-      {!portalError && !demo && !reference && !session && (
+      {/* PESTAÑA ACTIVA ES SIGCE WEB */}
+      {sigceTab && (
+        <section className="card info-banner">
+          <div className="eyebrow" style={{ color: '#0284c7' }}>
+            <IconSparkles size={13} /> Pestaña activa: SIGCE Web
+          </div>
+          <h2>Conectado a SIGCE</h2>
+          <p>
+            {session
+              ? `Sesión vinculada correctamente como ${session.user.firstName} ${session.user.lastName} (${session.user.role === 'ADMINISTRATIVE' ? 'Dirección' : session.user.role === 'SECRETARY' ? 'Secretaría' : session.user.role}). Para transcribir calificaciones, cambia o abre la pestaña del portal SIE oficial.`
+              : 'Inicia sesión en esta pestaña de SIGCE con tu cuenta institucional. El asistente detectará tus credenciales automáticamente sin pedirte contraseñas.'}
+          </p>
+          <div className="action-stack">
+            <a
+              className="btn success full"
+              href="https://academico.sie.gob.bo"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <IconExternalLink size={16} />
+              <span>Abrir portal oficial del SIE (academico.sie.gob.bo)</span>
+            </a>
+            <a
+              className="btn outline full"
+              href="http://localhost:4174/demo"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <IconSparkles size={16} />
+              <span>Abrir réplica SIE de demostración</span>
+            </a>
+          </div>
+        </section>
+      )}
+
+      {/* PASO 1: VINCULACIÓN CON SESIÓN DE SIGCE (SIN PEDIR CONTRASEÑA EN EL PLUGIN) */}
+      {!portalError && !demo && !reference && !sigceTab && !session && (
         <section className="card">
           <div className="eyebrow">Paso 1 de 3 · Conexión SIGCE</div>
-          <h2>Inicia sesión para comenzar</h2>
-          <p>Usa tu cuenta institucional de SIGCE. El acceso al portal SIE lo realizas en la pestaña del navegador.</p>
+          <h2>Inicia sesión en SIGCE desde tu navegador</h2>
+          <p>
+            El asistente sincroniza las notas oficiales directamente desde SIGCE. Para usarlo, primero inicia sesión en la plataforma web con tu cuenta de Dirección o Secretaría.
+          </p>
 
-          <div className="role-tabs" role="radiogroup" aria-label="Rol responsable">
+          <div className="session-prompt-box">
+            <div className="session-prompt-status">
+              <span className="session-dot pulse" />
+              <span>Esperando sesión activa en el navegador...</span>
+            </div>
+            <p className="session-prompt-note">
+              Por tu seguridad, el plugin no te pide usuario ni contraseña. Se vincula automáticamente en cuanto inicias sesión en la página.
+            </p>
+          </div>
+
+          <div className="action-stack">
             <button
               type="button"
-              className={`role-tab ${role === 'ADMINISTRATIVE' ? 'active' : ''}`}
-              onClick={() => setRole('ADMINISTRATIVE')}
+              className="btn primary full"
+              onClick={() => {
+                const targetUrl = apiBase === localApi ? 'http://localhost:5173' : 'https://sigce.lat';
+                void chrome.tabs.create({ url: targetUrl });
+              }}
             >
-              Dirección
+              <IconSparkles size={16} />
+              <span>Abrir {apiBase === localApi ? 'SIGCE local' : 'sigce.lat'} para iniciar sesión</span>
             </button>
+
             <button
               type="button"
-              className={`role-tab ${role === 'SECRETARY' ? 'active' : ''}`}
-              onClick={() => setRole('SECRETARY')}
+              className="btn outline full"
+              onClick={() => void checkAndSyncSession(true)}
+              disabled={busy || checkingSession}
             >
-              Secretaría
+              <IconRefresh className={checkingSession ? 'spin' : ''} size={15} />
+              <span>{checkingSession ? 'Buscando sesión activa...' : 'Detectar sesión activa ahora'}</span>
             </button>
           </div>
 
-          <form
-            className="form-stack"
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (!busy && identifier.trim() && secret && tabId) void signIn();
-            }}
-          >
-            <label className="field">
-              Correo o usuario SIGCE
-              <input
-                type="text"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="ej. direccion@sigce.lat"
-                autoComplete="username"
-              />
-            </label>
-
-            <label className="field">
-              Contraseña
-              <input
-                type="password"
-                value={secret}
-                onChange={(e) => setSecret(e.target.value)}
-                placeholder="••••••••"
-                autoComplete="current-password"
-              />
-            </label>
-
-            <button
-              type="submit"
-              className="btn primary full"
-              disabled={busy || !identifier.trim() || !secret || !tabId}
-            >
-              {busy ? <IconRefresh className="spin" /> : <IconArrowRight />}
-              <span>{busy ? 'Verificando acceso...' : 'Entrar a SIGCE'}</span>
-            </button>
-          </form>
-
           <details className="subtle-details">
             <summary>
-              <span>Servidor: {apiBase === deployedApi ? 'SIGCE desplegado' : 'SIGCE local'}</span>
+              <span>Servidor: {apiBase === deployedApi ? 'SIGCE desplegado (producción)' : 'SIGCE local (desarrollo)'}</span>
               <span>Cambiar</span>
             </summary>
             <div className="subtle-details-body">
@@ -716,8 +818,8 @@ export function App() {
                     setApiBase(e.target.value);
                   }}
                 >
-                  <option value={deployedApi}>SIGCE desplegado (producción)</option>
-                  <option value={localApi}>SIGCE local (desarrollo)</option>
+                  <option value={deployedApi}>SIGCE desplegado (producción · https://api.sigce.lat/api/v1)</option>
+                  <option value={localApi}>SIGCE local (desarrollo · http://localhost:3000/api/v1)</option>
                 </select>
               </label>
             </div>
@@ -725,8 +827,32 @@ export function App() {
         </section>
       )}
 
+      {/* ROL NO AUTORIZADO (DOCENTE, ESTUDIANTE O PADRE DE FAMILIA) */}
+      {!portalError && !demo && !reference && !sigceTab && session && !isAuthorized && (
+        <section className="card warning">
+          <div className="eyebrow" style={{ color: '#b45309' }}>
+            <IconAlert size={13} /> Rol no autorizado
+          </div>
+          <h2>Permiso insuficiente para el SIE</h2>
+          <p>
+            Has iniciado sesión como <strong>{session.user.firstName} {session.user.lastName}</strong> ({session.user.role}).
+            El asistente SIE solo puede ser utilizado por cuentas con rol de Dirección o Secretaría de la institución.
+          </p>
+          <div className="action-stack">
+            <button
+              type="button"
+              className="btn outline full"
+              onClick={() => void signOut()}
+            >
+              <IconLogOut size={15} />
+              <span>Desconectar e iniciar con otra cuenta</span>
+            </button>
+          </div>
+        </section>
+      )}
+
       {/* PASO 1B: CONFIRMACIÓN DE ACCESO EXITOSO AL SISTEMA PARA EMPEZAR A TRABAJAR */}
-      {!portalError && !reference && ((demo && tabId) || session) && !workReady && !plan && (
+      {!portalError && !reference && !sigceTab && ((demo && tabId) || (session && isAuthorized)) && !workReady && !plan && (
         <section className="card success-hero">
           <div className="ready-icon-wrap">
             <IconShieldCheck size={30} />
@@ -739,7 +865,7 @@ export function App() {
           <p>
             {demo
               ? 'Cuando hayas iniciado sesión en la página de prueba y abierto el curso, pulsa el botón para empezar.'
-              : `Bienvenida/o, ${session?.user.firstName} ${session?.user.lastName}. Una vez que hayas ingresado también al portal SIE, confirma abajo para empezar a trabajar.`}
+              : `Bienvenida/o, ${session?.user.firstName} ${session?.user.lastName} (${session?.user.role === 'ADMINISTRATIVE' ? 'Dirección' : 'Secretaría'}). Tu sesión de SIGCE está vinculada automáticamente. Una vez que hayas ingresado también al portal SIE, confirma abajo para empezar a trabajar.`}
           </p>
 
           <div className="ready-checklist">
@@ -747,7 +873,7 @@ export function App() {
               <span className="check-icon"><IconCheck size={15} /></span>
               <span>
                 <strong>{demo ? 'Datos de prueba listos:' : 'Sesión SIGCE activa:'}</strong>{' '}
-                {demo ? '3 estudiantes ficticios disponibles.' : session?.apiBase === localApi ? 'SIGCE local' : 'SIGCE desplegado'}
+                {demo ? '3 estudiantes ficticios disponibles.' : session?.apiBase === localApi ? 'SIGCE local' : 'SIGCE desplegado (sigce.lat)'}
               </span>
             </div>
             <div className="ready-check-item">
@@ -805,7 +931,7 @@ export function App() {
       )}
 
       {/* PASO 2: SELECCIONAR CURSO Y CARGAR NOTAS */}
-      {!portalError && !reference && workReady && ((demo && tabId) || session) && !plan && (
+      {!portalError && !reference && !sigceTab && workReady && ((demo && tabId) || (session && isAuthorized)) && !plan && (
         <section className="card">
           <div className="eyebrow">Paso 2 de 3 · Selección</div>
           <h2>{demo ? 'Cargar lote de demostración' : 'Elige el curso a completar'}</h2>
