@@ -93,6 +93,10 @@ function sincronizarextensionsesion(token: string, usuario: autenticacionusuario
       timestamp: Date.now(),
     };
     localStorage.setItem(claveidentificadorextension, JSON.stringify(sesion));
+    sessionStorage.setItem(claveidentificadorextension, JSON.stringify(sesion));
+    try {
+      (window as unknown as Record<string, unknown>).__SIGCE_SESSION__ = () => sesion;
+    } catch {}
     emitireventosesion('sigce:extension_session_updated', sesion);
   } catch {}
 }
@@ -101,6 +105,10 @@ function limpiarentornoextension(): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(claveidentificadorextension);
+    sessionStorage.removeItem(claveidentificadorextension);
+    try {
+      delete (window as unknown as Record<string, unknown>).__SIGCE_SESSION__;
+    } catch {}
     emitireventosesion('sigce:extension_session_cleared');
   } catch {}
 }

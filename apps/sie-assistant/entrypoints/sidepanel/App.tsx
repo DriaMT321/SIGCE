@@ -241,18 +241,205 @@ export function App() {
 
   const activeStep: 1 | 2 | 3 = plan ? 3 : workReady && (demo || (Boolean(session) && isAuthorized)) ? 2 : 1;
 
+  async function extractSessionFromTab(targetTabId: number): Promise<SigceSession | null> {
+    // 0. Obtener candidatos de identificadores de pestaña desde las cookies si están disponibles
+    let cookieTabIds: string[] = [];
+    try {
+      if (chrome.cookies && typeof chrome.cookies.getAll === 'function') {
+        const cookies = await chrome.cookies.getAll({ url: 'https://api.sigce.lat' });
+        for (const c of cookies) {
+          if (c.name.startsWith('sigce_refresh_')) {
+            cookieTabIds.push(c.name.replace('sigce_refresh_', ''));
+          }
+        }
+      }
+    } catch {}
+
+    // 1. Ejecutar en world: 'MAIN' para acceder al contexto directo de la página con origen sigce.lat
+    try {
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: targetTabId },
+        world: 'MAIN',
+        args: [cookieTabIds],
+        func: async (knownTabIds: string[]) => {
+          // A. Hook global de sesión si existe en window
+          try {
+            const w = window as unknown as Record<string, unknown>;
+            if (typeof w.__SIGCE_SESSION__ === 'function') {
+              const s = (w.__SIGCE_SESSION__ as () => SigceSession)();
+              if (s?.accessToken && s?.user) return s;
+            }
+          } catch {}
+
+          // B. Leer almacenamiento de sesión de la extensión
+          try {
+            const raw =
+              localStorage.getItem('sigce_extension_session') ||
+              sessionStorage.getItem('sigce_extension_session');
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (parsed && typeof parsed === 'object' && parsed.accessToken && parsed.user) {
+                return parsed;
+              }
+            }
+          } catch {}
+
+          // C. Leer datos de usuario en sessionStorage/localStorage
+          let localUser = null;
+          try {
+            const rawUser = sessionStorage.getItem('auth_user') || localStorage.getItem('auth_user');
+            if (rawUser) localUser = JSON.parse(rawUser);
+          } catch {}
+
+          // D. Determinar URL base de la API
+          const hostname = window.location.hostname;
+          let apiBase = 'https://api.sigce.lat/api/v1';
+          if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            apiBase = 'http://localhost:3000/api/v1';
+          } else if (window.location.protocol === 'https:' && !hostname.includes('sigce.lat')) {
+            const baseHost = hostname.replace(/^www\./, '');
+            apiBase = 'https://api.' + baseHost + '/api/v1';
+          }
+
+          // E. Candidatos para X-SIGCE-Tab (identificador de pestaña de la cookie)
+          const domTabId = sessionStorage.getItem('sigce_web_tab');
+          const candidates: (string | null)[] = [];
+          if (domTabId) candidates.push(domTabId);
+          if (Array.isArray(knownTabIds)) {
+            for (const cid of knownTabIds) {
+              if (cid && !candidates.includes(cid)) candidates.push(cid);
+            }
+          }
+          candidates.push(null); // Intento sin cabecera X-SIGCE-Tab (usa cookie base sigce_refresh)
+
+          for (const currentTabId of candidates) {
+            try {
+              const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+                'X-SIGCE-Web': '1',
+              };
+              if (currentTabId) headers['X-SIGCE-Tab'] = currentTabId;
+
+              const res = await fetch(`${apiBase}/auth/web/refresh`, {
+                method: 'POST',
+                headers,
+                credentials: 'include',
+                body: '{}',
+              });
+
+              if (res.ok) {
+                const data = await res.json();
+                const accessToken = data?.data?.accessToken;
+                const finalUser = data?.data?.user || localUser;
+                if (accessToken && finalUser) {
+                  const sessionData = {
+                    accessToken,
+                    user: finalUser,
+                    apiBase,
+                    timestamp: Date.now(),
+                  };
+                  try {
+                    localStorage.setItem('sigce_extension_session', JSON.stringify(sessionData));
+                    sessionStorage.setItem('sigce_extension_session', JSON.stringify(sessionData));
+                  } catch {}
+                  return sessionData;
+                }
+              }
+            } catch {}
+          }
+
+          // F. Fallback: Si no se pudo rotar el token pero hay token guardado en localStorage
+          try {
+            const legacyToken = localStorage.getItem('access_token');
+            if (legacyToken && localUser) {
+              return {
+                accessToken: legacyToken,
+                user: localUser,
+                apiBase,
+                timestamp: Date.now(),
+              };
+            }
+          } catch {}
+
+          return null;
+        },
+      });
+
+      const s = results?.[0]?.result as SigceSession | null;
+      if (s?.accessToken && s?.user) return s;
+    } catch (e) {
+      console.warn('[SIGCE] ExecuteScript MAIN world error:', e);
+    }
+
+    // 2. Intentar por mensaje de runtime (content script)
+    try {
+      const res = (await chrome.tabs.sendMessage(targetTabId, {
+        kind: 'SIGCE_GET_WEB_SESSION',
+      })) as { ok?: boolean; session?: SigceSession };
+      if (res?.ok && res.session?.accessToken && res.session?.user) {
+        return res.session;
+      }
+    } catch {}
+
+    // 3. Fallback: world ISOLATED para lectura de almacenamiento
+    try {
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: targetTabId },
+        func: () => {
+          try {
+            const raw =
+              localStorage.getItem('sigce_extension_session') ||
+              sessionStorage.getItem('sigce_extension_session');
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (parsed?.accessToken && parsed?.user) return parsed;
+            }
+          } catch {}
+          return null;
+        },
+      });
+      const s = results?.[0]?.result as SigceSession | null;
+      if (s?.accessToken && s?.user) return s;
+    } catch {}
+
+    return null;
+  }
+
   async function detectWebSession(): Promise<SigceSession | null> {
     try {
+      // 1. Revisar si la pestaña activa actual en Chrome es sigce.lat
+      const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (activeTab?.id && activeTab.url) {
+        try {
+          const u = new URL(activeTab.url);
+          const host = u.hostname.toLowerCase();
+          if (
+            host === 'sigce.lat' ||
+            host.endsWith('.sigce.lat') ||
+            host === 'localhost' ||
+            host === '127.0.0.1' ||
+            host.endsWith('.vercel.app')
+          ) {
+            const foundInActive = await extractSessionFromTab(activeTab.id);
+            if (foundInActive) {
+              await chrome.storage.local.set({ sigceSession: foundInActive });
+              return foundInActive;
+            }
+          }
+        } catch {}
+      }
+
+      // 2. Revisar almacenamiento local de la extensión si no es pestaña activa
       const stored = await chrome.storage.local.get('sigceSession');
       const saved = stored.sigceSession as SigceSession | undefined;
       if (saved?.accessToken && saved?.user) {
         return saved;
       }
 
-      // Consultar todas las pestañas abiertas en Chrome sin restricciones de filtro
+      // 3. Consultar todas las demás pestañas abiertas en Chrome
       const allTabs = await chrome.tabs.query({});
       const sigceTabs = allTabs.filter((tab) => {
-        if (!tab.id || !tab.url) return false;
+        if (!tab.id || !tab.url || tab.id === activeTab?.id) return false;
         try {
           const u = new URL(tab.url);
           const host = u.hostname.toLowerCase();
@@ -270,98 +457,15 @@ export function App() {
 
       for (const tab of sigceTabs) {
         if (!tab.id) continue;
-
-        // 1. Intentar mensaje en tiempo de ejecución (si el content script está presente)
-        try {
-          const res = (await chrome.tabs.sendMessage(tab.id, {
-            kind: 'SIGCE_GET_WEB_SESSION',
-          })) as { ok?: boolean; session?: SigceSession };
-          if (res?.ok && res.session?.accessToken && res.session?.user) {
-            await chrome.storage.local.set({ sigceSession: res.session });
-            return res.session;
-          }
-        } catch { }
-
-        // 2. Ejecutar script en la pestaña para recuperar sesión viva por cookie o localStorage
-        try {
-          const results = await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: async () => {
-              // A. Verificar si ya está en localStorage
-              try {
-                const raw = localStorage.getItem('sigce_extension_session');
-                if (raw) {
-                  const parsed = JSON.parse(raw);
-                  if (parsed && typeof parsed === 'object' && parsed.accessToken && parsed.user) {
-                    return parsed;
-                  }
-                }
-              } catch { }
-
-              // B. Leer usuario de sessionStorage si existe
-              let localUser = null;
-              try {
-                const rawUser = sessionStorage.getItem('auth_user') || localStorage.getItem('auth_user');
-                if (rawUser) localUser = JSON.parse(rawUser);
-              } catch { }
-
-              // C. Resolver URL de la API correspondiente a la pestaña
-              const hostname = window.location.hostname;
-              let apiBase = 'https://api.sigce.lat/api/v1';
-              if (hostname === 'localhost' || hostname === '127.0.0.1') {
-                apiBase = 'http://localhost:3000/api/v1';
-              } else if (window.location.protocol === 'https:' && !hostname.includes('sigce.lat')) {
-                const baseHost = hostname.replace(/^www\./, '');
-                apiBase = 'https://api.' + baseHost + '/api/v1';
-              }
-
-              // D. Usar la cookie HttpOnly de la pestaña abierta para renovar el token Bearer
-              try {
-                const tabSessionId = sessionStorage.getItem('sigce_web_tab');
-                const headers: Record<string, string> = {
-                  'Content-Type': 'application/json',
-                  'X-SIGCE-Web': '1',
-                };
-                if (tabSessionId) headers['X-SIGCE-Tab'] = tabSessionId;
-
-                const res = await fetch(`${apiBase}/auth/web/refresh`, {
-                  method: 'POST',
-                  headers,
-                  credentials: 'include',
-                  body: '{}',
-                });
-
-                if (res.ok) {
-                  const data = await res.json();
-                  const accessToken = data?.data?.accessToken;
-                  const finalUser = data?.data?.user || localUser;
-                  if (accessToken && finalUser) {
-                    const sessionData = {
-                      accessToken,
-                      user: finalUser,
-                      apiBase,
-                      timestamp: Date.now(),
-                    };
-                    try {
-                      localStorage.setItem('sigce_extension_session', JSON.stringify(sessionData));
-                    } catch { }
-                    return sessionData;
-                  }
-                }
-              } catch { }
-
-              return null;
-            },
-          });
-
-          const tabSession = results?.[0]?.result as SigceSession | null;
-          if (tabSession?.accessToken && tabSession?.user) {
-            await chrome.storage.local.set({ sigceSession: tabSession });
-            return tabSession;
-          }
-        } catch { }
+        const found = await extractSessionFromTab(tab.id);
+        if (found) {
+          await chrome.storage.local.set({ sigceSession: found });
+          return found;
+        }
       }
-    } catch { }
+    } catch (e) {
+      console.warn('[SIGCE] detectWebSession error:', e);
+    }
     return null;
   }
 
@@ -389,7 +493,7 @@ export function App() {
         if (!hasSigceTab) {
           setError('No tienes ninguna pestaña de sigce.lat abierta en Chrome. Abre sigce.lat en una pestaña y asegúrate de iniciar sesión.');
         } else {
-          setError('Se detectó la pestaña de sigce.lat, pero no tiene una sesión activa iniciada. Inicia sesión con tu cuenta de Dirección o Secretaría en esa pestaña y vuelve a pulsar aquí.');
+          setError('Se detectó la pestaña de sigce.lat, pero no respondió con una sesión activa. Si acabas de ingresar al dashboard, dale una recarga rápida (F5) a la pestaña de SIGCE y pulsa Vincular.');
         }
       }
     } finally {
@@ -427,8 +531,9 @@ export function App() {
   }
 
   useEffect(() => {
-    void refreshTab();
-    void checkAndSyncSession();
+    void refreshTab().then(() => {
+      void checkAndSyncSession();
+    });
 
     const storageListener = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
       if (areaName === 'local' && changes.sigceSession) {
@@ -821,28 +926,77 @@ export function App() {
           <p>
             {session
               ? `Sesión vinculada correctamente como ${session.user.firstName} ${session.user.lastName} (${session.user.role === 'ADMINISTRATIVE' ? 'Dirección' : session.user.role === 'SECRETARY' ? 'Secretaría' : session.user.role}). Para transcribir calificaciones, cambia o abre la pestaña del portal SIE oficial.`
-              : 'Inicia sesión en esta pestaña de SIGCE con tu cuenta institucional. El asistente detectará tus credenciales automáticamente sin pedirte contraseñas.'}
+              : 'Se detectó la plataforma web SIGCE en esta pestaña. Pulsa el botón para vincular tu sesión iniciada como administrador o secretaría sin tener que volver a ingresar contraseñas.'}
           </p>
-          <div className="action-stack">
-            <a
-              className="btn success full"
-              href="https://academico.sie.gob.bo"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <IconExternalLink size={16} />
-              <span>Abrir portal oficial del SIE (academico.sie.gob.bo)</span>
-            </a>
-            <a
-              className="btn outline full"
-              href="http://localhost:4174/demo"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <IconSparkles size={16} />
-              <span>Abrir réplica SIE de demostración</span>
-            </a>
-          </div>
+          {!session ? (
+            <div className="action-stack">
+              <button
+                type="button"
+                className="btn primary full"
+                onClick={() => void checkAndSyncSession(true)}
+                disabled={busy || checkingSession}
+              >
+                <IconRefresh className={checkingSession ? 'spin' : ''} size={16} />
+                <span>{checkingSession ? 'Detectando sesión en esta pestaña...' : 'Vincular sesión activa de esta pestaña'}</span>
+              </button>
+              {error && <div className="field-error" style={{ marginTop: 8 }}>{error}</div>}
+              <a
+                className="btn outline full"
+                href="https://academico.sie.gob.bo"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <IconExternalLink size={16} />
+                <span>Abrir portal oficial del SIE (academico.sie.gob.bo)</span>
+              </a>
+            </div>
+          ) : (
+            <div className="action-stack">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '10px 14px',
+                  background: '#ecfdf5',
+                  border: '1px solid #a7f3d0',
+                  borderRadius: 8,
+                  color: '#065f46',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  marginBottom: 8,
+                }}
+              >
+                <IconCheck size={16} />
+                <span>
+                  Sesión activa verificada · Rol:{' '}
+                  {session.user.role === 'ADMINISTRATIVE'
+                    ? 'Administrador / Dirección'
+                    : session.user.role === 'SECRETARY'
+                    ? 'Secretaría'
+                    : session.user.role}
+                </span>
+              </div>
+              <a
+                className="btn success full"
+                href="https://academico.sie.gob.bo"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <IconExternalLink size={16} />
+                <span>Abrir portal oficial del SIE (academico.sie.gob.bo)</span>
+              </a>
+              <a
+                className="btn outline full"
+                href="http://localhost:4174/demo"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <IconSparkles size={16} />
+                <span>Abrir réplica SIE de demostración</span>
+              </a>
+            </div>
+          )}
         </section>
       )}
 
