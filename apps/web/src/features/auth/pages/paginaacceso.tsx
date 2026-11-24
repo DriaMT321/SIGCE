@@ -99,11 +99,6 @@ export const SesionPagina = () => {
 
         {/* Mensaje Central y Propósito Institucional */}
         <div className="relative z-10 my-10 max-w-xl lg:my-auto lg:py-12 space-y-5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/15 border border-brand-500/30 text-amber-200 text-xs font-semibold">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-            <span>Sistema Integral Acreditado · Ley 070</span>
-          </div>
-
           <h2 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl xl:text-5xl text-white">
             Control académico, expediente docente y comunidad en tiempo real.
           </h2>
@@ -112,27 +107,6 @@ export const SesionPagina = () => {
             Plataforma oficial para la centralización de notas trimestrales, asistencia biométrica,
             administración del legajo docente (RDA y Escalafón) y comunicación con las familias.
           </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            <div className="rounded-xl border border-white/10 bg-white/[0.05] p-3 backdrop-blur-xs">
-              <p className="text-[11px] font-semibold text-amber-300">Normativa SIE</p>
-              <p className="text-xs text-slate-200 mt-0.5">Compatible con Ministerio de Educación</p>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.05] p-3 backdrop-blur-xs">
-              <p className="text-[11px] font-semibold text-rose-300">Expediente RDA</p>
-              <p className="text-xs text-slate-200 mt-0.5">Legajo docente digitalizado</p>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.05] p-3 backdrop-blur-xs">
-              <p className="text-[11px] font-semibold text-amber-300">Seguimiento</p>
-              <p className="text-xs text-slate-200 mt-0.5">Acceso a notas y asistencia</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Pie de la columna izquierda */}
-        <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 border-t border-white/10 pt-4">
-          <span>Estado Plurinacional de Bolivia</span>
-          <span className="font-mono text-[11px] text-slate-400">America/La_Paz (UTC-4)</span>
         </div>
       </section>
 

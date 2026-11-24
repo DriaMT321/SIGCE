@@ -244,7 +244,7 @@ export function Sesion04Formulario({
         )}
 
         <div className="border-t border-slate-100 pt-3 text-center text-[11px] font-medium text-slate-400">
-          <span>U.E. Comunidad Cristiana B · Sistema Seguro</span>
+          <span>U.E. Comunidad Cristiana B</span>
         </div>
       </form>
     </div>
