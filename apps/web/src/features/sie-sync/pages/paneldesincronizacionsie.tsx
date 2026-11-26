@@ -49,8 +49,8 @@ export function Paneldesincronizacionsie({ gestion }: { gestion: gestionasistent
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-amber-800">SIGCE · SIE</p>
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">Carga asistida de calificaciones</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-700">Prepara las notas cerradas de SIGCE para el curso abierto en el SIE. La responsable inicia sesión allí, revisa las filas y guarda los cambios.</p>
+          <h1 className="mt-2 text-2xl font-bold text-slate-900">Asistente de calificaciones SIE</h1>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-700">Prepara las notas cerradas de SIGCE para el SIE. En Chrome, la responsable puede revisar y guardar cada fila o preparar un recorrido continuo con varios cursos, materias y trimestres.</p>
         </div>
         <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white px-3 py-1.5 text-xs font-semibold text-amber-900"><ShieldCheck className="h-4 w-4" /> Uso supervisado</span>
       </div>
@@ -61,7 +61,7 @@ export function Paneldesincronizacionsie({ gestion }: { gestion: gestionasistent
           className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800"
         >
           <Download className="h-4 w-4" aria-hidden="true" />
-          Descargar plugin Chrome (.zip) · con Respaldo Preventivo Universal
+          Descargar plugin Chrome (.zip)
         </a>
         <a
           href="/sie-demo/index.html"
@@ -75,7 +75,7 @@ export function Paneldesincronizacionsie({ gestion }: { gestion: gestionasistent
       </div>
       <div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-100/60 px-3 py-1.5 text-xs text-amber-900">
         <ShieldCheck className="h-4 w-4 shrink-0 text-amber-800" />
-        <span><strong>Medida Preventiva Institucional (Todos los Cursos):</strong> El plugin genera automáticamente una copia de seguridad oficial en Excel/JSON antes de que el asistente actúe en el SIE, protegiendo las notas de Inicial, Primaria y Secundaria (incluyendo 6to de Secundaria) ante cualquier fallo o caída del portal.</span>
+        <span><strong>Respaldo local:</strong> antes del recorrido, la extensión guarda las notas de SIGCE en Chrome. Si se activa el reemplazo de valores, guarda también el valor anterior visible en el SIE. Los archivos de respaldo contienen datos académicos personales.</span>
       </div>
     </header>
 
@@ -83,7 +83,7 @@ export function Paneldesincronizacionsie({ gestion }: { gestion: gestionasistent
       {[
         ['1', 'Comprueba las notas', 'Consulta aquí el curso, la materia y el trimestre cerrado.'],
         ['2', 'Abre el SIE', 'Inicia sesión en Chrome y abre la tabla del mismo curso.'],
-        ['3', 'Usa el complemento', 'Selecciona los mismos datos, rellena, revisa y guarda desde el SIE.'],
+        ['3', 'Usa el complemento', 'Elige el modo acompañado o prepara un recorrido continuo y revisa el informe final.'],
       ].map(([numero, titulo, texto]) => <div key={numero} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <span className="grid h-8 w-8 place-items-center rounded-lg bg-amber-100 text-sm font-bold text-amber-900">{numero}</span>
         <h2 className="mt-3 font-semibold text-slate-900">{titulo}</h2><p className="mt-1 text-sm text-slate-600">{texto}</p>

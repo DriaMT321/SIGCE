@@ -18,16 +18,22 @@ import type {
   SavedMessage,
   SummaryEntry,
 } from '../../src/types';
+import sigceMark from '../../public/logo-sf.png';
 import {
   type GradeBackup,
+  type GradeOverwriteBackup,
   createGradeBackupFromPlan,
   deleteGradeBackup,
   downloadBackupCsv,
   downloadBackupJson,
+  downloadGradeOverwriteBackups,
   is6toSecundaria,
   listGradeBackups,
+  listGradeOverwriteBackups,
   restorePlanFromBackup,
   saveGradeBackup,
+  saveGradeOverwriteBackup,
+  updateGradeOverwriteBackup,
 } from '../../src/backup';
 
 const localApi = 'http://localhost:3000/api/v1';
@@ -59,6 +65,35 @@ const demoPlan6to: GradePlan = {
 
 type CourseOptions = Awaited<ReturnType<typeof loadCourseOptions>>;
 type BaseOptions = Awaited<ReturnType<typeof loadOptions>>;
+type QueuedPlan = { plan: GradePlan; filters: PlanFilters };
+type ContinuousReportEntry = {
+  course: string;
+  subject: string;
+  period: string;
+  gradeId: string;
+  rude: string;
+  student: string;
+  proposedValue: number;
+  previousValue?: string;
+  result: 'SAVED' | 'SKIPPED' | 'ERROR';
+  detail: string;
+  reportedAt: string;
+};
+
+function downloadContinuousReport(entries: ContinuousReportEntry[]): void {
+  const content = JSON.stringify({
+    titulo: 'Informe del recorrido continuo · SIGCE',
+    generado: new Date().toISOString(),
+    alcance: 'Registra acciones observadas por la extensión; no acredita conciliación con el SIE.',
+    resultados: entries,
+  }, null, 2);
+  const url = URL.createObjectURL(new Blob([content], { type: 'application/json;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `informe-recorrido-sigce-${Date.now()}.json`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
 
 /* Compact inline SVG icons (zero external dependencies, CSP-safe) */
 function IconCheck({ size = 16 }: { size?: number }) {
@@ -207,6 +242,19 @@ export function App() {
   const [courseOptions, setCourseOptions] = useState<CourseOptions | null>(null);
   const [filters, setFilters] = useState<PlanFilters>({ academicYearId: '', courseId: '', subjectId: '', periodNumber: 0 });
   const [plan, setPlan] = useState<GradePlan | null>(null);
+  const [executionMode, setExecutionMode] = useState<'assisted' | 'continuous'>('assisted');
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
+  const [replaceConflicts, setReplaceConflicts] = useState(false);
+  const [continuousAcknowledged, setContinuousAcknowledged] = useState(false);
+  const [queuedPlans, setQueuedPlans] = useState<QueuedPlan[]>([]);
+  const [continuousReport, setContinuousReport] = useState<ContinuousReportEntry[]>([]);
+  const [continuousRunning, setContinuousRunning] = useState(false);
+  const [continuousFinished, setContinuousFinished] = useState(false);
+  const [reportInterrupted, setReportInterrupted] = useState(false);
+  const [continuousCourseIndex, setContinuousCourseIndex] = useState(0);
+  const [overwriteBackups, setOverwriteBackups] = useState<GradeOverwriteBackup[]>([]);
+  const [activeOverwriteBackup, setActiveOverwriteBackup] = useState<GradeOverwriteBackup | null>(null);
+  const [restoringPrevious, setRestoringPrevious] = useState(false);
   const [lastBackup, setLastBackup] = useState<GradeBackup | null>(null);
   const [savedBackups, setSavedBackups] = useState<GradeBackup[]>([]);
   const [showBackupsModal, setShowBackupsModal] = useState(false);
@@ -221,6 +269,7 @@ export function App() {
   const [error, setError] = useState('');
   const [summarySent, setSummarySent] = useState(false);
   const advancing = useRef(false);
+  const stopContinuous = useRef(false);
   const operationIds = useRef(new Map<string, string>());
 
   const demo = portalUrl ? isDemoPortal(portalUrl) : false;
@@ -503,6 +552,28 @@ export function App() {
         setLastBackup(backups[0] || null);
       }
     });
+    void listGradeOverwriteBackups().then(setOverwriteBackups);
+    void chrome.storage.local.get('sigceContinuousReport').then((stored) => {
+      const saved = stored.sigceContinuousReport;
+      if (Array.isArray(saved) && saved.length > 0) {
+        setContinuousReport(saved as ContinuousReportEntry[]);
+        setContinuousFinished(true);
+      } else if (saved && typeof saved === 'object' && Array.isArray(saved.entries)) {
+        const savedEntries = saved.entries as ContinuousReportEntry[];
+        const interrupted = ['RUNNING', 'STOPPED', 'FAILED'].includes(String(saved.status));
+        const report = saved.status === 'RUNNING' && savedEntries.length === 0
+          ? [{
+              course: 'Recorrido', subject: '—', period: '—', gradeId: '', rude: '',
+              student: 'Interrupción del recorrido', proposedValue: 0, result: 'ERROR' as const,
+              detail: 'El panel se cerró antes de registrar el primer resultado. Prepara de nuevo el recorrido.',
+              reportedAt: new Date().toISOString(),
+            }]
+          : savedEntries;
+        setContinuousReport(report);
+        setReportInterrupted(interrupted);
+        setContinuousFinished(true);
+      }
+    });
 
     return () => {
       chrome.storage.onChanged.removeListener(storageListener);
@@ -561,10 +632,11 @@ export function App() {
 
   async function sendToTab(request: PortalRequest): Promise<PortalResponse> {
     const [active] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!active?.id || active.id !== tabId || !active.url || active.url !== portalUrl) {
-      throw new Error('La pestaña cambió. Vuelve a comprobar la pantalla antes de continuar.');
+    if (!active?.id || active.id !== tabId || !active.url) {
+      throw new Error('La pestaña del SIE cambió. Vuelve a comprobar la pantalla antes de continuar.');
     }
     apiForPortal(active.url);
+    if (active.url !== portalUrl) setPortalUrl(active.url);
     try {
       return (await chrome.tabs.sendMessage(active.id, request)) as PortalResponse;
     } catch {
@@ -632,6 +704,8 @@ export function App() {
     setSaveObserved('');
     setSummarySent(false);
     setReadyToast(false);
+    setActiveOverwriteBackup(null);
+    setContinuousFinished(false);
   }
 
   async function preparePlan() {
@@ -641,14 +715,37 @@ export function App() {
         throw new Error('Selecciona gestión, curso, materia y trimestre cerrado.');
       }
       const loaded = await loadGrades(session, filters);
+      if (executionMode === 'continuous') {
+        const alreadyQueued = queuedPlans.some((item) =>
+          item.plan.course.id === loaded.course.id &&
+          item.plan.subject.id === loaded.subject.id &&
+          item.plan.period.number === loaded.period.number,
+        );
+        if (alreadyQueued) throw new Error('Ese curso, materia y trimestre ya están en el recorrido.');
+        await savePlanBackup(loaded);
+        setQueuedPlans((previous) => [...previous, { plan: loaded, filters: { ...filters } }]);
+        setContinuousAcknowledged(false);
+        return;
+      }
       resetRun(loaded);
       await savePlanBackup(loaded);
     });
   }
 
   async function activateDemoPlan(targetDemoPlan = demoPlan) {
-    resetRun(targetDemoPlan);
     await savePlanBackup(targetDemoPlan);
+    if (executionMode === 'continuous') {
+      const demoFilters: PlanFilters = {
+        academicYearId: 'demo',
+        courseId: targetDemoPlan.course.id,
+        subjectId: targetDemoPlan.subject.id,
+        periodNumber: targetDemoPlan.period.number,
+      };
+      setQueuedPlans((previous) => [...previous, { plan: targetDemoPlan, filters: demoFilters }]);
+      setContinuousAcknowledged(false);
+      return;
+    }
+    resetRun(targetDemoPlan);
   }
 
   async function inspect() {
@@ -659,7 +756,7 @@ export function App() {
     });
   }
 
-  async function fill(allowOverwrite = false, grade = current) {
+  async function fill(allowOverwrite = false, grade = current, previousValue?: string) {
     await withBusy(async () => {
       if (!plan || !grade || !inspection?.ok) throw new Error('Comprueba la pantalla antes de rellenar notas.');
       // Medida preventiva universal: asegurar el respaldo de cualquier curso antes de que el plugin actúe en el SIE
@@ -678,6 +775,27 @@ export function App() {
         }
       }
       setSaveObserved('');
+      let overwriteBackup: GradeOverwriteBackup | null = null;
+      if (allowOverwrite) {
+        if (previousValue === undefined || previousValue === '') {
+          throw new Error('No se pudo capturar la nota existente; no se reemplazó.');
+        }
+        overwriteBackup = await saveGradeOverwriteBackup({
+          courseId: plan.course.id,
+          courseName: plan.course.name,
+          subjectId: plan.subject.id,
+          subjectName: plan.subject.name,
+          periodNumber: plan.period.number,
+          periodName: plan.period.name,
+          gradeId: grade.gradeId,
+          rude: grade.rude,
+          studentName: `${grade.firstName} ${grade.lastName}`.trim(),
+          previousValue,
+          proposedValue: grade.value,
+        });
+        setActiveOverwriteBackup(overwriteBackup);
+        setOverwriteBackups(await listGradeOverwriteBackups());
+      }
       const result = await sendToTab({
         kind: 'SIGCE_FILL',
         grade,
@@ -686,8 +804,14 @@ export function App() {
         period: plan.period,
         subjectAlias: alias.trim() || undefined,
         allowOverwrite,
+        ...(allowOverwrite ? { expectedPreviousValue: previousValue } : {}),
       });
       setFillResult(result);
+      if (overwriteBackup && (!result.ok || result.status !== 'FILLED')) {
+        const detail = 'detail' in result ? result.detail : 'La pantalla no confirmó el reemplazo.';
+        const updated = await updateGradeOverwriteBackup(overwriteBackup.id, 'ERROR', detail);
+        setOverwriteBackups(updated);
+      }
       if (!result.ok && result.status === 'ERROR') throw new Error(result.detail);
     });
   }
@@ -699,6 +823,18 @@ export function App() {
     const next = plan?.grades[index + 1];
     const entry: SummaryEntry = { gradeId: current.gradeId, result, ...(reason ? { reason } : {}) };
     try {
+      if (activeOverwriteBackup && result === 'CONFIRMED_BY_USER') {
+        const updated = await updateGradeOverwriteBackup(
+          activeOverwriteBackup.id,
+          restoringPrevious ? 'RESTORED' : 'SAVED',
+          restoringPrevious
+            ? 'La responsable confirmó el guardado de la nota anterior restaurada.'
+            : 'La responsable confirmó el aviso visible de guardado.',
+        );
+        setOverwriteBackups(updated);
+        setActiveOverwriteBackup(null);
+        setRestoringPrevious(false);
+      }
       if (!demo) {
         if (!session || !plan) throw new Error('La sesión de SIGCE venció. Inicia sesión nuevamente.');
         const key = `${plan.fingerprint}:${entry.gradeId}:${entry.result}`;
@@ -713,6 +849,7 @@ export function App() {
       setIndex((previous) => previous + 1);
       setFillResult(null);
       setSaveObserved('');
+      setActiveOverwriteBackup(null);
       await sendToTab({ kind: 'SIGCE_RESET' }).catch(() => undefined);
       if (next) await fill(false, next);
     } catch (failure) {
@@ -721,6 +858,373 @@ export function App() {
       advancing.current = false;
       setBusy(false);
     }
+  }
+
+  async function restorePreviousValue() {
+    await withBusy(async () => {
+      if (!plan || !current || !activeOverwriteBackup) throw new Error('No hay una nota anterior disponible para este estudiante.');
+      const result = await sendToTab({
+        kind: 'SIGCE_RESTORE_VALUE',
+        grade: current,
+        course: plan.course,
+        subject: plan.subject,
+        period: plan.period,
+        value: activeOverwriteBackup.previousValue,
+        expectedCurrentValue: String(activeOverwriteBackup.proposedValue),
+      });
+      setFillResult(result);
+      if (!result.ok) throw new Error(result.detail);
+      if (result.status === 'ALREADY_EQUAL') {
+        const updated = await updateGradeOverwriteBackup(activeOverwriteBackup.id, 'RESTORED', 'La casilla ya tenía el valor anterior.');
+        setOverwriteBackups(updated);
+        setActiveOverwriteBackup(null);
+      } else {
+        setRestoringPrevious(true);
+      }
+      setSaveObserved('');
+    });
+  }
+
+  async function startContinuousRun() {
+    if (continuousRunning) return;
+    if (queuedPlans.length === 0) {
+      setError('Agrega al menos un curso, materia y trimestre al recorrido.');
+      return;
+    }
+    if (!autoSaveEnabled || !continuousAcknowledged) {
+      setError('Activa el guardado automático y confirma que revisaste el recorrido antes de iniciarlo.');
+      return;
+    }
+
+    stopContinuous.current = false;
+    setContinuousRunning(true);
+    setContinuousFinished(false);
+    setReportInterrupted(false);
+    setContinuousReport([]);
+    void chrome.storage.local.set({ sigceContinuousReport: { entries: [], status: 'RUNNING', updatedAt: new Date().toISOString() } });
+    setError('');
+    const report: ContinuousReportEntry[] = [];
+    let lastPlan: GradePlan | null = null;
+    let runStatus: 'RUNNING' | 'COMPLETED' | 'STOPPED' | 'FAILED' = 'RUNNING';
+
+    const addReport = (
+      queued: QueuedPlan,
+      grade: GradePlan['grades'][number],
+      result: ContinuousReportEntry['result'],
+      detail: string,
+      previousValue?: string,
+    ) => {
+      const entry: ContinuousReportEntry = {
+        course: queued.plan.course.name,
+        subject: queued.plan.subject.name,
+        period: queued.plan.period.name,
+        gradeId: grade.gradeId,
+        rude: grade.rude,
+        student: `${grade.firstName} ${grade.lastName}`.trim(),
+        proposedValue: grade.value,
+        ...(previousValue !== undefined ? { previousValue } : {}),
+        result,
+        detail,
+        reportedAt: new Date().toISOString(),
+      };
+      report.push(entry);
+      setContinuousReport([...report]);
+      void chrome.storage.local.set({ sigceContinuousReport: { entries: report, status: 'RUNNING', updatedAt: new Date().toISOString() } });
+      return entry;
+    };
+
+    try {
+      for (let planIndex = 0; planIndex < queuedPlans.length; planIndex += 1) {
+        const queued = queuedPlans[planIndex]!;
+        const targetPlan = queued.plan;
+        setContinuousCourseIndex(planIndex + 1);
+        lastPlan = targetPlan;
+        setPlan(targetPlan);
+        setIndex(0);
+        setEntries([]);
+        setInspection(null);
+        setFillResult(null);
+        setSaveObserved('');
+        setActiveOverwriteBackup(null);
+        setContinuousAcknowledged(false);
+
+        await savePlanBackup(targetPlan);
+
+        if (stopContinuous.current) {
+          for (const remaining of queuedPlans.slice(planIndex)) {
+            for (const grade of remaining.plan.grades) {
+              addReport(remaining, grade, 'SKIPPED', 'Recorrido detenido por la responsable antes de procesar este registro.');
+            }
+          }
+          break;
+        }
+
+        let navigation: PortalResponse;
+        try {
+          navigation = await sendToTab({ kind: 'SIGCE_NAVIGATE_COURSE', expectedCourse: targetPlan.course.name });
+        } catch (failure) {
+          navigation = { ok: false, status: 'ERROR', detail: failure instanceof Error ? failure.message : 'No se pudo revisar la pantalla.' };
+        }
+        if (!navigation.ok) {
+          for (const grade of targetPlan.grades) {
+            addReport(queued, grade, 'ERROR', `No se abrió el curso: ${navigation.detail}`);
+          }
+          if (!demo && session && targetPlan.grades.length > 0) {
+            try {
+              await sendSummary(
+                session,
+                queued.filters,
+                targetPlan.fingerprint,
+                targetPlan.grades.map((grade) => ({
+                  gradeId: grade.gradeId,
+                  result: 'ERROR',
+                  reason: 'El asistente no pudo reconocer el curso en la página. Consulte el informe local.',
+                })),
+                crypto.randomUUID(),
+              );
+            } catch {
+              report.push({
+                course: targetPlan.course.name,
+                subject: targetPlan.subject.name,
+                period: targetPlan.period.name,
+                gradeId: '',
+                rude: '',
+                student: 'Informe de auditoría',
+                proposedValue: 0,
+                result: 'ERROR',
+                detail: 'SIGCE no recibió el resumen de este curso.',
+                reportedAt: new Date().toISOString(),
+              });
+              setContinuousReport([...report]);
+              void chrome.storage.local.set({ sigceContinuousReport: { entries: report, status: 'RUNNING', updatedAt: new Date().toISOString() } });
+            }
+          }
+          continue;
+        }
+        setInspection(navigation);
+
+        const summaryEntries: SummaryEntry[] = [];
+        for (let gradeIndex = 0; gradeIndex < targetPlan.grades.length; gradeIndex += 1) {
+          const grade = targetPlan.grades[gradeIndex]!;
+          setIndex(gradeIndex);
+          setFillResult(null);
+          setSaveObserved('');
+
+          if (stopContinuous.current) {
+            for (const remainingGrade of targetPlan.grades.slice(gradeIndex)) {
+              addReport(queued, remainingGrade, 'SKIPPED', 'Recorrido detenido por la responsable.');
+              summaryEntries.push({ gradeId: remainingGrade.gradeId, result: 'SKIPPED', reason: 'Recorrido detenido por la responsable.' });
+            }
+            break;
+          }
+
+          if (!demo) {
+            if (!session) {
+              const reason = 'La sesión de SIGCE no está disponible.';
+              addReport(queued, grade, 'ERROR', reason);
+              summaryEntries.push({ gradeId: grade.gradeId, result: 'ERROR', reason });
+              stopContinuous.current = true;
+              continue;
+            }
+            try {
+              const currentPlan = await loadGrades(session, queued.filters);
+              if (currentPlan.fingerprint !== targetPlan.fingerprint) {
+                const reason = 'Las calificaciones cambiaron en SIGCE. Vuelva a preparar este curso antes de cargarlo.';
+                for (const remainingGrade of targetPlan.grades.slice(gradeIndex)) {
+                  addReport(queued, remainingGrade, 'ERROR', reason);
+                  summaryEntries.push({ gradeId: remainingGrade.gradeId, result: 'ERROR', reason });
+                }
+                break;
+              }
+            } catch (failure) {
+              const reason = failure instanceof Error ? failure.message : 'No se pudo validar la selección actual de SIGCE.';
+              addReport(queued, grade, 'ERROR', reason);
+              summaryEntries.push({ gradeId: grade.gradeId, result: 'ERROR', reason });
+              stopContinuous.current = true;
+              continue;
+            }
+          }
+
+          let result: PortalResponse;
+          let overwriteBackup: GradeOverwriteBackup | null = null;
+          try {
+            result = await sendToTab({
+              kind: 'SIGCE_FILL',
+              grade,
+              course: targetPlan.course,
+              subject: targetPlan.subject,
+              period: targetPlan.period,
+            });
+
+            if (!result.ok && result.status === 'CONFLICT' && replaceConflicts && result.existingValue !== undefined && result.existingValue !== '') {
+              overwriteBackup = await saveGradeOverwriteBackup({
+                courseId: targetPlan.course.id,
+                courseName: targetPlan.course.name,
+                subjectId: targetPlan.subject.id,
+                subjectName: targetPlan.subject.name,
+                periodNumber: targetPlan.period.number,
+                periodName: targetPlan.period.name,
+                gradeId: grade.gradeId,
+                rude: grade.rude,
+                studentName: `${grade.firstName} ${grade.lastName}`.trim(),
+                previousValue: result.existingValue,
+                proposedValue: grade.value,
+              });
+              setOverwriteBackups(await listGradeOverwriteBackups());
+              result = await sendToTab({
+                kind: 'SIGCE_FILL',
+                grade,
+                course: targetPlan.course,
+                subject: targetPlan.subject,
+                period: targetPlan.period,
+                allowOverwrite: true,
+                expectedPreviousValue: overwriteBackup.previousValue,
+              });
+            }
+          } catch (failure) {
+            result = {
+              ok: false,
+              status: 'ERROR',
+              gradeId: grade.gradeId,
+              detail: failure instanceof Error ? failure.message : 'No se pudo procesar la fila.',
+            };
+          }
+
+          setFillResult(result);
+          if (result.ok && result.status === 'ALREADY_EQUAL') {
+            const detail = 'La nota visible ya coincide con SIGCE; no se modificó.';
+            addReport(queued, grade, 'SKIPPED', detail);
+            summaryEntries.push({
+              gradeId: grade.gradeId,
+              result: 'SKIPPED',
+              reason: 'La casilla ya mostraba la calificación de SIGCE y no se modificó.',
+            });
+            await sendToTab({ kind: 'SIGCE_CLOSE_GRADE_DIALOG', rude: grade.rude }).catch(() => undefined);
+            continue;
+          }
+
+          if (!result.ok) {
+            const detail = result.detail;
+            if (overwriteBackup) {
+              const updated = await updateGradeOverwriteBackup(overwriteBackup.id, 'ERROR', detail).catch(() => overwriteBackups);
+              setOverwriteBackups(updated);
+            }
+            addReport(queued, grade, result.status === 'CONFLICT' ? 'SKIPPED' : 'ERROR', detail, overwriteBackup?.previousValue);
+            summaryEntries.push({
+              gradeId: grade.gradeId,
+              result: result.status === 'CONFLICT' ? 'SKIPPED' : 'ERROR',
+              reason: result.status === 'CONFLICT'
+                ? 'La casilla tenía otro valor; se omitió o se protegió con un respaldo local.'
+                : 'Fila omitida; consulte el informe local para ver el detalle.',
+            });
+            const closed = await sendToTab({ kind: 'SIGCE_CLOSE_GRADE_DIALOG', rude: grade.rude }).catch(() => null);
+            if (!closed?.ok) stopContinuous.current = true;
+            continue;
+          }
+
+          const saveResult = await sendToTab({
+            kind: 'SIGCE_SAVE_CURRENT',
+            grade,
+            course: targetPlan.course,
+            subject: targetPlan.subject,
+            period: targetPlan.period,
+          });
+          setFillResult(saveResult);
+          if (saveResult.ok && saveResult.status === 'SAVED') {
+            let detail = saveResult.detail;
+            const closed = await sendToTab({ kind: 'SIGCE_CLOSE_GRADE_DIALOG', rude: grade.rude }).catch(() => null);
+            if (closed && !closed.ok) {
+              detail += ` No se pudo cerrar el registro: ${closed.detail}`;
+              stopContinuous.current = true;
+            }
+            if (overwriteBackup) {
+              const updated = await updateGradeOverwriteBackup(overwriteBackup.id, 'SAVED', detail);
+              setOverwriteBackups(updated);
+            }
+            addReport(queued, grade, 'SAVED', detail, overwriteBackup?.previousValue);
+            summaryEntries.push({ gradeId: grade.gradeId, result: 'FILLED', reason: 'El asistente pulsó Guardar y observó el aviso de éxito visible en la página.' });
+          } else {
+            const detail = 'detail' in saveResult ? saveResult.detail : 'La pantalla no confirmó el guardado.';
+            if (overwriteBackup) {
+              const updated = await updateGradeOverwriteBackup(overwriteBackup.id, 'ERROR', detail);
+              setOverwriteBackups(updated);
+            }
+            addReport(queued, grade, 'ERROR', detail, overwriteBackup?.previousValue);
+            summaryEntries.push({ gradeId: grade.gradeId, result: 'ERROR', reason: 'No se confirmó el guardado; consulte el informe local para ver el detalle.' });
+            const closed = await sendToTab({ kind: 'SIGCE_CLOSE_GRADE_DIALOG', rude: grade.rude }).catch(() => null);
+            if (!closed?.ok) stopContinuous.current = true;
+          }
+        }
+
+        if (!demo && session && summaryEntries.length > 0) {
+          try {
+            for (let offset = 0; offset < summaryEntries.length; offset += 500) {
+              await sendSummary(
+                session,
+                queued.filters,
+                targetPlan.fingerprint,
+                summaryEntries.slice(offset, offset + 500),
+                crypto.randomUUID(),
+              );
+            }
+          } catch (failure) {
+            report.push({
+              course: targetPlan.course.name,
+              subject: targetPlan.subject.name,
+              period: targetPlan.period.name,
+              gradeId: '',
+              rude: '',
+              student: 'Informe de auditoría',
+              proposedValue: 0,
+              result: 'ERROR',
+              detail: failure instanceof Error ? `El SIE recibió el recorrido, pero SIGCE no guardó el resumen: ${failure.message}` : 'El resumen no se pudo guardar en SIGCE.',
+              reportedAt: new Date().toISOString(),
+            });
+            setContinuousReport([...report]);
+            void chrome.storage.local.set({ sigceContinuousReport: { entries: report, status: 'RUNNING', updatedAt: new Date().toISOString() } });
+          }
+        }
+
+        if (stopContinuous.current) {
+          for (const remaining of queuedPlans.slice(planIndex + 1)) {
+            for (const grade of remaining.plan.grades) {
+              addReport(remaining, grade, 'SKIPPED', 'Se omitió porque el contexto de la página dejó de ser seguro para continuar.');
+            }
+          }
+          break;
+        }
+      }
+    } catch (failure) {
+      runStatus = 'FAILED';
+      const detail = failure instanceof Error ? failure.message : 'El recorrido se interrumpió. Revisa el informe y los respaldos.';
+      setError(detail);
+      report.push({
+        course: lastPlan?.course.name ?? 'Recorrido',
+        subject: lastPlan?.subject.name ?? '—',
+        period: lastPlan?.period.name ?? '—',
+        gradeId: '',
+        rude: '',
+        student: 'Interrupción del recorrido',
+        proposedValue: 0,
+        result: 'ERROR',
+        detail,
+        reportedAt: new Date().toISOString(),
+      });
+      setContinuousReport([...report]);
+      void chrome.storage.local.set({ sigceContinuousReport: { entries: report, status: 'FAILED', updatedAt: new Date().toISOString() } });
+    } finally {
+      if (runStatus === 'RUNNING') runStatus = stopContinuous.current ? 'STOPPED' : 'COMPLETED';
+      if (lastPlan) setIndex(lastPlan.grades.length);
+      setContinuousRunning(false);
+      setContinuousFinished(true);
+      setReportInterrupted(runStatus === 'STOPPED' || runStatus === 'FAILED');
+      setContinuousAcknowledged(false);
+      void chrome.storage.local.set({ sigceContinuousReport: { entries: report, status: runStatus, updatedAt: new Date().toISOString() } });
+    }
+  }
+
+  function requestStopContinuous() {
+    stopContinuous.current = true;
   }
 
   async function finish() {
@@ -736,11 +1240,10 @@ export function App() {
 
   return (
     <div className="app">
-      {/* CABECERA COMPACTA Y MODERNA */}
       <header className="hero">
         <div className="hero-top">
           <div className="brand">
-            <span className="mark">S</span>
+            <img className="brand-mark" src={sigceMark} alt="" />
             <div className="brand-text">
               <strong>SIGCE</strong>
               <small>Asistente SIE</small>
@@ -1075,13 +1578,34 @@ export function App() {
           <div className="eyebrow">Paso 2 de 3 · Selección</div>
           <h2>{demo ? 'Cargar lote de demostración' : 'Elige el curso a completar'}</h2>
 
+          <div className="execution-mode" role="group" aria-label="Modo de trabajo">
+            <button
+              type="button"
+              className={executionMode === 'assisted' ? 'execution-mode-option selected' : 'execution-mode-option'}
+              aria-pressed={executionMode === 'assisted'}
+              onClick={() => setExecutionMode('assisted')}
+            >
+              Acompañado
+              <small>Revisas y guardas cada nota</small>
+            </button>
+            <button
+              type="button"
+              className={executionMode === 'continuous' ? 'execution-mode-option selected' : 'execution-mode-option'}
+              aria-pressed={executionMode === 'continuous'}
+              onClick={() => setExecutionMode('continuous')}
+            >
+              Continuo
+              <small>Completa el recorrido preparado</small>
+            </button>
+          </div>
+
           {demo ? (
             <>
-              <p>Se prepararán calificaciones ficticias para practicar el recorrido guiado en la réplica del SIE.</p>
+              <p>Se prepararán calificaciones ficticias para practicar en la réplica del SIE.</p>
               <div className="action-stack">
                 <button type="button" className="btn primary full" onClick={() => void activateDemoPlan(demoPlan)}>
-                  <IconSparkles />
-                  <span>Cargar notas demo (Primaria 2do B)</span>
+                  <IconFileText />
+                  <span>{executionMode === 'continuous' ? 'Añadir demo · Primaria 2.º B' : 'Cargar demo · Primaria 2.º B'}</span>
                 </button>
                 <button
                   type="button"
@@ -1090,7 +1614,7 @@ export function App() {
                   onClick={() => void activateDemoPlan(demoPlan6to)}
                 >
                   <IconGraduationCap size={16} />
-                  <span>Cargar demo 6to de Secundaria (Bachilleres)</span>
+                  <span>{executionMode === 'continuous' ? 'Añadir demo · 6.º de Secundaria' : 'Cargar demo · 6.º de Secundaria'}</span>
                 </button>
               </div>
             </>
@@ -1153,10 +1677,10 @@ export function App() {
               <div className="banner-preventivo">
                 <div className="banner-preventivo-header">
                   <IconShieldCheck size={16} />
-                  <span>Medida Preventiva Institucional · Respaldo de Todo Curso</span>
+                  <span>Respaldo previo de SIGCE</span>
                 </div>
                 <p>
-                  Por política de seguridad académica, se genera automáticamente una <strong>copia de seguridad preventiva</strong> de las calificaciones de {selectedCourse ? selectedCourse.name : 'cada curso'} antes de que el asistente actúe en el SIE. Si el portal ministerial sufre caídas o errores de conexión, tus notas quedan protegidas.
+                  Antes de actuar, el asistente guarda una copia local de las notas seleccionadas en SIGCE. Los valores que ya estén en el SIE se respaldan por separado antes de reemplazarlos.
                 </p>
                 {es6toSecundariaSeleccionado && (
                   <div className="banner-6to-subtag">
@@ -1189,7 +1713,7 @@ export function App() {
                 onClick={() => void preparePlan()}
               >
                 {busy ? <IconRefresh className="spin" /> : <IconArrowRight />}
-                <span>{busy ? 'Cargando notas...' : 'Preparar notas cerradas'}</span>
+                <span>{busy ? 'Cargando notas...' : executionMode === 'continuous' ? 'Agregar al recorrido' : 'Preparar notas cerradas'}</span>
               </button>
 
               <div className="backup-quick-row">
@@ -1204,34 +1728,95 @@ export function App() {
               </div>
             </div>
           )}
+
+          {executionMode === 'continuous' && queuedPlans.length > 0 && (
+            <div className="route-queue">
+              <div className="route-queue-heading">
+                <div>
+                  <h3>Recorrido preparado</h3>
+                  <p>{queuedPlans.length} selección{queuedPlans.length === 1 ? '' : 'es'} · {queuedPlans.reduce((sum, item) => sum + item.plan.grades.length, 0)} estudiantes</p>
+                </div>
+                <button type="button" className="btn ghost-link sm" onClick={() => { setQueuedPlans([]); setContinuousAcknowledged(false); }}>
+                  Vaciar
+                </button>
+              </div>
+              <ol className="route-queue-list">
+                {queuedPlans.map((item, queueIndex) => (
+                  <li key={`${item.plan.course.id}:${item.plan.subject.id}:${item.plan.period.number}`}>
+                    <span className="route-index">{queueIndex + 1}</span>
+                    <span className="route-description">
+                      <strong>{item.plan.course.name}</strong>
+                      <small>{item.plan.subject.name} · {item.plan.period.name} · {item.plan.grades.length} estudiantes</small>
+                    </span>
+                    <button
+                      type="button"
+                      className="icon-action"
+                      aria-label={`Quitar ${item.plan.course.name} ${item.plan.subject.name}`}
+                      onClick={() => setQueuedPlans((previous) => previous.filter((_, index) => index !== queueIndex))}
+                    >
+                      <IconTrash size={14} />
+                    </button>
+                  </li>
+                ))}
+              </ol>
+              <label className="option-row">
+                <input type="checkbox" checked={autoSaveEnabled} onChange={(event) => setAutoSaveEnabled(event.target.checked)} />
+                <span><strong>Guardar automáticamente</strong><small>El asistente pulsará Guardar y comprobará el aviso visible de cada registro.</small></span>
+              </label>
+              <label className="option-row">
+                <input type="checkbox" checked={replaceConflicts} onChange={(event) => setReplaceConflicts(event.target.checked)} disabled={!autoSaveEnabled} />
+                <span><strong>Reemplazar notas distintas</strong><small>Solo después de respaldar el valor que aparece en el SIE.</small></span>
+              </label>
+              <label className="option-row consent-row">
+                <input type="checkbox" checked={continuousAcknowledged} onChange={(event) => setContinuousAcknowledged(event.target.checked)} disabled={!autoSaveEnabled} />
+                <span>Revisé cursos, materias, trimestres y notas de SIGCE. Autorizo que el asistente complete y guarde este recorrido.</span>
+              </label>
+              <button
+                type="button"
+                className="btn primary full"
+                disabled={continuousRunning || !autoSaveEnabled || !continuousAcknowledged}
+                onClick={() => void startContinuousRun()}
+              >
+                <IconArrowRight />
+                <span>Iniciar recorrido continuo</span>
+              </button>
+              <p className="route-queue-note">Se detendrá si pierde la sesión o no puede confirmar un curso. Las filas ambiguas se omiten y aparecen en el informe.</p>
+            </div>
+          )}
         </section>
       )}
 
       {/* PASO 3: LOTE PREPARADO + BARRA DE PROGRESO */}
-      {plan && (
+      {plan && !continuousFinished && (
         <section className="card compact">
           <div className="batch-header">
             <div style={{ minWidth: 0 }}>
-              <div className="eyebrow">Paso 3 de 3 · Lote activo</div>
+              <div className="eyebrow">{continuousRunning ? `Recorrido continuo · Selección ${continuousCourseIndex} de ${queuedPlans.length}` : 'Paso 3 de 3 · Lote activo'}</div>
               <h2>{plan.course.name}</h2>
               <div className="batch-meta">
                 {plan.subject.name} · {plan.period.name}
               </div>
             </div>
-            <button
-              type="button"
-              className="btn ghost-link"
-              onClick={() => {
-                setPlan(null);
-                setEntries([]);
-                setInspection(null);
-                setFillResult(null);
-                setSaveObserved('');
-                setError('');
-              }}
-            >
-              Cambiar
-            </button>
+            {continuousRunning ? (
+              <button type="button" className="btn danger sm" onClick={requestStopContinuous}>
+                Detener al terminar esta nota
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn ghost-link"
+                onClick={() => {
+                  setPlan(null);
+                  setEntries([]);
+                  setInspection(null);
+                  setFillResult(null);
+                  setSaveObserved('');
+                  setError('');
+                }}
+              >
+                Cambiar
+              </button>
+            )}
           </div>
 
           {plan.grades.length > 0 && (
@@ -1243,7 +1828,7 @@ export function App() {
                 <span>{progressPct}%</span>
               </div>
               <div className="progress-track">
-                <div className="progress-fill" style={{ width: `${progressPct}%` }} />
+                <div className="progress-fill" style={{ transform: `scaleX(${progressPct / 100})` }} />
               </div>
             </div>
           )}
@@ -1270,13 +1855,20 @@ export function App() {
             </div>
           )}
 
+          {continuousRunning && (
+            <div className="run-live-status" role="status">
+              <span className="run-live-indicator" />
+              <span>Trabajando en {plan.subject.name}, {plan.period.name}. Los conflictos y errores se anotan y el asistente sigue cuando la pantalla permite continuar.</span>
+            </div>
+          )}
+
           {/* TARJETA DE COPIA DE SEGURIDAD PREVENTIVA DE NOTAS */}
           <div className="backup-card">
             <div className="backup-card-header">
               <div className="backup-card-title">
                 <IconShieldCheck size={18} />
                 <div>
-                  <strong>Copia de Seguridad Preventiva Verificada</strong>
+                    <strong>Respaldo local del lote</strong>
                   <span className="backup-card-sub">
                     {lastBackup?.timestampFormatted ? `Respaldo activo: ${lastBackup.timestampFormatted}` : 'Respaldo generado'} · {plan.grades.length} estudiantes asegurados
                   </span>
@@ -1284,12 +1876,12 @@ export function App() {
               </div>
               <span className="badge-preventivo-pill">
                 <IconCheck size={12} />
-                {is6toSecundaria(plan.course.name) ? '6to Sec. Bachilleres' : 'Medida preventiva activa'}
+                {is6toSecundaria(plan.course.name) ? '6.º de Secundaria' : 'Respaldo disponible'}
               </span>
             </div>
 
             <p className="backup-card-help">
-              Como medida preventiva obligatoria para todo curso, se resguardaron las notas antes de que el asistente actúe en el SIE. Si la plataforma ministerial falla, se congela o se pierde la sesión, puedes descargar las notas o restaurar el lote:
+              SIGCE guardó una copia local de estas notas antes del recorrido. Este respaldo refleja el lote de SIGCE, no los valores que ya estaban registrados en el SIE.
             </p>
 
             <div className="backup-card-actions">
@@ -1321,13 +1913,23 @@ export function App() {
                 <IconHistory size={14} />
                 <span>Historial ({savedBackups.length})</span>
               </button>
+              <button
+                type="button"
+                className="btn ghost-link sm"
+                onClick={() => downloadGradeOverwriteBackups(overwriteBackups)}
+                disabled={overwriteBackups.length === 0}
+                title="Descarga las calificaciones del SIE que fueron reemplazadas"
+              >
+                <IconHistory size={14} />
+                <span>Valores reemplazados ({overwriteBackups.length})</span>
+              </button>
             </div>
           </div>
         </section>
       )}
 
       {/* TARJETA DEL ESTUDIANTE ACTUAL */}
-      {plan && current && inspection?.ok && (
+      {plan && current && inspection?.ok && !continuousFinished && (
         <section className="card">
           <div className="student-top">
             <span className="eyebrow" style={{ marginBottom: 0 }}>
@@ -1359,7 +1961,9 @@ export function App() {
             <div className="status-box info">
               <IconAlert size={15} />
               <span>
-                Revisa la nota en {demo ? 'la página de prueba' : 'el SIE'} y pulsa <strong>Guardar</strong> allí para continuar.
+                {continuousRunning
+                  ? 'Nota escrita. El asistente intentará guardarla y esperará el aviso de la página.'
+                  : <>Revisa la nota en {demo ? 'la página de prueba' : 'el SIE'} y pulsa <strong>Guardar</strong> allí para continuar.</>}
               </span>
             </div>
           )}
@@ -1374,7 +1978,14 @@ export function App() {
           {!fillResult && (
             <div className="pre-action-reassurance">
               <IconShieldCheck size={14} />
-              <span>Medida preventiva: Respaldo de notas guardado en el navegador antes de interactuar con el SIE.</span>
+              <span>Respaldo local del lote guardado antes de interactuar con el SIE.</span>
+            </div>
+          )}
+
+          {activeOverwriteBackup && (
+            <div className="previous-value-note">
+              <strong>Valor anterior respaldado: {activeOverwriteBackup.previousValue}</strong>
+              <span>Guardado en este navegador antes de reemplazar la nota.</span>
             </div>
           )}
 
@@ -1394,9 +2005,16 @@ export function App() {
             )}
 
             {fillResult?.status === 'CONFLICT' && (
-              <button type="button" className="btn danger full" disabled={busy} onClick={() => void fill(true)}>
+              <button type="button" className="btn danger full" disabled={busy} onClick={() => void fill(true, current, fillResult.existingValue)}>
                 <IconAlert />
                 <span>Reemplazar nota tras revisarla</span>
+              </button>
+            )}
+
+            {activeOverwriteBackup && !continuousRunning && (
+              <button type="button" className="btn outline full" disabled={busy} onClick={() => void restorePreviousValue()}>
+                <IconHistory />
+                <span>Restaurar valor anterior ({activeOverwriteBackup.previousValue})</span>
               </button>
             )}
 
@@ -1478,7 +2096,7 @@ export function App() {
       )}
 
       {/* SIN NOTAS DISPONIBLES */}
-      {plan && plan.grades.length === 0 && (
+      {plan && plan.grades.length === 0 && !continuousFinished && (
         <section className="card">
           <h2>Sin notas disponibles</h2>
           <p>Esta selección no tiene calificaciones publicadas para cargar en el trimestre elegido.</p>
@@ -1491,7 +2109,7 @@ export function App() {
       )}
 
       {/* RECORRIDO TERMINADO */}
-      {plan && !current && plan.grades.length > 0 && (
+      {plan && !current && plan.grades.length > 0 && !continuousRunning && !continuousFinished && (
         <section className="card success-hero">
           <div className="ready-icon-wrap">
             <IconCheck size={28} />
@@ -1545,6 +2163,63 @@ export function App() {
         </section>
       )}
 
+      {continuousFinished && continuousReport.length > 0 && (
+        <section className="card report-card">
+          <div className="eyebrow">Recorrido continuo · Informe final</div>
+          <h2>{reportInterrupted ? 'Recorrido interrumpido' : 'Resultado por curso y estudiante'}</h2>
+          <p>
+            {reportInterrupted
+              ? 'El recorrido se detuvo o el panel se cerró antes de completarlo. Revisa los registros ya procesados y continúa con un recorrido preparado nuevo.'
+              : '“Guardado observado” significa que la página mostró un aviso de éxito. El informe no sustituye la conciliación posterior con el SIE.'}
+          </p>
+          <div className="report-totals" aria-label="Resumen del recorrido">
+            <div><strong>{continuousReport.filter((entry) => entry.result === 'SAVED').length}</strong><span>Guardados observados</span></div>
+            <div><strong>{continuousReport.filter((entry) => entry.result === 'SKIPPED').length}</strong><span>Omitidos</span></div>
+            <div><strong>{continuousReport.filter((entry) => entry.result === 'ERROR').length}</strong><span>Errores</span></div>
+          </div>
+          <button type="button" className="btn outline full" onClick={() => downloadContinuousReport(continuousReport)}>
+            <IconDownload />
+            <span>Descargar informe detallado</span>
+          </button>
+          <details className="report-details">
+            <summary>Ver registros ({continuousReport.length})</summary>
+            <div className="report-list">
+              {continuousReport.map((entry, reportIndex) => (
+                <article className={`report-entry ${entry.result.toLowerCase()}`} key={`${entry.gradeId || entry.course}:${reportIndex}`}>
+                  <div className="report-entry-top">
+                    <strong>{entry.student}</strong>
+                    <span>{entry.result === 'SAVED' ? 'Aviso de guardado' : entry.result === 'SKIPPED' ? 'Omitido' : 'Error'}</span>
+                  </div>
+                  <small>{entry.course} · {entry.subject} · {entry.period}</small>
+                  {entry.rude && <small>RUDE {entry.rude} · nota SIGCE {entry.proposedValue}{entry.previousValue !== undefined ? ` · anterior ${entry.previousValue}` : ''}</small>}
+                  <p>{entry.detail}</p>
+                </article>
+              ))}
+            </div>
+          </details>
+          <button
+            type="button"
+            className="btn primary full"
+            onClick={() => {
+              setPlan(null);
+              setQueuedPlans([]);
+              setContinuousFinished(false);
+              setReportInterrupted(false);
+              setContinuousReport([]);
+              setEntries([]);
+              setInspection(null);
+              setFillResult(null);
+              setSummarySent(false);
+              setContinuousAcknowledged(false);
+              setError('');
+              void chrome.storage.local.remove('sigceContinuousReport');
+            }}
+          >
+            Preparar otro recorrido
+          </button>
+        </section>
+      )}
+
       {/* ERROR GLOBAL */}
       {error && (
         <p role="alert" className="global-error">
@@ -1562,7 +2237,7 @@ export function App() {
                 <IconShieldCheck size={20} />
                 <div>
                   <h3>Copias de Seguridad de Calificaciones</h3>
-                  <p>Respaldos automáticos ante caídas o fallos del portal SIE</p>
+                  <p>Copias de los lotes de SIGCE guardadas en este navegador</p>
                 </div>
               </div>
               <button

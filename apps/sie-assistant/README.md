@@ -1,10 +1,10 @@
 # Asistente SIGCE para el SIE
 
-Extensión de Chrome Manifest V3. La responsable abre su propia sesión en el SIE y el complemento rellena una nota por estudiante en la tabla visible. La responsable revisa y pulsa **Guardar**. El complemento espera un clic real en ese botón y un aviso de la página antes de ofrecer la confirmación y continuar. El resumen de SIGCE registra acciones informadas por la responsable; no acredita que el SIE haya persistido o verificado las notas.
+Extensión de Chrome Manifest V3. La responsable abre su propia sesión en el SIE. El panel ofrece un modo **Acompañado**, que deja la revisión y el guardado en manos de la responsable, y un modo **Continuo**, que puede recorrer una cola de selecciones preparadas y pulsar Guardar en la interfaz visible del SIE tras una autorización explícita. En ambos modos, el resumen de SIGCE registra acciones y avisos observados; no acredita una conciliación oficial de las calificaciones.
 
 Durante el llenado aparece un cursor visual que señala el RUDE encontrado, el botón de calificaciones y la casilla de materia y trimestre. El indicador sigue las acciones reales del complemento; no mueve el mouse del usuario ni pulsa **Guardar**.
 
-El script de contenido solo opera en `https://academico.sie.gob.bo/*` y en la réplica sintética `http://localhost:4174/*`. Lee el DOM visible y despacha `input`, `change` y `blur`; no hace solicitudes de red al SIE, no lee cookies ni credenciales del portal y no pulsa Guardar. Las únicas solicitudes de la extensión van a la API de SIGCE.
+El script de contenido solo opera en `https://academico.sie.gob.bo/*` y en las rutas de demostración configuradas. Lee el DOM visible y despacha `input`, `change` y `blur`; no hace solicitudes de red al SIE ni lee sus cookies o credenciales. El modo Acompañado no pulsa Guardar. El modo Continuo pulsa el control Guardar visible y requiere detectar un aviso de éxito de la página. Las solicitudes de red de la extensión se dirigen a la API de SIGCE.
 
 ## Construir e instalar
 
@@ -47,12 +47,13 @@ Para probar el llenado, abre `http://localhost:4174/demo`. Esa ruta separada sus
 
 ## Recorrido de uso
 
-1. La responsable inicia sesión en el SIE y abre el curso.
-2. En el complemento inicia sesión en SIGCE, elige gestión, curso, materia y trimestre cerrado, y carga las notas publicadas.
-3. Comprueba la pantalla. El complemento exige un único contexto de curso y una tabla visible con RUDE y apellido.
-4. Inicia el recorrido. Cada fila exige RUDE exacto, apellido coincidente y una única casilla editable de materia y trimestre. Antes de cada nota se vuelve a consultar la huella de las calificaciones en SIGCE. Un cambio de datos detiene el recorrido.
-5. La responsable revisa y guarda cada registro en el SIE. Después del aviso de la página confirma el guardado en el panel; el complemento continúa con el siguiente estudiante.
-6. Si falta una coincidencia o existe una nota distinta, el recorrido se detiene. La responsable puede omitir o autorizar expresamente el reemplazo.
-7. Cada decisión queda registrada en SIGCE antes de continuar con la siguiente fila. Al terminar, el panel muestra el resumen del recorrido. Una confirmación de la responsable se diferencia de una conciliación posterior con un reporte oficial.
+1. La responsable inicia sesión en el SIE con su cuenta y abre la pantalla de calificaciones.
+2. En el complemento inicia sesión en SIGCE, elige gestión, curso, materia y trimestre cerrado, y prepara las notas publicadas.
+3. En **Acompañado**, comprueba la pantalla y procesa una fila por vez. Revisa la nota en el SIE, guarda allí y confirma el aviso visible en el panel.
+4. En **Continuo**, prepara una cola de combinaciones curso, materia y trimestre. La opción de guardado automático viene desactivada; para iniciar se debe activarla y confirmar que se revisó la cola.
+5. Cada fila requiere RUDE exacto, apellido coincidente y una única casilla editable. Antes de escribir se vuelve a comprobar la huella de las notas de SIGCE. Si la calificación cambió, el asistente omite esa fila.
+6. Si una casilla ya contiene un valor distinto, por defecto se omite. Si se autorizó reemplazar valores, el asistente guarda el valor anterior en el almacenamiento local de Chrome antes de escribir. El historial permite descargarlo; en el modo Acompañado, la fila activa ofrece una acción para reponer el valor anterior en el campo y pedir que se guarde en el SIE.
+7. El modo Continuo reconoce cursos usando controles visibles del portal. Si el curso, el estudiante, la materia, el periodo o el aviso de guardado no se reconocen de forma inequívoca, se registra el error y se omite la fila. Se detiene si la sesión termina o si no puede confirmar que el contexto sea seguro.
+8. Al terminar, el panel presenta resultados por curso y estudiante y permite descargar un informe JSON. Este informe y los respaldos contienen RUDE y calificaciones de menores: se guardan en el perfil local de Chrome y cualquier archivo descargado debe resguardarse con acceso limitado. SIGCE recibe un resumen de acciones; el aviso visible del SIE no equivale a una verificación oficial de la nota.
 
 El portal puede cambiar sus tablas o el modo de guardado. Si el complemento no reconoce una estructura inequívoca, detiene esa fila para revisión manual.

@@ -7,6 +7,8 @@ type FillRequest = {
   period: GradePlan['period'];
   subjectAlias?: string;
   allowOverwrite?: boolean;
+  expectedPreviousValue?: string;
+  value?: string;
 };
 
 export type PortalStep = {
@@ -282,9 +284,9 @@ function findGradeInput(dialog: Element, request: FillRequest): HTMLInputElement
   return one(candidates, 'No se encontró una única casilla editable para la materia y el trimestre.');
 }
 
-function writeValue(input: HTMLInputElement | HTMLTextAreaElement, value: number): void {
+function writeValue(input: HTMLInputElement | HTMLTextAreaElement, value: string): void {
   const prototype = input instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
-  Object.getOwnPropertyDescriptor(prototype, 'value')!.set!.call(input, String(value));
+  Object.getOwnPropertyDescriptor(prototype, 'value')!.set!.call(input, value);
   input.dispatchEvent(new Event('input', { bubbles: true }));
   input.dispatchEvent(new Event('change', { bubbles: true }));
   input.blur();
@@ -302,6 +304,178 @@ export function inspectPortal(expectedCourse?: string): PortalResponse {
   } catch (error) {
     return { ok: false, status: 'ERROR', detail: error instanceof Error ? error.message : 'Pantalla no reconocida.' };
   }
+}
+
+function courseParts(expected: string): { level: string; grade: string; section: string } | null {
+  const target = normalized(expected);
+  const level = ['inicial', 'primaria', 'secundaria'].find((word) => target.includes(word));
+  const gradeIndex = gradeAliases.findIndex((aliases) =>
+    aliases.some((alias) => new RegExp(`(?:^| )${alias}(?: |$)`).test(target)),
+  );
+  if (!level || gradeIndex < 0) return null;
+  const grade = gradeAliases[gradeIndex]!.find((alias) =>
+    new RegExp(`(?:^| )${alias}(?: |$)`).test(target),
+  );
+  if (!grade) return null;
+  const section = target.slice(target.indexOf(grade) + grade.length).trim().split(' ').find((part) => /^[a-f]$/.test(part));
+  return section ? { level, grade, section } : null;
+}
+
+function visibleCourseControls(): Array<HTMLElement> {
+  return [...document.querySelectorAll<HTMLElement>('button,a,[role="button"],[tabindex]')].filter(visible);
+}
+
+function findCourseControl(expected: string, kind: 'grade' | 'section'): HTMLElement {
+  const parts = courseParts(expected);
+  if (!parts) throw new Error('El nombre del curso no permite identificar nivel, grado y paralelo.');
+  const gradeAliasesForTarget = gradeAliases.find((aliases) => aliases.includes(parts.grade)) ?? [parts.grade];
+  const controls = visibleCourseControls();
+  const exactCandidates = controls.filter((control) => {
+    const labels = [
+      normalized(text(control)),
+      normalized(control.getAttribute('aria-label') ?? ''),
+      normalized(control.getAttribute('title') ?? ''),
+    ].filter(Boolean);
+    if (kind === 'section') return labels.some((label) => label === parts.section);
+    return gradeAliasesForTarget.some((alias) => labels.includes(normalized(alias)));
+  });
+
+  const matchesContext = (control: HTMLElement) => {
+    let parent: Element | null = control;
+    for (let depth = 0; parent && depth < 9; depth += 1, parent = parent.parentElement) {
+      const context = normalized(text(parent));
+      if (context.length > 260) continue;
+      const hasLevel = context.includes(parts.level);
+      const hasGrade = gradeAliasesForTarget.some((alias) =>
+        new RegExp(`(?:^| )${alias}(?: |$)`).test(context),
+      );
+      if (!hasLevel || !hasGrade) continue;
+      if (kind === 'grade' || context.split(' ').includes(parts.section)) return true;
+    }
+    return false;
+  };
+
+  const candidates = exactCandidates.filter(matchesContext);
+  if (candidates.length !== 1) {
+    throw new Error(`No se identificó un único control visible para el ${kind === 'grade' ? 'grado' : 'paralelo'} de ${expected}.`);
+  }
+  return candidates[0]!;
+}
+
+async function waitForCourse(expected: string): Promise<PortalResponse> {
+  const deadline = Date.now() + 6000;
+  while (Date.now() < deadline) {
+    const result = inspectPortal(expected);
+    if (result.ok && result.status === 'READY') return result;
+    await new Promise((resolve) => window.setTimeout(resolve, 250));
+  }
+  return inspectPortal(expected);
+}
+
+export async function navigateVisibleCourse(expectedCourse: string): Promise<PortalResponse> {
+  const initial = inspectPortal(expectedCourse);
+  if (initial.ok) return initial;
+  try {
+    const parts = courseParts(expectedCourse);
+    if (!parts) throw new Error('El curso requiere una selección manual porque no se pudieron leer sus datos.');
+    const gradeControl = findCourseControl(expectedCourse, 'grade');
+    gradeControl.scrollIntoView({ block: 'center', behavior: 'instant' });
+    gradeControl.click();
+    await new Promise((resolve) => window.setTimeout(resolve, 250));
+    const sectionControl = findCourseControl(expectedCourse, 'section');
+    sectionControl.scrollIntoView({ block: 'center', behavior: 'instant' });
+    sectionControl.click();
+    const result = await waitForCourse(expectedCourse);
+    if (!result.ok) throw new Error(result.detail);
+    return result;
+  } catch (error) {
+    return { ok: false, status: 'ERROR', detail: error instanceof Error ? error.message : 'No se pudo abrir el curso solicitado.' };
+  }
+}
+
+export function closeVisibleGradeDialog(rude: string): PortalResponse {
+  try {
+    const dialog = findGradeDialog();
+    if (!dialog) return { ok: true, status: 'CLOSED', detail: 'No había un registro abierto.' };
+    const dialogRude = text(dialog.querySelector('#modal-code')) || dialogField(dialog, /\brude\b/);
+    if (exactRude(dialogRude) !== exactRude(rude)) {
+      throw new Error('El registro abierto no coincide con el estudiante actual.');
+    }
+    const closeButtons = [...dialog.querySelectorAll<HTMLElement>('button,[role="button"]')]
+      .filter(visible)
+      .filter((button) => /cerrar|close|cancelar|volver|salir/i.test(normalized(`${text(button)} ${button.getAttribute('aria-label') ?? ''}`)));
+    const closeButton = one(closeButtons, 'No se identificó un botón seguro para cerrar el registro de notas.');
+    closeButton.click();
+    if (findGradeDialog()) throw new Error('El registro de notas sigue abierto.');
+    return { ok: true, status: 'CLOSED', detail: 'Registro cerrado.' };
+  } catch (error) {
+    return { ok: false, status: 'ERROR', detail: error instanceof Error ? error.message : 'No se pudo cerrar el registro.' };
+  }
+}
+
+export function saveVisibleGrade(request: FillRequest): Promise<PortalResponse> {
+  const { grade } = request;
+  return new Promise((resolve) => {
+    const dialog = findGradeDialog();
+    if (!dialog) {
+      resolve({ ok: false, status: 'ERROR', gradeId: grade.gradeId, detail: 'No hay un registro de notas abierto para guardar.' });
+      return;
+    }
+    const dialogRude = text(dialog.querySelector('#modal-code')) || dialogField(dialog, /\brude\b/);
+    if (exactRude(dialogRude) !== exactRude(grade.rude)) {
+      resolve({ ok: false, status: 'ERROR', gradeId: grade.gradeId, detail: 'El registro abierto no coincide con el RUDE del estudiante.' });
+      return;
+    }
+    try {
+      const input = findGradeInput(dialog, request);
+      if (input.value.trim() !== String(grade.value)) {
+        resolve({ ok: false, status: 'ERROR', gradeId: grade.gradeId, detail: 'La casilla cambió después de escribirla. No se pulsó Guardar.' });
+        return;
+      }
+    } catch (error) {
+      resolve({ ok: false, status: 'ERROR', gradeId: grade.gradeId, detail: error instanceof Error ? error.message : 'No se pudo confirmar la casilla antes de guardar.' });
+      return;
+    }
+    const buttons = [...dialog.querySelectorAll<HTMLElement>('button,input[type="submit"],[role="button"]')]
+      .filter(visible)
+      .filter((button) => !('disabled' in button && Boolean((button as HTMLButtonElement).disabled)))
+      .filter((button) => /guardar|registrar cambios/i.test(normalized(`${text(button)} ${button.getAttribute('aria-label') ?? ''}`)));
+    if (buttons.length !== 1) {
+      resolve({ ok: false, status: 'ERROR', gradeId: grade.gradeId, detail: 'No se identificó un único botón visible para guardar esta nota.' });
+      return;
+    }
+
+    let timeout = 0;
+    const observer = new MutationObserver((mutations) => {
+      const changed = new Set<Element>();
+      for (const mutation of mutations) {
+        const target = mutation.target instanceof Element ? mutation.target : mutation.target.parentElement;
+        const status = target?.closest('#toast,[role="status"],[role="alert"]');
+        if (status && visible(status)) changed.add(status);
+      }
+      for (const node of changed) {
+        const message = text(node);
+        if (/guardad[oa]s?|registrad[oa]s?|actualizad[oa]s?/i.test(message)) {
+          clearTimeout(timeout);
+          observer.disconnect();
+          resolve({ ok: true, status: 'SAVED', gradeId: grade.gradeId, detail: `La página mostró: ${message.slice(0, 180)}` });
+          return;
+        }
+        if (/error|no se pudo|rechaz|fall[oó]|inv[aá]lid/i.test(message)) {
+          clearTimeout(timeout);
+          observer.disconnect();
+          resolve({ ok: false, status: 'ERROR', gradeId: grade.gradeId, detail: `La página informó: ${message.slice(0, 180)}` });
+          return;
+        }
+      }
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true });
+    timeout = window.setTimeout(() => {
+      observer.disconnect();
+      resolve({ ok: false, status: 'ERROR', gradeId: grade.gradeId, detail: 'La página no mostró una confirmación de guardado en el tiempo esperado.' });
+    }, 10000);
+    buttons[0]!.click();
+  });
 }
 
 export async function fillVisibleGrade(request: FillRequest, onStep?: PortalStepObserver): Promise<PortalResponse> {
@@ -345,9 +519,23 @@ export async function fillVisibleGrade(request: FillRequest, onStep?: PortalStep
       throw new Error('SIGCE devolvió una calificación fuera del rango de 0 a 100.');
     }
     const current = input.value.trim();
-    if (current === String(grade.value)) {
+    const targetValue = request.value ?? String(grade.value);
+    const numericTarget = Number(targetValue);
+    if (targetValue !== '' && (!Number.isInteger(numericTarget) || numericTarget < 0 || numericTarget > 100)) {
+      throw new Error('La calificación solicitada debe estar entre 0 y 100.');
+    }
+    if (current === targetValue) {
       await showStep({ element: input, label: 'La nota ya coincide', action: 'done' });
       return { ok: true, status: 'ALREADY_EQUAL', gradeId: grade.gradeId, detail: 'La casilla ya muestra esta nota; no se modificó.' };
+    }
+    if (request.expectedPreviousValue !== undefined && current !== request.expectedPreviousValue) {
+      return {
+        ok: false,
+        status: 'CONFLICT',
+        gradeId: grade.gradeId,
+        existingValue: current,
+        detail: `La casilla cambió desde el respaldo (${request.expectedPreviousValue || 'vacía'}). Se conserva ${current || 'vacía'} y no se modificó.`,
+      };
     }
     if (current !== '' && !request.allowOverwrite) {
       await showStep({ element: input, label: 'Nota diferente: revisar', action: 'warning' });
@@ -355,13 +543,14 @@ export async function fillVisibleGrade(request: FillRequest, onStep?: PortalStep
         ok: false,
         status: 'CONFLICT',
         gradeId: grade.gradeId,
+        existingValue: current,
         detail: `La casilla muestra ${current} y SIGCE propone ${grade.value}. Revise antes de reemplazar.`,
       };
     }
-    writeValue(input, grade.value);
-    if (input.value !== String(grade.value)) throw new Error('La página rechazó el valor escrito.');
-    await showStep({ element: input, label: `Nota ${grade.value} escrita · revisa y guarda`, action: 'done' });
-    return { ok: true, status: 'FILLED', gradeId: grade.gradeId, detail: 'Nota escrita. Revísela y pulse Guardar en la página.' };
+    writeValue(input, targetValue);
+    if (input.value !== targetValue) throw new Error('La página rechazó el valor escrito.');
+    await showStep({ element: input, label: `Nota ${targetValue} escrita · revisa y guarda`, action: 'done' });
+    return { ok: true, status: 'FILLED', gradeId: grade.gradeId, detail: request.value !== undefined ? 'Valor anterior restaurado en el campo. Guarde el registro en la página.' : 'Nota escrita. Revísela y pulse Guardar en la página.' };
   } catch (error) {
     return {
       ok: false,

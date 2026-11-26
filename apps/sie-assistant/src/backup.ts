@@ -22,6 +22,85 @@ export interface GradeBackup {
 
 const STORAGE_KEY = 'sigceGradeBackups';
 const MAX_STORED_BACKUPS = 30;
+const OVERWRITE_STORAGE_KEY = 'sigceGradeOverwriteBackups';
+const MAX_OVERWRITE_BACKUPS = 5000;
+
+export interface GradeOverwriteBackup {
+  id: string;
+  createdAt: string;
+  courseId: string;
+  courseName: string;
+  subjectId: string;
+  subjectName: string;
+  periodNumber: number;
+  periodName: string;
+  gradeId: string;
+  rude: string;
+  studentName: string;
+  previousValue: string;
+  proposedValue: number;
+  status: 'CAPTURED' | 'SAVED' | 'ERROR' | 'RESTORED';
+  detail?: string;
+}
+
+export async function listGradeOverwriteBackups(): Promise<GradeOverwriteBackup[]> {
+  if (typeof chrome === 'undefined' || !chrome?.storage?.local) return [];
+  const result = await chrome.storage.local.get(OVERWRITE_STORAGE_KEY);
+  const list = result[OVERWRITE_STORAGE_KEY];
+  return Array.isArray(list) ? (list as GradeOverwriteBackup[]) : [];
+}
+
+export async function saveGradeOverwriteBackup(
+  entry: Omit<GradeOverwriteBackup, 'id' | 'createdAt' | 'status'>,
+): Promise<GradeOverwriteBackup> {
+  if (typeof chrome === 'undefined' || !chrome?.storage?.local) {
+    throw new Error('No se pudo guardar la nota anterior en este navegador. No se reemplazó la casilla.');
+  }
+  const previous = await listGradeOverwriteBackups();
+  if (previous.length >= MAX_OVERWRITE_BACKUPS) {
+    throw new Error('El historial de notas reemplazadas está lleno. Descárgalo antes de intentar otro reemplazo.');
+  }
+  const backup: GradeOverwriteBackup = {
+    ...entry,
+    id: `overwrite_${crypto.randomUUID()}`,
+    createdAt: new Date().toISOString(),
+    status: 'CAPTURED',
+  };
+  await chrome.storage.local.set({
+    [OVERWRITE_STORAGE_KEY]: [backup, ...previous],
+  });
+  return backup;
+}
+
+export async function updateGradeOverwriteBackup(
+  id: string,
+  status: GradeOverwriteBackup['status'],
+  detail?: string,
+): Promise<GradeOverwriteBackup[]> {
+  const previous = await listGradeOverwriteBackups();
+  const updated = previous.map((entry) =>
+    entry.id === id ? { ...entry, status, ...(detail ? { detail } : {}) } : entry,
+  );
+  if (typeof chrome === 'undefined' || !chrome?.storage?.local) {
+    throw new Error('No se pudo actualizar el respaldo de la nota anterior.');
+  }
+  await chrome.storage.local.set({ [OVERWRITE_STORAGE_KEY]: updated });
+  return updated;
+}
+
+export function downloadGradeOverwriteBackups(entries: GradeOverwriteBackup[]): void {
+  const payload = {
+    title: 'Respaldo de notas reemplazadas · SIGCE',
+    generatedAt: new Date().toISOString(),
+    note: 'Archivo local para recuperar valores reemplazados. Contiene datos académicos personales.',
+    entries,
+  };
+  triggerFileDownload(
+    JSON.stringify(payload, null, 2),
+    `respaldo-notas-reemplazadas-${Date.now()}.json`,
+    'application/json;charset=utf-8',
+  );
+}
 
 /**
  * Detecta si el curso corresponde a 6to de Secundaria (Bachillerato en Bolivia).
@@ -94,24 +173,21 @@ export function createGradeBackupFromPlan(
  * Guarda una copia de seguridad en chrome.storage.local con desduplicación.
  */
 export async function saveGradeBackup(backup: GradeBackup): Promise<void> {
-  try {
-    const existing = await listGradeBackups();
-    const filtered = existing.filter(
-      (b) =>
-        !(
-          b.courseId === backup.courseId &&
-          b.subjectId === backup.subjectId &&
-          b.periodNumber === backup.periodNumber &&
-          b.fingerprint === backup.fingerprint
-        ),
-    );
-    const updated = [backup, ...filtered].slice(0, MAX_STORED_BACKUPS);
-    if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
-      await chrome.storage.local.set({ [STORAGE_KEY]: updated });
-    }
-  } catch (err) {
-    console.error('Error guardando copia de seguridad local:', err);
+  if (typeof chrome === 'undefined' || !chrome?.storage?.local) {
+    throw new Error('No se puede acceder al almacenamiento local. No se prepararon las notas.');
   }
+  const existing = await listGradeBackups();
+  const filtered = existing.filter(
+    (b) =>
+      !(
+        b.courseId === backup.courseId &&
+        b.subjectId === backup.subjectId &&
+        b.periodNumber === backup.periodNumber &&
+        b.fingerprint === backup.fingerprint
+      ),
+  );
+  const updated = [backup, ...filtered].slice(0, MAX_STORED_BACKUPS);
+  await chrome.storage.local.set({ [STORAGE_KEY]: updated });
 }
 
 /**

@@ -1,4 +1,10 @@
-import { fillVisibleGrade, inspectPortal } from '../src/portal';
+import {
+  closeVisibleGradeDialog,
+  fillVisibleGrade,
+  inspectPortal,
+  navigateVisibleCourse,
+  saveVisibleGrade,
+} from '../src/portal';
 import { createVisualCursor } from '../src/visual-cursor';
 import type { PortalRequest, PortalResponse, SavedMessage } from '../src/types';
 
@@ -84,6 +90,34 @@ export default defineContentScript({
       if (request.kind === 'SIGCE_INSPECT') {
         respond(inspectPortal(request.expectedCourse));
         return;
+      }
+      if (request.kind === 'SIGCE_NAVIGATE_COURSE') {
+        stopObserving();
+        void navigateVisibleCourse(request.expectedCourse).then(respond);
+        return true;
+      }
+      if (request.kind === 'SIGCE_SAVE_CURRENT') {
+        stopObserving();
+        void saveVisibleGrade(request).then(respond);
+        return true;
+      }
+      if (request.kind === 'SIGCE_CLOSE_GRADE_DIALOG') {
+        stopObserving();
+        respond(closeVisibleGradeDialog(request.rude));
+        return;
+      }
+      if (request.kind === 'SIGCE_RESTORE_VALUE') {
+        stopObserving();
+        const { expectedCurrentValue, ...restoreRequest } = request;
+        void fillVisibleGrade({
+          ...restoreRequest,
+          allowOverwrite: true,
+          expectedPreviousValue: expectedCurrentValue,
+        }).then((result) => {
+          if (result.ok && result.status === 'FILLED') observeManualSave(request.grade.gradeId, request.grade.rude);
+          respond(result);
+        });
+        return true;
       }
       if (request.kind === 'SIGCE_FILL') {
         observeManualSave(request.grade.gradeId, request.grade.rude);
